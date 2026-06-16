@@ -3,83 +3,214 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jottly — Privacy Policy</title>
+<title>Jottly — a fast, friendly word duel</title>
+<meta name="description" content="Jottly is a free, friendly two-player word duel. No ads, no tracking, no sign-up, no subscriptions.">
 <style>
-  :root { color-scheme: light dark; }
-  body { font: 17px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-         max-width: 720px; margin: 0 auto; padding: 40px 20px; color: #111; background: #FAF8F4; }
-  h1 { font-size: 30px; margin-bottom: 4px; }
-  h2 { font-size: 20px; margin-top: 32px; }
-  .sub { color: #666; margin-top: 0; }
-  .promise { background: #fff; border-radius: 14px; padding: 16px 20px; margin: 24px 0; }
-  .promise li { margin: 6px 0; }
-  a { color: #F36B4F; }
-  code { background: #efece6; padding: 1px 5px; border-radius: 4px; }
-  @media (prefers-color-scheme: dark) {
-    body { color: #f2f2f2; background: #1a1a1a; } .sub { color: #aaa; }
-    .promise { background: #262626; } code { background: #333; }
+  :root{
+    --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
+    --cream:#FAF8F4; --cloud:#fff; --ink:#111; --stone:#6b6b6b; --mist:#e7e3db;
+    color-scheme: light dark;
   }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size:18px; line-height:1.6; color:var(--ink); background:var(--cream);
+    margin:0; padding:0;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:0 22px}
+  a{color:var(--coral); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* top nav */
+  header.bar{position:sticky; top:0; z-index:10; background:rgba(250,248,244,.85); backdrop-filter:saturate(160%) blur(10px); border-bottom:1px solid var(--mist)}
+  .bar .wrap{display:flex; align-items:center; gap:12px; padding-top:12px; padding-bottom:12px}
+  .bar .name{font-weight:800; font-size:20px}
+  .bar nav{margin-left:auto; font-size:15px; font-weight:600}
+  .bar nav a{margin-left:18px; color:var(--ink)}
+
+  /* brand mark */
+  .mark{flex:0 0 auto}
+
+  /* tile wordmark */
+  .word{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 2px}
+  .tile{width:60px; height:60px; border-radius:14px; border:3px solid var(--ink);
+        display:flex; align-items:center; justify-content:center; font-weight:800; font-size:34px;
+        background:var(--cloud); transition:transform .15s ease}
+  .tile:hover{transform:translateY(-4px) rotate(-3deg)}
+  .tile.j{background:var(--coral); color:var(--ink)}
+
+  /* hero */
+  .hero{padding:60px 0 24px}
+  .hero h1{font-size:46px; line-height:1.08; margin:22px 0 8px; letter-spacing:-.5px}
+  .hero p.lead{font-size:21px; color:var(--stone); margin:0 0 26px; max-width:34ch}
+  .pills{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0}
+  .pill{font-weight:700; font-size:15px; padding:8px 14px; border-radius:999px; border:2px solid var(--ink)}
+  .pill.c{background:var(--coral); color:var(--ink)}
+  .pill.a{background:var(--apricot); color:var(--ink)}
+  .pill.t{background:var(--teal); color:var(--cloud)}
+  .pill.q{background:var(--aqua); color:var(--ink)}
+
+  /* sections */
+  section{padding:40px 0}
+  h2{font-size:30px; margin:0 0 6px; letter-spacing:-.3px}
+  .kicker{font-weight:800; color:var(--coral); letter-spacing:.5px; text-transform:uppercase; font-size:13px; margin:0 0 6px}
+  .card{background:var(--cloud); border:1px solid var(--mist); border-radius:22px; padding:24px 26px; margin:18px 0}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px}
+  .feat{background:var(--cloud); border:1px solid var(--mist); border-radius:22px; padding:22px}
+  .feat .dot{width:34px; height:34px; border-radius:10px; border:2px solid var(--ink); margin-bottom:12px}
+  .feat h3{margin:0 0 6px; font-size:20px}
+  .feat p{margin:0; color:var(--stone); font-size:16px}
+
+  /* screenshots */
+  .shots{display:flex; gap:18px; overflow-x:auto; padding:6px 4px 18px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch}
+  .shots img{width:240px; flex:0 0 auto; border-radius:26px; border:1px solid var(--mist); box-shadow:0 10px 34px rgba(0,0,0,.13); scroll-snap-align:center}
+
+  /* FAQ */
+  details{background:var(--cloud); border:1px solid var(--mist); border-radius:16px; padding:4px 18px; margin:10px 0}
+  summary{font-weight:700; cursor:pointer; padding:12px 0; list-style:none}
+  summary::-webkit-details-marker{display:none}
+  summary::after{content:"+"; float:right; color:var(--coral); font-weight:800}
+  details[open] summary::after{content:"–"}
+  details p{margin:0 0 14px; color:var(--stone); font-size:16px}
+
+  /* privacy */
+  .policy h3{font-size:18px; margin:22px 0 4px}
+  .policy p, .policy li{color:var(--stone); font-size:16px}
+  .promise{background:var(--cloud); border:1px solid var(--mist); border-radius:16px; padding:14px 20px}
+
+  footer{border-top:1px solid var(--mist); padding:30px 0 50px; color:var(--stone); font-size:14px}
+
+  @media (prefers-color-scheme: dark){
+    :root{--cream:#161616; --cloud:#232323; --ink:#f2f2f2; --stone:#a9a9a9; --mist:#333}
+    .tile.j{color:#111}
+    .pill.c,.pill.a,.pill.q{color:#111}
+    header.bar{background:rgba(22,22,22,.85)}
+  }
+  @media (max-width:560px){ .hero h1{font-size:36px} .tile{width:48px;height:48px;font-size:27px} }
 </style>
 </head>
 <body>
-<h1>Jottly — Privacy Policy</h1>
-<p class="sub">Effective date: June 16, 2026</p>
 
-<p>Jottly is a word game made by Drew Sullivan ("we," "us"). This policy explains what
-information the app does — and does not — involve. The short version: we built Jottly to be played
-and shared, not to harvest your data.</p>
+<header class="bar"><div class="wrap">
+  <svg class="mark" viewBox="0 0 100 100" width="30" height="30" aria-hidden="true">
+    <rect x="6" y="6" width="40" height="40" rx="10" fill="#F36B4F" stroke="#111" stroke-width="4"/>
+    <circle cx="74" cy="26" r="20" fill="#F7B267" stroke="#111" stroke-width="4"/>
+    <circle cx="26" cy="74" r="20" fill="#26A096" stroke="#111" stroke-width="4"/>
+    <rect x="54" y="54" width="40" height="40" rx="10" fill="#fff" stroke="#111" stroke-width="4"/>
+  </svg>
+  <span class="name">Jottly</span>
+  <nav><a href="#play">How to play</a><a href="#support">Support</a><a href="#privacy">Privacy</a></nav>
+</div></header>
 
-<div class="promise">
-<strong>Our promise</strong>
-<ul>
-  <li><strong>No ads.</strong></li>
-  <li><strong>No tracking.</strong> We don't track you across apps or websites, and we use no
-      advertising or analytics SDKs.</li>
-  <li><strong>No account or sign-up.</strong> No email, password, or profile is required to play.</li>
-  <li><strong>No subscriptions, and nothing sold.</strong> We never sell or rent your information.</li>
-</ul>
+<div class="wrap">
+
+  <section class="hero" id="top">
+    <svg class="mark" viewBox="0 0 100 100" width="56" height="56" aria-hidden="true">
+      <rect x="6" y="6" width="40" height="40" rx="10" fill="#F36B4F" stroke="#111" stroke-width="4"/>
+      <circle cx="74" cy="26" r="20" fill="#F7B267" stroke="#111" stroke-width="4"/>
+      <circle cx="26" cy="74" r="20" fill="#26A096" stroke="#111" stroke-width="4"/>
+      <rect x="54" y="54" width="40" height="40" rx="10" fill="#fff" stroke="#111" stroke-width="4"/>
+    </svg>
+    <div class="word" aria-label="Jottly">
+      <span class="tile j">J</span><span class="tile">o</span><span class="tile">t</span>
+      <span class="tile">t</span><span class="tile">l</span><span class="tile">y</span>
+    </div>
+    <h1>Out-guess your friends.</h1>
+    <p class="lead">A fast, friendly word duel — one guess at a time, on your own schedule.</p>
+    <div class="pills">
+      <span class="pill c">No ads</span>
+      <span class="pill t">No tracking</span>
+      <span class="pill a">No sign-up</span>
+      <span class="pill q">No subscriptions</span>
+    </div>
+    <p style="color:var(--stone); margin:0">Coming soon to the App Store.</p>
+  </section>
+
+  <section id="play">
+    <p class="kicker">How it plays</p>
+    <h2>Crack their word first.</h2>
+    <div class="card">
+      <p style="margin-top:0">You and a friend each pick a secret <strong>five-letter word</strong>. Take turns guessing.
+      After every guess you learn your <strong>“jots”</strong> — how many of your letters are hiding in their word.
+      Rule letters in and out, narrow it down, and be the first to crack their word.</p>
+      <p style="margin-bottom:0">It’s part race, part deduction, all banter.</p>
+    </div>
+    <div class="grid">
+      <div class="feat"><div class="dot" style="background:#26A096"></div><h3>Duel a friend</h3><p>Play asynchronously, like messaging — take your turn whenever you like.</p></div>
+      <div class="feat"><div class="dot" style="background:#F7B267"></div><h3>JotBot Daily</h3><p>The same word for everyone each day. Solve it and keep your streak alive.</p></div>
+      <div class="feat"><div class="dot" style="background:#F36B4F"></div><h3>React &amp; gloat</h3><p>Emoji and playful reaction packs for every guess. Pick an avatar and make it yours.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">A peek</p>
+    <h2>See it in action.</h2>
+    <div class="shots">
+      <img src="screenshots/jottly-01-hero.png" alt="Jottly — players and reactions" loading="lazy">
+      <img src="screenshots/jottly-02-duel.png" alt="Jottly — a duel exchange" loading="lazy">
+      <img src="screenshots/jottly-03-deduction.png" alt="Jottly — deduction board" loading="lazy">
+      <img src="screenshots/jottly-04-daily.png" alt="Jottly — daily challenge" loading="lazy">
+      <img src="screenshots/jottly-05-personal.png" alt="Jottly — reactions and a win" loading="lazy">
+    </div>
+  </section>
+
+  <section id="support">
+    <p class="kicker">Support</p>
+    <h2>Need a hand?</h2>
+    <div class="card">
+      <p style="margin:0">Email <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a> — we read every message and usually reply within a couple of days.</p>
+    </div>
+    <details><summary>How do I play?</summary><p>Pick a secret five-letter word; your opponent does too. Take turns guessing. Each guess shows your <em>jots</em> — the number of your letters that appear in their secret word. Use those clues to deduce their word, and be the first to guess it exactly.</p></details>
+    <details><summary>How do I play with a friend?</summary><p>Tap <strong>New game</strong>, choose your secret word, then <strong>Invite a friend</strong> and share the link. They open it, pick their own secret word, and the duel begins.</p></details>
+    <details><summary>Can I practice solo?</summary><p>Yes — tap <strong>New game → Train with JotBot</strong> any time, or take the daily challenge everyone shares.</p></details>
+    <details><summary>I’m not getting turn notifications.</summary><p>Enable notifications for Jottly in <strong>iOS Settings → Notifications → Jottly</strong>.</p></details>
+    <details><summary>How do I restore a supporter purchase?</summary><p>Open <strong>Settings</strong> in the app and tap <strong>Restore Purchases</strong>. Supporter packs are cosmetic only and never affect gameplay.</p></details>
+    <details><summary>How do I remove a game or my data?</summary><p>Swipe a game on the Home screen to delete it. There’s no account — uninstalling the app removes its local data.</p></details>
+  </section>
+
+  <section id="privacy" class="policy">
+    <p class="kicker">Privacy</p>
+    <h2>Privacy Policy</h2>
+    <p style="color:var(--stone); margin-top:0">Effective June 16, 2026</p>
+    <p>Jottly is made by Drew Sullivan. The short version: we built Jottly to be played and shared, not to harvest your data.</p>
+    <div class="promise">
+      <strong>Our promise</strong>
+      <ul>
+        <li><strong>No ads.</strong></li>
+        <li><strong>No tracking.</strong> We don’t track you across apps or websites, and use no advertising or analytics SDKs.</li>
+        <li><strong>No account or sign-up.</strong> No email, password, or profile required to play.</li>
+        <li><strong>No subscriptions, and nothing sold.</strong> We never sell or rent your information.</li>
+      </ul>
+    </div>
+    <h3>Information we don’t collect</h3>
+    <p>We do not collect your name, email, contacts, location, advertising identifier, or usage analytics. Jottly has no login and integrates no third-party advertising, attribution, or analytics services.</p>
+    <h3>Information used to play</h3>
+    <p>To make a two-player word game work, some information is created on your device and, for games with a friend, synced through <strong>Apple’s iCloud / CloudKit</strong> so both players stay in sync:</p>
+    <ul>
+      <li><strong>Gameplay content</strong> — your secret word, guesses, reactions, streaks, and the display name you choose (a random handle by default, or your device name if you opt in). For a game with a friend, this is shared with that opponent so the game can be played.</li>
+      <li><strong>A push token</strong> — if you allow notifications, Apple provides a device token used only to tell you when it’s your turn. You can turn notifications off any time in iOS Settings.</li>
+    </ul>
+    <p>This data lives on your device and in Apple’s iCloud infrastructure under Apple’s <a href="https://www.apple.com/legal/privacy/">privacy policy</a>. We don’t run our own servers and don’t use this content for advertising, profiling, or tracking.</p>
+    <h3>Purchases</h3>
+    <p>Jottly is free. It offers optional, one-time “supporter” purchases (cosmetic reactions and avatars) handled entirely by <strong>Apple’s App Store</strong>. Apple processes the payment; we never receive your payment-card or billing details.</p>
+    <h3>If you contact us</h3>
+    <p>If you email us, we’ll receive your email address and message, and use them only to read and respond. We don’t add you to any list.</p>
+    <h3>Children</h3>
+    <p>Jottly suits a general audience and does not knowingly collect personal information from children. With no account and no data collection, no personal profile of any player is built.</p>
+    <h3>Data retention and deletion</h3>
+    <p>Game data stays until you delete a game in the app or remove the app. Deleting the app removes its local data; iCloud game data follows Apple’s iCloud handling for your account.</p>
+    <h3>Changes</h3>
+    <p>If this policy changes, we’ll update the date above and post the revised version here.</p>
+    <h3>Contact</h3>
+    <p>Questions? Email <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a>.</p>
+  </section>
+
 </div>
 
-<h2>Information we don't collect</h2>
-<p>We do not collect your name, email, contacts, location, advertising identifier, or usage analytics.
-Jottly has no login and integrates no third-party advertising, attribution, or analytics services.</p>
+<footer><div class="wrap">
+  © 2026 Drew Sullivan · <a href="#support">Support</a> · <a href="#privacy">Privacy</a> · <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a>
+</div></footer>
 
-<h2>Information used to play</h2>
-<p>To make a two-player word game work, some information is created and stored on your device and,
-for games with a friend, synced through <strong>Apple's iCloud / CloudKit</strong> so both players
-stay in sync:</p>
-<ul>
-  <li><strong>Gameplay content</strong> — your secret word, guesses, reactions, streaks, and the
-      display name you choose (a random handle by default, or your device name if you opt in). For a
-      game with a friend, this content is shared with that opponent so the game can be played.</li>
-  <li><strong>A push token</strong> — if you allow notifications, Apple provides a device token used
-      only to tell you when it's your turn. You can turn notifications off at any time in iOS Settings.</li>
-</ul>
-<p>This data lives in your device's storage and in Apple's iCloud infrastructure under Apple's
-<a href="https://www.apple.com/legal/privacy/">privacy policy</a>. We do not operate our own servers
-and do not use this content for advertising, profiling, or tracking.</p>
-
-<h2>Purchases</h2>
-<p>Jottly is free. It offers optional, one-time "supporter" purchases (cosmetic reactions and avatars)
-handled entirely by <strong>Apple's App Store</strong>. Apple processes the payment; we never receive
-your payment-card or billing details.</p>
-
-<h2>If you contact us</h2>
-<p>If you email us feedback, we'll receive your email address and whatever you write, and use it only
-to read and respond. We don't add you to any list.</p>
-
-<h2>Children</h2>
-<p>Jottly is suitable for a general audience and does not knowingly collect personal information from
-children. Because there's no account and no data collection, no personal profile of any player is built.</p>
-
-<h2>Data retention and deletion</h2>
-<p>Game data stays until you delete a game in the app or remove the app. Deleting the app removes its
-local data; iCloud game data follows Apple's iCloud handling for your account.</p>
-
-<h2>Changes</h2>
-<p>If this policy changes, we'll update the date above and post the revised version at this URL.</p>
-
-<h2>Contact</h2>
-<p>Questions? Email <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a>.</p>
 </body>
 </html>
