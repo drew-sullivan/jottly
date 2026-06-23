@@ -1,0 +1,3 @@
+# Invite links: /join/<game-id> open the app on a device that has Jottly (via the
+# apple-app-site-association file); on everything else they fall through to this landing page.
+/join/*  /join/index.html  200
