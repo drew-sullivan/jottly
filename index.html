@@ -34,12 +34,11 @@
   a{color:var(--coral); text-decoration:none}
   a:hover{text-decoration:underline}
 
-  /* top nav */
-  header.bar{position:sticky; top:0; z-index:10; background:rgba(250,248,244,.85); backdrop-filter:saturate(160%) blur(10px); border-bottom:1px solid var(--mist)}
-  .bar .wrap{display:flex; align-items:center; gap:12px; padding-top:12px; padding-bottom:12px}
-  .bar .name{font-weight:800; font-size:20px}
-  .bar nav{margin-left:auto; font-size:15px; font-weight:600}
-  .bar nav a{margin-left:18px; color:var(--ink)}
+  /* Iced Matcha Labs masthead - the studio brand up top; Jottly is the product below */
+  .masthead{display:flex; flex-direction:column; align-items:center; gap:14px; padding:30px 22px 22px; border-bottom:1px solid var(--mist)}
+  .masthead .iml-banner{width:100%; max-width:600px; height:auto; display:block}
+  .masthead nav{font-size:15px; font-weight:600}
+  .masthead nav a{margin:0 11px; color:var(--ink)}
 
   /* brand mark */
   .mark{flex:0 0 auto}
@@ -105,18 +104,16 @@
     :root{--cream:#161616; --cloud:#232323; --ink:#f2f2f2; --stone:#a9a9a9; --mist:#333}
     .tile.j{color:#111}
     .pill.c,.pill.a,.pill.q,.btn.primary{color:#111}
-    header.bar{background:rgba(22,22,22,.85)}
   }
   @media (max-width:560px){ .hero h1{font-size:36px} .tile{width:48px;height:48px;font-size:27px} }
 </style>
 </head>
 <body>
 
-<header class="bar"><div class="wrap">
-  <img class="mark" src="assets/app_icon.png" alt="" width="30" height="30" style="border-radius:7px" aria-hidden="true">
-  <span class="name">Jottly</span>
+<header class="masthead">
+  <a href="/"><img class="iml-banner" src="assets/iml_logo_banner.png" alt="Iced Matcha Labs"></a>
   <nav><a href="#play">How to play</a><a href="#maker">Maker</a><a href="#support">Support</a><a href="#privacy">Privacy</a></nav>
-</div></header>
+</header>
 
 <div class="wrap">
 
@@ -149,7 +146,7 @@
     <div class="grid">
       <div class="feat"><div class="dot" style="background:#26A096"></div><h3>Duel a friend</h3><p>Play asynchronously, like messaging - take your turn whenever you like.</p></div>
       <div class="feat"><div class="dot" style="background:#F7B267"></div><h3>JotBot Daily</h3><p>The same word for everyone each day. Solve it and keep your streak alive.</p></div>
-      <div class="feat"><div class="dot" style="background:#F36B4F"></div><h3>React &amp; gloat</h3><p>Emoji and playful reaction packs for every guess. Pick an avatar and make it yours.</p></div>
+      <div class="feat"><div class="dot" style="background:#F36B4F"></div><h3>Make it yours</h3><p>Pick a JotBot avatar for your player tile and a name your friends will know you by.</p></div>
     </div>
   </section>
 
@@ -168,8 +165,8 @@
     <p class="kicker">The maker</p>
     <h2>Hi, I'm Drew.</h2>
     <div class="card dev">
-      <p style="margin-top:0">I build software for a living, and I love it. My iOS apps and other products at <strong>Meta</strong> and <strong>Adobe</strong> are used by billions of people every day.</p>
-      <p>Jottly is made under my studio, <strong>Iced Matcha Labs</strong> - it's the kind of fast, friendly word duel I actually want to play, and I sweat every detail so it feels just right.</p>
+      <p style="margin-top:0">I build software for a living, and I love it. My iOS apps and other products at Meta and Adobe are used by billions of people every day.</p>
+      <p>Jottly is made under my studio, Iced Matcha Labs - it's the kind of fast, friendly word duel I actually want to play, and I sweat every detail so it feels just right.</p>
       <p style="margin-bottom:0">I read every email and reply when I can. Say hello.</p>
       <div class="dev-actions">
         <a class="btn primary" href="https://www.linkedin.com/in/drew-sullivan">Connect on LinkedIn</a>
@@ -188,7 +185,7 @@
     <details><summary>How do I play with a friend?</summary><p>Tap <strong>New game</strong>, choose your secret word, then <strong>Invite a friend</strong> and share the link. They open it, pick their own secret word, and the duel begins.</p></details>
     <details><summary>Can I practice solo?</summary><p>Yes - tap <strong>New game → Play JotBot</strong> any time, or take the daily challenge everyone shares.</p></details>
     <details><summary>I’m not getting turn notifications.</summary><p>Enable notifications for Jottly in <strong>iOS Settings → Notifications → Jottly</strong>.</p></details>
-    <details><summary>How do I restore a supporter purchase?</summary><p>Open <strong>Settings</strong> in the app and tap <strong>Restore Purchases</strong>. Avatars are the only purchase - cosmetic only, and they never affect gameplay. Reactions are free for everyone.</p></details>
+    <details><summary>How do I restore a supporter purchase?</summary><p>Open <strong>Settings</strong> in the app and tap <strong>Restore Purchases</strong>. Avatars are the only purchase - cosmetic only, and they never affect gameplay.</p></details>
     <details><summary>How do I remove a game or my data?</summary><p>Swipe a game on the Home screen to delete it. There’s no account - uninstalling the app removes its local data.</p></details>
   </section>
 
@@ -211,12 +208,12 @@
     <h3>Information used to play</h3>
     <p>To make a two-player word game work, some information is created on your device and, for games with a friend, synced through <strong>Apple’s iCloud / CloudKit</strong> so both players stay in sync:</p>
     <ul>
-      <li><strong>Gameplay content</strong> - your secret word, moves, reactions, streaks, and your display name - a playful handle by default, which you can change to your own name or keep anonymous (there's no sign-in or account, and nothing to manage). For a game with a friend, this is shared with that opponent so the game can be played.</li>
+      <li><strong>Gameplay content</strong> - your secret word, moves, streaks, and your display name - a playful handle by default, which you can change to your own name or keep anonymous (there's no sign-in or account, and nothing to manage). For a game with a friend, this is shared with that opponent so the game can be played.</li>
       <li><strong>A push token</strong> - if you allow notifications, Apple provides a device token used only to tell you when it’s your turn. You can turn notifications off any time in iOS Settings.</li>
     </ul>
     <p>This data lives on your device and in Apple’s iCloud infrastructure under Apple’s <a href="https://www.apple.com/legal/privacy/">privacy policy</a>. We don’t run our own servers and don’t use this content for advertising, profiling, or tracking.</p>
     <h3>Purchases</h3>
-    <p>Jottly is free, and reactions are free for everyone. The only optional purchase is a JotBot avatar for your player tile - $0.99 each, or $4.99 to unlock all of them - handled entirely by <strong>Apple’s App Store</strong>. Apple processes the payment; we never receive your payment-card or billing details.</p>
+    <p>Jottly is free. The only optional purchase is a JotBot avatar for your player tile - $0.99 each, or $4.99 to unlock all of them - handled entirely by <strong>Apple’s App Store</strong>. Apple processes the payment; we never receive your payment-card or billing details.</p>
     <h3>If you contact us</h3>
     <p>If you email us, we’ll receive your email address and message, and use them only to read and respond. We don’t add you to any list.</p>
     <h3>Children</h3>
