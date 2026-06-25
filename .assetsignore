@@ -1,0 +1,9 @@
+# Keep repo internals + tooling out of the published static assets (the deploy uploads the
+# whole repo root, so without this the .git directory itself would be served publicly).
+.git
+.gitignore
+.assetsignore
+.wrangler
+wrangler.jsonc
+*.log
+README*

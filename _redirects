@@ -1,3 +1,6 @@
 # Invite links: /join/<game-id> open the app on a device that has Jottly (via the
 # apple-app-site-association file); on everything else they fall through to this landing page.
-/join/*  /join/index.html  200
+# The target lives at the root (not under /join/) so Cloudflare's automatic .html / /index
+# stripping can't normalize it back into the /join/* pattern and loop the rewrite.
+/join/*  /invite.html  200
+/join    /invite.html  200
