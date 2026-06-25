@@ -93,10 +93,18 @@
 
   footer{border-top:1px solid var(--mist); padding:30px 0 50px; color:var(--stone); font-size:14px}
 
+  /* maker section + buttons */
+  .dev p{font-size:17px}
+  .dev-actions{display:flex; flex-wrap:wrap; gap:12px; margin-top:20px}
+  .btn{display:inline-block; font-weight:800; font-size:16px; padding:12px 22px; border-radius:999px;
+       border:2px solid var(--ink); color:var(--ink); background:var(--cloud); transition:transform .15s ease}
+  .btn:hover{text-decoration:none; transform:translateY(-2px)}
+  .btn.primary{background:var(--coral); color:var(--ink)}
+
   @media (prefers-color-scheme: dark){
     :root{--cream:#161616; --cloud:#232323; --ink:#f2f2f2; --stone:#a9a9a9; --mist:#333}
     .tile.j{color:#111}
-    .pill.c,.pill.a,.pill.q{color:#111}
+    .pill.c,.pill.a,.pill.q,.btn.primary{color:#111}
     header.bar{background:rgba(22,22,22,.85)}
   }
   @media (max-width:560px){ .hero h1{font-size:36px} .tile{width:48px;height:48px;font-size:27px} }
@@ -107,7 +115,7 @@
 <header class="bar"><div class="wrap">
   <img class="mark" src="assets/app_icon.png" alt="" width="30" height="30" style="border-radius:7px" aria-hidden="true">
   <span class="name">Jottly</span>
-  <nav><a href="#play">How to play</a><a href="#support">Support</a><a href="#privacy">Privacy</a></nav>
+  <nav><a href="#play">How to play</a><a href="#maker">Maker</a><a href="#support">Support</a><a href="#privacy">Privacy</a></nav>
 </div></header>
 
 <div class="wrap">
@@ -156,11 +164,25 @@
     </div>
   </section>
 
+  <section id="maker">
+    <p class="kicker">The maker</p>
+    <h2>Hi, I'm Drew.</h2>
+    <div class="card dev">
+      <p style="margin-top:0">I build software for a living, and I love it. My iOS apps and other products at <strong>Meta</strong> and <strong>Adobe</strong> are used by billions of people every day.</p>
+      <p>Jottly is made under my studio, <strong>Iced Matcha Labs</strong> - it's the kind of fast, friendly word duel I actually want to play, and I sweat every detail so it feels just right.</p>
+      <p style="margin-bottom:0">I read every email and reply when I can. Say hello.</p>
+      <div class="dev-actions">
+        <a class="btn primary" href="https://www.linkedin.com/in/drew-sullivan">Connect on LinkedIn</a>
+        <a class="btn" href="mailto:support@icedmatchalabs.com">Email me</a>
+      </div>
+    </div>
+  </section>
+
   <section id="support">
     <p class="kicker">Support</p>
     <h2>Need a hand?</h2>
     <div class="card">
-      <p style="margin:0">Email <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a> - we read every message and usually reply within a couple of days.</p>
+      <p style="margin:0">Email <a href="mailto:support@icedmatchalabs.com">support@icedmatchalabs.com</a> - we read every message and usually reply within a couple of days.</p>
     </div>
     <details><summary>How do I play?</summary><p>Pick a secret five-letter word; your opponent does too. Take turns guessing. Each guess shows your <em>jots</em> - the number of your letters that appear in their secret word. Use those clues to deduce their word, and be the first to guess it exactly.</p></details>
     <details><summary>How do I play with a friend?</summary><p>Tap <strong>New game</strong>, choose your secret word, then <strong>Invite a friend</strong> and share the link. They open it, pick their own secret word, and the duel begins.</p></details>
@@ -204,7 +226,7 @@
     <h3>Changes</h3>
     <p>If this policy changes, we’ll update the date above and post the revised version here.</p>
     <h3>Contact</h3>
-    <p>Questions? Email <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a>.</p>
+    <p>Questions? Email <a href="mailto:support@icedmatchalabs.com">support@icedmatchalabs.com</a>.</p>
   </section>
 
 </div>
@@ -212,7 +234,7 @@
 <footer><div class="wrap" style="text-align:center">
   <img src="assets/iml_logo.png" alt="Iced Matcha Labs" style="width:200px; max-width:62%; height:auto; display:block; margin:0 auto 10px">
   <p style="margin:0 0 8px">Made with care by Iced Matcha Labs</p>
-  © 2026 Drew Sullivan · <a href="#support">Support</a> · <a href="#privacy">Privacy</a> · <a href="mailto:dsull.technologies@gmail.com">dsull.technologies@gmail.com</a>
+  © 2026 Drew Sullivan · <a href="#maker">Maker</a> · <a href="https://www.linkedin.com/in/drew-sullivan">LinkedIn</a> · <a href="#support">Support</a> · <a href="#privacy">Privacy</a> · <a href="mailto:support@icedmatchalabs.com">support@icedmatchalabs.com</a>
 </div></footer>
 
 </body>
