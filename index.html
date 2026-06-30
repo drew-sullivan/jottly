@@ -46,11 +46,16 @@
 
   /* tile wordmark */
   .word{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 2px}
+  /* Match the in-app VolleyHeader: fixed brand colors so the wordmark reads the same in light or
+     dark - white blank tiles with dark ink letters, coral J, apricot O, teal L, with O and L round. */
   .tile{width:60px; height:60px; border-radius:14px; border:3px solid var(--ink);
         display:flex; align-items:center; justify-content:center; font-weight:800; font-size:34px;
-        background:var(--cloud); transition:transform .15s ease}
+        color:#111; background:#fff; transition:transform .15s ease}
   .tile:hover{transform:translateY(-4px) rotate(-3deg)}
-  .tile.j{background:var(--coral); color:var(--ink)}
+  .tile.coral{background:var(--coral)}
+  .tile.apricot{background:var(--apricot)}
+  .tile.teal{background:var(--teal)}
+  .tile.circle{border-radius:50%}
 
   /* hero */
   .hero{padding:60px 0 24px}
@@ -103,7 +108,6 @@
 
   @media (prefers-color-scheme: dark){
     :root{--cream:#161616; --cloud:#232323; --ink:#f2f2f2; --stone:#a9a9a9; --mist:#333}
-    .tile.j{color:#111}
     .pill.c,.pill.a,.pill.q,.btn.primary{color:#111}
   }
   @media (max-width:560px){ .hero h1{font-size:36px} .tile{width:48px;height:48px;font-size:27px} }
@@ -121,8 +125,8 @@
   <section class="hero" id="top">
     <img class="mark" src="assets/app_icon.png" alt="Jottly app icon" width="56" height="56" style="border-radius:13px" aria-hidden="true">
     <div class="word" aria-label="Jottly">
-      <span class="tile j">J</span><span class="tile">o</span><span class="tile">t</span>
-      <span class="tile">t</span><span class="tile">l</span><span class="tile">y</span>
+      <span class="tile coral">J</span><span class="tile apricot circle">o</span><span class="tile">t</span>
+      <span class="tile">t</span><span class="tile teal circle">l</span><span class="tile">y</span>
     </div>
     <h1>Out-guess your friends.</h1>
     <p class="lead">A relaxed, friendly word game. One move at a time, on your own schedule.</p>
