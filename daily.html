@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="/assets/app_icon.png">
+<title>Today's Jottly Daily Challenge</title>
+<meta name="description" content="The Jottly daily challenge: the same secret word for everyone, every day. Get the app to play today's puzzle.">
+<link rel="canonical" href="https://icedmatchalabs.com/daily">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jottly">
+<meta property="og:url" content="https://icedmatchalabs.com/daily">
+<meta property="og:title" content="Today's Jottly Daily Challenge">
+<meta property="og:description" content="The same secret word for everyone, every day. Tap to get Jottly and play today's puzzle.">
+<meta property="og:image" content="https://icedmatchalabs.com/assets/app_icon.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Today's Jottly Daily Challenge">
+<meta name="twitter:description" content="The same secret word for everyone, every day. Tap to get Jottly and play today's puzzle.">
+<meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
+<meta name="apple-itunes-app" content="app-id=6780044797">
+<style>
+  :root{
+    --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096;
+    --cream:#FAF8F4; --cloud:#fff; --ink:#111; --stone:#6b6b6b; --mist:#e7e3db;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color:var(--ink); background:var(--cream); margin:0;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px;
+  }
+  .card{
+    background:var(--cloud); border:1px solid var(--mist); border-radius:26px;
+    padding:40px 32px; max-width:440px; width:100%; text-align:center;
+    box-shadow:0 12px 40px rgba(17,17,17,.07);
+  }
+  .bot{width:108px; height:108px; object-fit:contain; margin:0 auto 6px}
+  .word{display:flex; gap:8px; justify-content:center; margin:8px 0 18px}
+  .tile{width:44px; height:44px; border-radius:11px; border:3px solid var(--ink);
+        display:flex; align-items:center; justify-content:center; font-weight:800; font-size:24px; background:var(--cloud)}
+  .tile.j{background:var(--coral)}
+  h1{font-size:30px; line-height:1.12; margin:6px 0 10px; letter-spacing:-.4px}
+  p.lead{font-size:18px; color:var(--stone); margin:0 0 26px; line-height:1.5}
+  .btn{
+    display:inline-block; font-weight:800; font-size:18px; text-decoration:none;
+    color:var(--ink); background:var(--coral); border:3px solid var(--ink);
+    border-radius:16px; padding:14px 26px; transition:transform .12s ease;
+  }
+  .btn:hover{transform:translateY(-2px)}
+  p.fine{font-size:14px; color:var(--stone); margin:20px 0 0}
+  p.fine a{color:var(--coral)}
+</style>
+</head>
+<body>
+  <main class="card">
+    <img class="bot" src="/assets/jotbot_waving.png" alt="JotBot waving">
+    <div class="word">
+      <span class="tile j">J</span><span class="tile">O</span><span class="tile">T</span>
+      <span class="tile">T</span><span class="tile">Y</span>
+    </div>
+    <h1>Today's Jottly Daily Challenge</h1>
+    <p class="lead">Everyone gets the same secret word each day. Deduce it in as few moves as you can, then keep your streak going. Free, no ads, no sign-up.</p>
+    <a class="btn" href="https://apps.apple.com/app/id6780044797">Get Jottly</a>
+    <p class="fine">Already have Jottly? Opening this link on your iPhone drops you straight into today's challenge.<br>
+       <a href="/">About Jottly</a></p>
+  </main>
+</body>
+</html>
