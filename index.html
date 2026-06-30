@@ -37,7 +37,7 @@
 
   /* Iced Matcha Labs masthead (studio brand up top); Jottly is the product below */
   .masthead{display:flex; flex-direction:column; align-items:center; gap:16px; padding:34px 22px 24px; border-bottom:1px solid var(--mist)}
-  .masthead .iml-banner{width:100%; max-width:880px; height:auto; display:block}
+  .masthead .iml-banner{width:100%; max-width:880px; height:auto; aspect-ratio:1536 / 512; display:block}
   .masthead nav{font-size:15px; font-weight:600}
   .masthead nav a{margin:0 11px; color:var(--ink)}
 
@@ -69,7 +69,7 @@
   .pill.q{background:var(--aqua); color:var(--ink)}
 
   /* sections */
-  section{padding:40px 0}
+  section{padding:40px 0; scroll-margin-top:16px}
   h2{font-size:30px; margin:0 0 6px; letter-spacing:-.3px}
   .kicker{font-weight:800; color:var(--coral); letter-spacing:.5px; text-transform:uppercase; font-size:13px; margin:0 0 6px}
   .card{background:var(--cloud); border:1px solid var(--mist); border-radius:22px; padding:24px 26px; margin:18px 0}
@@ -81,7 +81,7 @@
 
   /* screenshots */
   .shots{display:flex; gap:18px; overflow-x:auto; padding:6px 4px 18px; scroll-snap-type:x mandatory; -webkit-overflow-scrolling:touch}
-  .shots img{width:240px; flex:0 0 auto; border-radius:26px; border:1px solid var(--mist); box-shadow:0 10px 34px rgba(0,0,0,.13); scroll-snap-align:center}
+  .shots img{width:240px; aspect-ratio:1284 / 2778; flex:0 0 auto; border-radius:26px; border:1px solid var(--mist); box-shadow:0 10px 34px rgba(0,0,0,.13); scroll-snap-align:center}
 
   /* FAQ */
   details{background:var(--cloud); border:1px solid var(--mist); border-radius:16px; padding:4px 18px; margin:10px 0}
@@ -125,8 +125,8 @@
   <section class="hero" id="top">
     <img class="mark" src="assets/app_icon.png" alt="Jottly app icon" width="56" height="56" style="border-radius:13px" aria-hidden="true">
     <div class="word" aria-label="Jottly">
-      <span class="tile coral">J</span><span class="tile apricot circle">o</span><span class="tile">t</span>
-      <span class="tile">t</span><span class="tile teal circle">l</span><span class="tile">y</span>
+      <span class="tile coral">J</span><span class="tile apricot circle">O</span><span class="tile">T</span>
+      <span class="tile">T</span><span class="tile teal circle">L</span><span class="tile">Y</span>
     </div>
     <h1>Out-guess your friends.</h1>
     <p class="lead">A relaxed, friendly word game. One move at a time, on your own schedule.</p>
