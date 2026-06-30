@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="/assets/favicon-iml.png">
+<title>Jottly Strategy: get a little better at the word game</title>
+<meta name="description" content="A short, friendly strategy guide for Jottly: how to open, read your jots, isolate letters, and land the word in fewer moves.">
+<link rel="canonical" href="https://icedmatchalabs.com/strategy">
+<meta property="og:type" content="article">
+<meta property="og:site_name" content="Jottly">
+<meta property="og:url" content="https://icedmatchalabs.com/strategy">
+<meta property="og:title" content="Jottly Strategy: get a little better">
+<meta property="og:description" content="Open wide, read every number, isolate one letter at a time. A few habits that turn Jottly into a solving game.">
+<meta property="og:image" content="https://icedmatchalabs.com/assets/app_icon.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Jottly Strategy: get a little better">
+<meta name="twitter:description" content="Open wide, read every number, isolate one letter at a time.">
+<meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
+<meta name="apple-itunes-app" content="app-id=6780044797">
+<style>
+  :root{
+    --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
+    --cream:#FAF8F4; --cloud:#fff; --ink:#111; --stone:#6b6b6b; --mist:#e7e3db;
+    color-scheme: light dark;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size:18px; line-height:1.6; color:var(--ink); background:var(--cream);
+    margin:0; padding:0;
+  }
+  .wrap{max-width:760px; margin:0 auto; padding:0 22px}
+  a{color:var(--coral); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  .masthead{display:flex; flex-direction:column; align-items:center; gap:16px; padding:34px 22px 24px; border-bottom:1px solid var(--mist)}
+  .masthead .iml-banner{width:100%; max-width:880px; height:auto; display:block}
+  .masthead nav{font-size:15px; font-weight:600}
+  .masthead nav a{margin:0 11px; color:var(--ink)}
+  .masthead nav a.here{color:var(--coral)}
+
+  .hero{padding:48px 0 8px}
+  .hero h1{font-size:40px; line-height:1.1; margin:6px 0 10px; letter-spacing:-.5px}
+  .hero p.lead{font-size:20px; color:var(--stone); margin:0; max-width:46ch}
+
+  section{padding:30px 0}
+  h2{font-size:27px; margin:0 0 6px; letter-spacing:-.3px}
+  .kicker{font-weight:800; color:var(--coral); letter-spacing:.5px; text-transform:uppercase; font-size:13px; margin:0 0 6px}
+  .card{background:var(--cloud); border:1px solid var(--mist); border-radius:22px; padding:22px 26px; margin:14px 0}
+  .card p{margin:0 0 12px}
+  .card p:last-child{margin-bottom:0}
+  .card ul{margin:8px 0 0; padding-left:20px}
+  .card li{margin:6px 0}
+  .eg{font-weight:800; letter-spacing:1px}
+  .note{color:var(--stone); font-size:16px}
+
+  .cta{display:flex; flex-direction:column; align-items:flex-start; gap:14px}
+
+  footer{border-top:1px solid var(--mist); padding:30px 0 50px; color:var(--stone); font-size:14px}
+
+  @media (prefers-color-scheme: dark){
+    :root{--cream:#161616; --cloud:#232323; --ink:#f2f2f2; --stone:#a9a9a9; --mist:#333}
+  }
+  @media (max-width:560px){ .hero h1{font-size:32px} }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/"><img class="iml-banner" src="/assets/iml_logo.png" alt="Iced Matcha Labs"></a>
+  <nav><a href="/">Jottly</a><a href="/strategy" class="here">Strategy</a><a href="/#support">Support</a><a href="/#privacy">Privacy</a></nav>
+</header>
+
+<div class="wrap">
+
+  <section class="hero">
+    <p class="kicker">Get a little better</p>
+    <h1>Jottly strategy</h1>
+    <p class="lead">Jottly rewards patient deduction over lucky guesses. Here are the habits that turn it into a solving game.</p>
+  </section>
+
+  <section>
+    <p class="kicker">First moves</p>
+    <h2>Open wide.</h2>
+    <div class="card">
+      <p>Your first few words are for gathering letters, not for winning. Play real words packed with different, common letters: the vowels, plus workhorses like R, S, T, N, and L. A good habit is to cover around twenty different letters across your first four guesses. Every letter you spend is one the board can tell you about.</p>
+      <p>Try <span class="eg">AROSE</span>, then <span class="eg">UNLIT</span>. Between them that's ten different letters, almost all common, and two scores to point you toward the rest.</p>
+      <p class="note">One rule that quietly matters: don't repeat a letter inside a single guess. A repeat still scores just one jot, so a word like SPEED only ever tests four distinct letters. Make all five count.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Reading the score</p>
+    <h2>Every number is a clue.</h2>
+    <div class="card">
+      <p>A jot is one of your letters living somewhere in their word. Position never matters, so the number is pure letter overlap. Two ends of the scale are worth the most:</p>
+      <ul>
+        <li><strong>A zero is a gift.</strong> It rules out all five of your letters at once. That's the most a single move can tell you, so welcome it instead of groaning.</li>
+        <li><strong>A high number early</strong> means you're swimming in their letters. Slow down and start isolating rather than guessing whole words.</li>
+      </ul>
+      <p class="note">Jottly marks the obvious in-and-out letters on your keyboard as you go, but the deductions that win games are the ones you make on top of it.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">The control trick</p>
+    <h2>Isolate one letter at a time.</h2>
+    <div class="card">
+      <p>Once you've ruled some letters out, those dead letters become tools. Build a word around a single unknown and pad the rest with letters you know are out. Now the only thing that can move your score is the letter you're testing.</p>
+      <p>Say you've already ruled out B, L, N, and D. Playing <span class="eg">BLAND</span> tests one thing: whether their word has an A. The four dead letters can't change the number, so a jot of 1 means yes and a 0 means no. That's elimination run on purpose instead of by luck.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">The endgame</p>
+    <h2>Narrow, then anagram.</h2>
+    <div class="card">
+      <p>When a guess scores five jots without solving, you've found all five letters. They're just in the wrong order, and that's the home stretch, not a dead end.</p>
+      <p>In Jottly you can drag your confirmed letters into any order along the confirmed row. Try the arrangements that actually spell words: lead with common pairings like TH, CH, and ST, keep a vowel near the middle, and you'll usually land it in a move or two.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">On defense</p>
+    <h2>Choosing your secret.</h2>
+    <div class="card">
+      <p>A good secret word is fair but not free. Pick a real five-letter word with five different letters (Jottly asks for distinct letters anyway). Lean a little off the beaten path: a word like <span class="eg">FJORD</span> or <span class="eg">NYMPH</span> hands out fewer early jots than <span class="eg">HOUSE</span> does, because its letters are rarer.</p>
+      <p class="note">Keep it a word a friend could actually find, though. The goal is a satisfying chase, not a word nobody can crack.</p>
+    </div>
+  </section>
+
+  <section>
+    <p class="kicker">Practice</p>
+    <h2>Make it a habit.</h2>
+    <div class="card cta">
+      <p style="margin:0">The simplest way to sharpen all of this is the JotBot Daily: one shared word a day, the same for everyone, no friend required. It's a low-stakes rep for your deduction. A few quiet minutes, a streak to keep, a result to share.</p>
+      <a href="https://apps.apple.com/app/id6780044797" aria-label="Download Jottly on the App Store" style="display:inline-block">
+        <picture>
+          <source srcset="/assets/app-store-badge-white.svg" media="(prefers-color-scheme: dark)">
+          <img src="/assets/app-store-badge.svg" alt="Download on the App Store" style="height:56px; width:auto; display:block">
+        </picture>
+      </a>
+    </div>
+  </section>
+
+</div>
+
+<footer><div class="wrap" style="text-align:center">
+  <img src="/assets/iml_logo.png" alt="Iced Matcha Labs" style="width:200px; max-width:62%; height:auto; display:block; margin:0 auto 10px">
+  <p style="margin:0 0 8px">Made with <img src="/assets/flame_glyph.png" alt="fire" style="height:1.2em;vertical-align:-0.25em"> by Iced Matcha Labs</p>
+  © 2026 Drew Sullivan · <a href="/">Home</a> · <a href="/strategy">Strategy</a> · <a href="/#support">Support</a> · <a href="/#privacy">Privacy</a> · <a href="mailto:support@icedmatchalabs.com">support@icedmatchalabs.com</a>
+</div></footer>
+
+</body>
+</html>
