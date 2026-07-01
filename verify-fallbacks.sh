@@ -58,21 +58,13 @@ has daily.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.pn
 has daily.html "app-argument=https://icedmatchalabs.com/daily" "Smart App Banner deep-links the Daily"
 has daily.html 'href="jotto://daily"' "Open button uses the jotto://daily scheme fallback"
 
-echo "== invite.html (the template; the function bakes the per-game bits) =="
+echo "== invite.html (carries the game ID via parse-time inject, never Daily) =="
 has invite.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
-has invite.html 'name="apple-itunes-app" content="app-id=6780044797"' "has a static Smart App Banner tag for the function to rewrite"
+has invite.html "app-argument=' + location.origin + location.pathname" "Smart App Banner app-argument is the per-game /join/<id> URL"
+has invite.html "<noscript>" "has a <noscript> app-id-only banner fallback"
 has invite.html 'id="openapp"' "has the Open-the-game button"
+has invite.html "'jotto://' + location.pathname.replace" "Open button builds jotto://join/<id> from the path"
 if grep -qF "jotto://daily" invite.html; then fail "invite.html must NEVER reference jotto://daily"; else pass "invite.html never falls back to jotto://daily"; fi
-
-echo "== functions/join/_middleware.js (bakes route-specific initial HTML, server-side) =="
-fn="functions/join/_middleware.js"
-[ -f "$fn" ] && pass "$fn exists" || fail "$fn missing"
-if [ -f "$fn" ]; then
-  has "$fn" 'app-argument=${joinURL}' "bakes the per-game app-argument into the banner"
-  has "$fn" 'jotto://join/${gameID}' "bakes the jotto://join/<id> open link"
-  has "$fn" 'meta[name="apple-itunes-app"]' "rewrites the Smart App Banner tag"
-  if grep -qF "jotto://daily" "$fn"; then fail "$fn must NEVER reference jotto://daily"; else pass "$fn never falls back to Daily"; fi
-fi
 
 if [ "${1:-}" != "--live" ]; then
   echo
@@ -97,12 +89,11 @@ curl -sS "$HOST/daily" -o /tmp/daily.live -w '  daily -> HTTP %{http_code}\n'
 has /tmp/daily.live "app-argument=https://icedmatchalabs.com/daily" "live /daily deep-links the Daily"
 has /tmp/daily.live 'href="jotto://daily"' "live /daily has the jotto://daily open link"
 
-# /join/<id>: 200, with the per-game deep link baked into the RAW HTML server-side (curl runs no JS, so a
-# match here proves the app-argument is in the initial bytes, not injected client-side).
+# /join/<id>: 200, per-game app-argument inject + jotto://join/<id> open builder in the served HTML, never Daily.
 sample="verify-fallbacks-$$"
 curl -sS "$HOST/join/$sample" -o /tmp/join.live -w '  join -> HTTP %{http_code}\n'
-has /tmp/join.live "app-argument=$HOST/join/$sample" "live /join bakes the per-game app-argument server-side (raw HTML)"
-has /tmp/join.live "href=\"jotto://join/$sample\"" "live /join bakes the jotto://join/<id> open link server-side"
+has /tmp/join.live "app-argument=' + location.origin + location.pathname" "live /join carries the per-game app-argument"
+has /tmp/join.live "'jotto://' + location.pathname.replace" "live /join builds the jotto://join/<id> open link"
 if grep -qF "jotto://daily" /tmp/join.live; then fail "live /join must NEVER reference jotto://daily"; else pass "live /join never falls back to Daily"; fi
 
 echo

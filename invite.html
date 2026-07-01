@@ -17,11 +17,14 @@
 <meta name="twitter:title" content="You're invited to play Jottly">
 <meta name="twitter:description" content="A relaxed word game for friends and family. Tap to get Jottly and join.">
 <meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
-<!-- Smart App Banner. The per-game app-argument (and the "Open the game" href below) are baked into the
-     initial HTML server-side by functions/join/_middleware.js, so an installed app's banner "Open" deep-links
-     into THIS game with no reliance on client-side JavaScript. Served without an id (e.g. /invite), this stays
-     app-id-only - a safe generic fallback. -->
-<meta name="apple-itunes-app" content="app-id=6780044797">
+<!-- Smart App Banner. Static hosting can't template the per-game app-argument, so we inject it during parse
+     with a synchronous document.write: Safari is the only browser that shows this banner and it always runs
+     the script, which lands before the banner is evaluated, so "Open" deep-links into THIS specific game.
+     (A server-side render would be cleaner but needs the Cloudflare project to compile functions/.) -->
+<script>
+  document.write('<meta name="apple-itunes-app" content="app-id=6780044797, app-argument=' + location.origin + location.pathname + '">');
+</script>
+<noscript><meta name="apple-itunes-app" content="app-id=6780044797"></noscript>
 <style>
   :root{
     --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
