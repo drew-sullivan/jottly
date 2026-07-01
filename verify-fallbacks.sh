@@ -60,10 +60,10 @@ has daily.html 'href="jotto://daily"' "Open button uses the jotto://daily scheme
 
 echo "== invite.html (carries the game ID via parse-time inject, never Daily) =="
 has invite.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
-has invite.html "app-argument=' + location.origin + location.pathname" "Smart App Banner app-argument is the per-game /join/<id> URL"
+has invite.html "location.origin + location.pathname + location.search" "Smart App Banner app-argument preserves the full invite URL incl ?env&v"
 has invite.html "<noscript>" "has a <noscript> app-id-only banner fallback"
 has invite.html 'id="openapp"' "has the Open-the-game button"
-has invite.html "'jotto://' + location.pathname.replace" "Open button builds jotto://join/<id> from the path"
+has invite.html "'jotto://' + location.pathname.replace" "Open button builds a CLEAN jotto://join/<id> from the path (no query)"
 if grep -qF "jotto://daily" invite.html; then fail "invite.html must NEVER reference jotto://daily"; else pass "invite.html never falls back to jotto://daily"; fi
 
 if [ "${1:-}" != "--live" ]; then
@@ -92,8 +92,8 @@ has /tmp/daily.live 'href="jotto://daily"' "live /daily has the jotto://daily op
 # /join/<id>: 200, per-game app-argument inject + jotto://join/<id> open builder in the served HTML, never Daily.
 sample="verify-fallbacks-$$"
 curl -sS "$HOST/join/$sample" -o /tmp/join.live -w '  join -> HTTP %{http_code}\n'
-has /tmp/join.live "app-argument=' + location.origin + location.pathname" "live /join carries the per-game app-argument"
-has /tmp/join.live "'jotto://' + location.pathname.replace" "live /join builds the jotto://join/<id> open link"
+has /tmp/join.live "location.origin + location.pathname + location.search" "live /join app-argument preserves the full invite URL incl ?env&v"
+has /tmp/join.live "'jotto://' + location.pathname.replace" "live /join builds the clean jotto://join/<id> open link"
 if grep -qF "jotto://daily" /tmp/join.live; then fail "live /join must NEVER reference jotto://daily"; else pass "live /join never falls back to Daily"; fi
 
 echo

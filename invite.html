@@ -22,7 +22,11 @@
      the script, which lands before the banner is evaluated, so "Open" deep-links into THIS specific game.
      (A server-side render would be cleaner but needs the Cloudflare project to compile functions/.) -->
 <script>
-  document.write('<meta name="apple-itunes-app" content="app-id=6780044797, app-argument=' + location.origin + location.pathname + '">');
+  document.write(
+    '<meta name="apple-itunes-app" content="app-id=6780044797, app-argument='
+    + location.origin + location.pathname + location.search
+    + '">'
+  );
 </script>
 <noscript><meta name="apple-itunes-app" content="app-id=6780044797"></noscript>
 <style>
@@ -131,7 +135,7 @@
     var get = document.getElementById('get');
     if (!get || !(navigator.clipboard && navigator.clipboard.writeText)) return;
     get.addEventListener('click', function (e) {
-      var link = location.origin + location.pathname; // the clean /join/<id> universal link
+      var link = location.origin + location.pathname + location.search; // the exact /join/<id>?env&v invite link
       var store = get.getAttribute('href');
       e.preventDefault();
       navigator.clipboard.writeText(link).catch(function () {}).finally(function () {
