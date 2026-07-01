@@ -1,3 +1,7 @@
-# Apple requires the app-site-association file to be served as JSON.
+# Apple requires the app-site-association file to be served as JSON. Serve it from both the canonical
+# /.well-known path AND the legacy root path (belt-and-suspenders for older AASA lookups); both files are
+# kept byte-identical by verify-fallbacks.sh.
 /.well-known/apple-app-site-association
+  Content-Type: application/json
+/apple-app-site-association
   Content-Type: application/json

@@ -7,3 +7,4 @@
 wrangler.jsonc
 *.log
 README*
+*.sh

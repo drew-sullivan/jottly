@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "8JKMQ4CU85.com.dsull.Jotto",
+        "paths": ["/join/*", "/daily"]
+      }
+    ]
+  }
+}
