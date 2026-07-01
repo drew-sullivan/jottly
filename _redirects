@@ -4,3 +4,8 @@
 # can't bounce the rewrite through a 307 - this serves the page in place at the original URL.
 /join/*  /invite  200
 /join    /invite  200
+
+# Daily challenge: on a device with Jottly the /daily universal link opens the app straight into the
+# daily (via the apple-app-site-association file). For everyone else the shared link falls through to
+# the home page, which already carries the App Store badge + smart banner - no bespoke daily page.
+/daily   /  302
