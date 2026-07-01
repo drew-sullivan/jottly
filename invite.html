@@ -17,7 +17,13 @@
 <meta name="twitter:title" content="You're invited to play Jottly">
 <meta name="twitter:description" content="A relaxed word game for friends and family. Tap to get Jottly and join.">
 <meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
-<meta name="apple-itunes-app" content="app-id=6780044797">
+<script>
+  // Smart App Banner: inject THIS /join/<id> URL as app-argument so an installed app's banner "Open"
+  // deep-links into this specific game, not just the app. Written synchronously in <head> so Safari sees
+  // it when it evaluates the banner; static hosting can't template it per game.
+  document.write('<meta name="apple-itunes-app" content="app-id=6780044797, app-argument=' + location.origin + location.pathname + '">');
+</script>
+<noscript><meta name="apple-itunes-app" content="app-id=6780044797"></noscript>
 <style>
   :root{
     --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
@@ -101,7 +107,7 @@
         <img src="/assets/app-store-badge.svg" alt="Download on the App Store" style="height:56px; width:auto; display:block">
       </picture>
     </a>
-    <p class="fine">Already have Jottly? Opening this link on your iPhone drops you straight into the game.</p>
+    <p class="fine">Already have Jottly? <a id="openapp" href="jotto://join/">Open the game</a>.</p>
   </section>
 </div>
 
@@ -116,6 +122,11 @@
   // freshly installed app can recover it on first launch and drop the player straight into the game.
   // Progressive enhancement - if the Clipboard API is unavailable or denied, we just go to the store.
   (function () {
+    // Point "Open the game" at the custom-scheme fallback for THIS game, so an installed app opens even
+    // when the universal link doesn't fire (Chrome, or a stale associated-domains cache).
+    var openApp = document.getElementById('openapp');
+    if (openApp) openApp.href = 'jotto://' + location.pathname.replace(/^\/+/, '');
+
     var get = document.getElementById('get');
     if (!get || !(navigator.clipboard && navigator.clipboard.writeText)) return;
     get.addEventListener('click', function (e) {
