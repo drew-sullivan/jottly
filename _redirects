@@ -6,6 +6,6 @@
 /join    /invite  200
 
 # Daily challenge: on a device with Jottly the /daily universal link opens the app straight into the
-# daily (via the apple-app-site-association file). For everyone else the shared link falls through to
-# the home page, which already carries the App Store badge + smart banner - no bespoke daily page.
-/daily   /  302
+# daily (via the apple-app-site-association file). Everyone else gets daily.html - a DIRECT 200 page
+# (not a redirect) so shared /daily links render a rich Messages/OG preview card like /join does; a
+# 302 to home genericized or dropped the card. Cloudflare serves daily.html at /daily via clean URLs.
