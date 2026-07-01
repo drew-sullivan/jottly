@@ -60,9 +60,26 @@
     </div>
     <h1>A friend invited you to play Jottly!</h1>
     <p class="lead">Jottly is a relaxed, friendly two-player word game. Deduce each other's secret word in as few moves as you can. Free, no ads, no sign-up.</p>
-    <a class="btn" href="https://apps.apple.com/app/id6780044797">Get Jottly</a>
+    <a class="btn" id="get" href="https://apps.apple.com/app/id6780044797">Get Jottly</a>
     <p class="fine">Already have Jottly? Opening this link on your iPhone drops you straight into the game.<br>
        <a href="/">About Jottly</a></p>
   </main>
+  <script>
+    // Deferred deep link: stash the invite link on the clipboard before the App Store detour, so a
+    // freshly installed app can recover it on first launch and drop the player straight into the game.
+    // Progressive enhancement - if the Clipboard API is unavailable or denied, we just go to the store.
+    (function () {
+      var get = document.getElementById('get');
+      if (!get || !(navigator.clipboard && navigator.clipboard.writeText)) return;
+      get.addEventListener('click', function (e) {
+        var link = location.origin + location.pathname; // the clean /join/<id> universal link
+        var store = get.getAttribute('href');
+        e.preventDefault();
+        navigator.clipboard.writeText(link).catch(function () {}).finally(function () {
+          window.location.href = store;
+        });
+      });
+    })();
+  </script>
 </body>
 </html>
