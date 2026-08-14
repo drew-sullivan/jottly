@@ -41,6 +41,7 @@ for f in "$canon" "$root"; do
   has "$f" "$BUNDLE" "$f names appID $BUNDLE"
   has "$f" '"/join/*"' "$f allows /join/*"
   has "$f" '"/daily"' "$f allows /daily"
+  has "$f" '"/solo"' "$f allows /solo"
 done
 
 echo "== _headers (Apple requires the AASA served as application/json) =="
@@ -57,6 +58,12 @@ has daily.html 'href="https://icedmatchalabs.com/daily"' "canonical is /daily"
 has daily.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
 has daily.html "app-argument=https://icedmatchalabs.com/daily" "Smart App Banner deep-links the Daily"
 has daily.html 'href="jotto://daily"' "Open button uses the jotto://daily scheme fallback"
+
+echo "== solo.html (carries fresh JotBot game intent without a game ID) =="
+has solo.html 'href="https://icedmatchalabs.com/solo"' "canonical is /solo"
+has solo.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
+has solo.html "app-argument=https://icedmatchalabs.com/solo" "Smart App Banner deep-links to Solo"
+has solo.html 'href="jotto://solo"' "Open button uses the jotto://solo scheme fallback"
 
 echo "== invite.html (carries the game ID via parse-time inject, never Daily) =="
 has invite.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
@@ -88,6 +95,11 @@ done
 curl -sS "$HOST/daily" -o /tmp/daily.live -w '  daily -> HTTP %{http_code}\n'
 has /tmp/daily.live "app-argument=https://icedmatchalabs.com/daily" "live /daily deep-links the Daily"
 has /tmp/daily.live 'href="jotto://daily"' "live /daily has the jotto://daily open link"
+
+# /solo: 200, carries only the stable Solo action in both app entry points.
+curl -sS "$HOST/solo" -o /tmp/solo.live -w '  solo -> HTTP %{http_code}\n'
+has /tmp/solo.live "app-argument=https://icedmatchalabs.com/solo" "live /solo opens the Solo flow"
+has /tmp/solo.live 'href="jotto://solo"' "live /solo has the jotto://solo open link"
 
 # /join/<id>: 200, per-game app-argument inject + jotto://join/<id> open builder in the served HTML, never Daily.
 sample="verify-fallbacks-$$"

@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" type="image/png" href="/assets/favicon-iml.png">
+<title>Play Jottly Solo</title>
+<meta name="description" content="Play Jottly Solo: deduce JotBot's secret word on your own or race the bot. No ads, no sign-up.">
+<link rel="canonical" href="https://icedmatchalabs.com/solo">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Jottly">
+<meta property="og:url" content="https://icedmatchalabs.com/solo">
+<meta property="og:title" content="Play Jottly Solo">
+<meta property="og:description" content="Deduce JotBot's secret word on your own or race the bot.">
+<meta property="og:image" content="https://icedmatchalabs.com/assets/app_icon.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Play Jottly Solo">
+<meta name="twitter:description" content="Deduce JotBot's secret word on your own or race the bot.">
+<meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
+<meta name="apple-itunes-app" content="app-id=6780044797, app-argument=https://icedmatchalabs.com/solo">
+<style>
+  :root{
+    --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
+    --cream:#FAF8F4; --cloud:#fff; --ink:#111; --stone:#6b6b6b; --mist:#e7e3db;
+    color-scheme: light dark;
+  }
+  *{box-sizing:border-box}
+  body{
+    font-family: ui-rounded, "SF Pro Rounded", "Nunito", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-size:18px; line-height:1.6; color:var(--ink); background:var(--cream);
+    margin:0; padding:0;
+  }
+  .wrap{max-width:880px; margin:0 auto; padding:0 22px}
+  a{color:var(--coral); text-decoration:none}
+  a:hover{text-decoration:underline}
+
+  /* Iced Matcha Labs masthead - same header as the full site */
+  .masthead{display:flex; flex-direction:column; align-items:center; gap:16px; padding:34px 22px 24px; border-bottom:1px solid var(--mist)}
+  .masthead .iml-banner{width:100%; max-width:880px; height:auto; aspect-ratio:1536 / 512; display:block}
+  .masthead nav{font-size:15px; font-weight:600}
+  .masthead nav a{margin:0 11px; color:var(--ink)}
+
+  .mark{flex:0 0 auto}
+
+  /* tile wordmark - matches the in-app VolleyHeader + the site hero */
+  .word{display:flex; gap:10px; flex-wrap:wrap; margin:6px 0 2px}
+  .tile{width:60px; height:60px; border-radius:14px; border:3px solid var(--ink);
+        display:flex; align-items:center; justify-content:center; font-weight:800; font-size:34px;
+        color:#111; background:#fff; transition:transform .15s ease}
+  .tile:hover{transform:translateY(-4px) rotate(-3deg)}
+  .tile.coral{background:var(--coral)}
+  .tile.apricot{background:var(--apricot)}
+  .tile.teal{background:var(--teal)}
+  .tile.circle{border-radius:50%}
+
+  .hero{padding:56px 0 44px}
+  .hero h1{font-size:46px; line-height:1.08; margin:22px 0 8px; letter-spacing:-.5px}
+  .hero p.lead{font-size:21px; color:var(--stone); margin:0 0 26px; max-width:34ch}
+  .pills{display:flex; flex-wrap:wrap; gap:10px; margin:22px 0}
+  .pill{font-weight:700; font-size:15px; padding:8px 14px; border-radius:999px; border:2px solid var(--ink)}
+  .pill.c{background:var(--coral); color:var(--ink)}
+  .pill.a{background:var(--apricot); color:var(--ink)}
+  .pill.t{background:var(--teal); color:var(--cloud)}
+  .pill.q{background:var(--aqua); color:var(--ink)}
+  p.fine{font-size:16px; color:var(--stone); margin:26px 0 0; max-width:48ch}
+
+  footer{border-top:1px solid var(--mist); padding:30px 0 50px; color:var(--stone); font-size:14px}
+
+  @media (prefers-color-scheme: dark){
+    :root{--cream:#161616; --cloud:#232323; --ink:#f2f2f2; --stone:#a9a9a9; --mist:#333}
+    .pill.c,.pill.a,.pill.q{color:#111}
+  }
+  @media (max-width:560px){ .hero h1{font-size:36px} .tile{width:48px;height:48px;font-size:27px} }
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <a href="/"><img class="iml-banner" src="/assets/iml_logo.png" alt="Iced Matcha Labs"></a>
+  <nav><a href="/">Jottly</a><a href="/strategy">Strategy</a><a href="/#support">Support</a><a href="/#privacy">Privacy</a></nav>
+</header>
+
+<div class="wrap">
+  <section class="hero">
+    <img class="mark" src="/assets/app_icon.png" alt="Jottly app icon" width="56" height="56" style="border-radius:13px" aria-hidden="true">
+    <div class="word" aria-label="Jottly">
+      <span class="tile coral">J</span><span class="tile apricot circle">O</span><span class="tile">T</span>
+      <span class="tile">T</span><span class="tile teal circle">L</span><span class="tile">Y</span>
+    </div>
+    <h1>Play Jottly Solo.</h1>
+    <p class="lead">JotBot picks a word for you. Deduce it on your own, or race the bot to solve first.</p>
+    <div class="pills">
+      <span class="pill c">No ads</span>
+      <span class="pill t">No tracking</span>
+      <span class="pill a">No sign-up</span>
+      <span class="pill q">No in-app purchases</span>
+    </div>
+    <a href="https://apps.apple.com/app/id6780044797" aria-label="Download Jottly on the App Store" style="display:inline-block">
+      <picture>
+        <source srcset="/assets/app-store-badge-white.svg" media="(prefers-color-scheme: dark)">
+        <img src="/assets/app-store-badge.svg" alt="Download on the App Store" style="height:56px; width:auto; display:block">
+      </picture>
+    </a>
+    <p class="fine">Already have Jottly? <a href="jotto://solo">Play Solo</a>.</p>
+  </section>
+</div>
+
+<footer><div class="wrap" style="text-align:center">
+  <img src="/assets/iml_logo.png" alt="Iced Matcha Labs" style="width:200px; max-width:62%; height:auto; display:block; margin:0 auto 10px">
+  <p style="margin:0 0 8px">Made with <img src="/assets/flame_glyph.png" alt="fire" style="height:1.2em;vertical-align:-0.25em"> by Iced Matcha Labs</p>
+  © 2026 Drew Sullivan · <a href="/">Jottly</a> · <a href="/strategy">Strategy</a> · <a href="/#support">Support</a> · <a href="/#privacy">Privacy</a>
+</div></footer>
+
+</body>
+</html>

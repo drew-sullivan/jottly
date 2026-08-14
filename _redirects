@@ -9,3 +9,6 @@
 # daily (via the apple-app-site-association file). Everyone else gets daily.html - a DIRECT 200 page
 # (not a redirect) so shared /daily links render a rich Messages/OG preview card like /join does; a
 # 302 to home genericized or dropped the card. Cloudflare serves daily.html at /daily via clean URLs.
+
+# Solo JotBot: /solo is an action link, not an invitation to a specific game. Installed apps open the
+# mode picker through Universal Links; everyone else gets the dedicated direct-200 landing page.
