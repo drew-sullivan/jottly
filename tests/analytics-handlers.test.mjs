@@ -30,6 +30,7 @@ test("valid aggregates write only the approved columns", async () => {
   const db = new FakeDB();
   const response = await onRequestPost(context(payload, db));
   assert.equal(response.status, 200);
+  assert.deepEqual(await response.json(), { accepted: 1, inserted: 1 });
   assert.equal(db.batches.length, 1);
   assert.equal(db.batches[0].length, 1);
   assert.equal(db.batches[0][0].values.length, 16);
@@ -37,6 +38,16 @@ test("valid aggregates write only the approved columns", async () => {
   assert.equal(db.batches[0][0].sql.includes("player"), false);
   assert.equal(db.batches[0][0].sql.includes("word"), false);
   assert.equal(db.batches[0][0].sql.includes("timestamp"), false);
+});
+
+test("replaying an idempotency key succeeds without inserting a second row", async () => {
+  const db = new FakeDB();
+  const first = await onRequestPost(context(payload, db));
+  const replay = await onRequestPost(context(payload, db));
+
+  assert.deepEqual(await first.json(), { accepted: 1, inserted: 1 });
+  assert.deepEqual(await replay.json(), { accepted: 1, inserted: 0 });
+  assert.equal(db.persistedEntryIDs.size, 1);
 });
 
 test("malformed or identifying payloads fail closed", async () => {
@@ -114,6 +125,7 @@ class FakeDB {
   constructor(results = []) {
     this.results = results;
     this.batches = [];
+    this.persistedEntryIDs = new Set();
   }
 
   prepare(sql) {
@@ -128,6 +140,11 @@ class FakeDB {
 
   async batch(statements) {
     this.batches.push(statements);
-    return statements.map(() => ({ success: true }));
+    return statements.map((statement) => {
+      const entryID = statement.values[0];
+      const inserted = this.persistedEntryIDs.has(entryID) ? 0 : 1;
+      this.persistedEntryIDs.add(entryID);
+      return { success: true, meta: { changes: inserted } };
+    });
   }
 }

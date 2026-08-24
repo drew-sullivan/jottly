@@ -30,14 +30,18 @@ export async function onRequestPost(context) {
       outcome, performance_bucket, reliability_reason, aggregate_count
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
-  await context.env.ANALYTICS_DB.batch(validation.entries.map((entry) => statement.bind(
+  const results = await context.env.ANALYTICS_DB.batch(validation.entries.map((entry) => statement.bind(
     entry.entry_id, entry.day, entry.category, entry.event, entry.app_version,
     entry.release_channel, entry.mode ?? null, entry.game_source ?? null,
     entry.share_source ?? null, entry.share_channel ?? null, entry.turn_bucket ?? null,
     entry.duration_bucket ?? null, entry.outcome ?? null, entry.performance_bucket ?? null,
     entry.reliability_reason ?? null, entry.count
   )));
-  return json({ accepted: validation.entries.length }, 200);
+  const inserted = results.reduce((total, result) => {
+    const changes = Number(result?.meta?.changes ?? 0);
+    return total + (Number.isFinite(changes) ? changes : 0);
+  }, 0);
+  return json({ accepted: validation.entries.length, inserted }, 200);
 }
 
 function json(value, status) {
