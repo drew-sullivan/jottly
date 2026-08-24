@@ -113,11 +113,13 @@ class FakeDB {
   constructor() {
     this.ids = new Set();
   }
-  async exec() { return { count: 2, duration: 0 }; }
   prepare(sql) {
-    return { bind: (...values) => ({ sql, values }) };
+    return { sql, values: [], bind: (...values) => ({ sql, values }) };
   }
   async batch(statements) {
+    if (statements.every((statement) => /^\s*CREATE /i.test(statement.sql))) {
+      return statements.map(() => ({ success: true, meta: { changes: 0 } }));
+    }
     return statements.map(({ values }) => {
       const inserted = this.ids.has(values[0]) ? 0 : 1;
       this.ids.add(values[0]);
@@ -131,7 +133,8 @@ class DeferredSchemaDB {
     this.calls = 0;
     this.pending = [];
   }
-  exec() {
+  prepare(sql) { return { sql }; }
+  batch() {
     this.calls += 1;
     return new Promise((resolve, reject) => this.pending.push({ resolve, reject }));
   }

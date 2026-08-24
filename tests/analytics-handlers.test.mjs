@@ -23,7 +23,8 @@ test("validate-only checks the deployed contract without touching D1", async () 
   const db = new FakeDB();
   const response = await onRequestPost(context(payload, db, { "x-jottly-validate-only": "1" }));
   assert.equal(response.status, 200);
-  assert.equal(db.batches.length, 0);
+  assert.equal(db.schemaExecutions, 0);
+  assert.equal(db.writeBatches.length, 0);
 });
 
 test("valid aggregates write only the approved columns", async () => {
@@ -32,13 +33,13 @@ test("valid aggregates write only the approved columns", async () => {
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { accepted: 1, inserted: 1 });
   assert.equal(db.schemaExecutions, 1);
-  assert.equal(db.batches.length, 1);
-  assert.equal(db.batches[0].length, 1);
-  assert.equal(db.batches[0][0].values.length, 16);
-  assert.equal(db.batches[0][0].values[0], payload.entries[0].entry_id);
-  assert.equal(db.batches[0][0].sql.includes("player"), false);
-  assert.equal(db.batches[0][0].sql.includes("word"), false);
-  assert.equal(db.batches[0][0].sql.includes("timestamp"), false);
+  assert.equal(db.writeBatches.length, 1);
+  assert.equal(db.writeBatches[0].length, 1);
+  assert.equal(db.writeBatches[0][0].values.length, 16);
+  assert.equal(db.writeBatches[0][0].values[0], payload.entries[0].entry_id);
+  assert.equal(db.writeBatches[0][0].sql.includes("player"), false);
+  assert.equal(db.writeBatches[0][0].sql.includes("word"), false);
+  assert.equal(db.writeBatches[0][0].sql.includes("timestamp"), false);
 });
 
 test("replaying an idempotency key succeeds without inserting a second row", async () => {
@@ -58,7 +59,7 @@ test("malformed or identifying payloads fail closed", async () => {
   identifying.entries[0].device_id = "nope";
   const response = await onRequestPost(context(identifying, db));
   assert.equal(response.status, 400);
-  assert.equal(db.batches.length, 0);
+  assert.equal(db.writeBatches.length, 0);
 });
 
 test("oversized and non-JSON requests are rejected before parsing", async () => {
@@ -128,28 +129,30 @@ function context(body, db, extraHeaders = {}) {
 class FakeDB {
   constructor(results = []) {
     this.results = results;
-    this.batches = [];
+    this.writeBatches = [];
     this.persistedEntryIDs = new Set();
     this.schemaExecutions = 0;
   }
 
-  async exec() {
-    this.schemaExecutions += 1;
-    return { count: 2, duration: 0 };
-  }
-
   prepare(sql) {
-    return {
+    const statement = {
+      sql,
+      values: [],
       bind: (...values) => ({
         sql,
         values,
         all: async () => ({ results: this.results }),
       }),
     };
+    return statement;
   }
 
   async batch(statements) {
-    this.batches.push(statements);
+    if (statements.every((statement) => /^\s*CREATE /i.test(statement.sql))) {
+      this.schemaExecutions += 1;
+      return statements.map(() => ({ success: true, meta: { changes: 0 } }));
+    }
+    this.writeBatches.push(statements);
     return statements.map((statement) => {
       const entryID = statement.values[0];
       const inserted = this.persistedEntryIDs.has(entryID) ? 0 : 1;

@@ -1,4 +1,4 @@
-export const analyticsSchemaSQL = `
+export const analyticsSchemaStatements = Object.freeze([`
 CREATE TABLE IF NOT EXISTS anonymous_analytics_events (
   entry_id TEXT PRIMARY KEY,
   day TEXT NOT NULL,
@@ -17,16 +17,18 @@ CREATE TABLE IF NOT EXISTS anonymous_analytics_events (
   reliability_reason TEXT,
   aggregate_count INTEGER NOT NULL CHECK (aggregate_count BETWEEN 1 AND 1000)
 ) WITHOUT ROWID;
-
+`, `
 CREATE INDEX IF NOT EXISTS analytics_day_event ON anonymous_analytics_events(day, event);
-`;
+`]);
+
+export const analyticsSchemaSQL = analyticsSchemaStatements.join("\n");
 
 const schemaPromises = new WeakMap();
 
 export async function ensureAnalyticsSchema(db) {
   let promise = schemaPromises.get(db);
   if (!promise) {
-    promise = db.exec(analyticsSchemaSQL);
+    promise = db.batch(analyticsSchemaStatements.map((sql) => db.prepare(sql)));
     schemaPromises.set(db, promise);
     promise.catch(() => {
       if (schemaPromises.get(db) === promise) schemaPromises.delete(db);
