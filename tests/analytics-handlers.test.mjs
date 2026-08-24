@@ -31,6 +31,7 @@ test("valid aggregates write only the approved columns", async () => {
   const response = await onRequestPost(context(payload, db));
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { accepted: 1, inserted: 1 });
+  assert.equal(db.schemaExecutions, 1);
   assert.equal(db.batches.length, 1);
   assert.equal(db.batches[0].length, 1);
   assert.equal(db.batches[0][0].values.length, 16);
@@ -48,6 +49,7 @@ test("replaying an idempotency key succeeds without inserting a second row", asy
   assert.deepEqual(await first.json(), { accepted: 1, inserted: 1 });
   assert.deepEqual(await replay.json(), { accepted: 1, inserted: 0 });
   assert.equal(db.persistedEntryIDs.size, 1);
+  assert.equal(db.schemaExecutions, 1);
 });
 
 test("malformed or identifying payloads fail closed", async () => {
@@ -78,6 +80,7 @@ test("reports are invisible without the server-side secret", async () => {
     env: { ANALYTICS_DB: db, ANALYTICS_REPORT_TOKEN: "secret" },
   });
   assert.equal(missing.status, 404);
+  assert.equal(db.schemaExecutions, 0);
 
   const allowed = await onRequestGet({
     request: new Request("https://icedmatchalabs.com/api/analytics/v1/report?days=7", {
@@ -87,6 +90,7 @@ test("reports are invisible without the server-side secret", async () => {
   });
   assert.equal(allowed.status, 200);
   assert.deepEqual(await allowed.json(), { days: 7, rows: [{ event: "game_started", count: 4 }] });
+  assert.equal(db.schemaExecutions, 1);
 });
 
 test("report ranges are deterministic for malformed, fractional, and excessive input", async () => {
@@ -126,6 +130,12 @@ class FakeDB {
     this.results = results;
     this.batches = [];
     this.persistedEntryIDs = new Set();
+    this.schemaExecutions = 0;
+  }
+
+  async exec() {
+    this.schemaExecutions += 1;
+    return { count: 2, duration: 0 };
   }
 
   prepare(sql) {

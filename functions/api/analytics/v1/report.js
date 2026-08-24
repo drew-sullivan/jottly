@@ -1,8 +1,11 @@
+import { ensureAnalyticsSchema } from "./schema.js";
+
 export async function onRequestGet(context) {
   const token = context.env.ANALYTICS_REPORT_TOKEN;
   const supplied = context.request.headers.get("authorization");
   if (!token || supplied !== `Bearer ${token}`) return new Response("Not found", { status: 404 });
   if (!context.env.ANALYTICS_DB) return json({ error: "Analytics unavailable" }, 503);
+  await ensureAnalyticsSchema(context.env.ANALYTICS_DB);
 
   const url = new URL(context.request.url);
   const requestedDays = Number(url.searchParams.get("days") || 30);

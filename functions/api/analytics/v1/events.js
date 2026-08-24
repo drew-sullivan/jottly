@@ -1,4 +1,5 @@
 import { validatePayload } from "./contract.js";
+import { ensureAnalyticsSchema } from "./schema.js";
 
 const maximumBodyBytes = 64 * 1024;
 
@@ -22,6 +23,7 @@ export async function onRequestPost(context) {
   if (!validation.ok) return json({ error: validation.error }, 400);
   if (context.request.headers.get("x-jottly-validate-only") === "1") return json({ accepted: validation.entries.length }, 200);
   if (!context.env.ANALYTICS_DB) return json({ error: "Analytics unavailable" }, 503);
+  await ensureAnalyticsSchema(context.env.ANALYTICS_DB);
 
   const statement = context.env.ANALYTICS_DB.prepare(`
     INSERT OR IGNORE INTO anonymous_analytics_events (

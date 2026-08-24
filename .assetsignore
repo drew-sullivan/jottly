@@ -5,6 +5,12 @@
 .assetsignore
 .wrangler
 wrangler.jsonc
+worker.js
+functions
+migrations
+tests
+package.json
+ANALYTICS.md
 *.log
 README*
 *.sh
