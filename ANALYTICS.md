@@ -17,3 +17,21 @@ retry deduplication, identifying-field rejection, and report privacy after a dep
 Reports are available at `/api/analytics/v1/report?days=30` only with
 `Authorization: Bearer <ANALYTICS_REPORT_TOKEN>`. The endpoint returns 404 without the secret.
 The write path does not require this secret; reports remain disabled until it is configured.
+
+## Product dashboard
+
+The private dashboard lives at `https://icedmatchalabs.com/analytics`. It asks for the report token,
+keeps it only in `sessionStorage` for the current browser tab, and sends it only to the same-origin
+report endpoint. The page is served with no-store, no-index, frame-denial, and first-party-only
+content security headers.
+
+Copy the token from macOS Keychain before opening the page:
+
+```bash
+security find-generic-password -w -a "$USER" -s "Jottly Analytics Report Token" | pbcopy
+```
+
+The dashboard reports aggregate event counts for mode interest and finishes, onboarding milestones,
+player-facing shares, gameplay friction, and reliability. Counts are events rather than unique users.
+Starts and finishes within a selected window are not cohorts, so the UI labels their quotient as an
+"observed finish ratio" and allows it to exceed 100% when a game crosses the window boundary.

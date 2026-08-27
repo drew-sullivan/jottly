@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" type="image/png" href="/assets/favicon-iml.png">
+<link rel="stylesheet" href="/assets/analytics-dashboard.css">
+<title>Jottly Product Dashboard</title>
+</head>
+<body>
+  <header class="app-bar">
+    <div class="brand-lockup">
+      <img src="/assets/app_icon.png" alt="" width="44" height="44">
+      <div>
+        <p class="eyebrow">Jottly</p>
+        <h1>Product dashboard</h1>
+      </div>
+    </div>
+    <p class="privacy-mark">Anonymous aggregate events</p>
+  </header>
+
+  <main>
+    <section id="auth-section" class="auth-panel" aria-labelledby="auth-title">
+      <div>
+        <p class="eyebrow">Private report</p>
+        <h2 id="auth-title">Open the dashboard</h2>
+        <p>Paste the analytics report token. It stays in this browser tab and is sent only to Jottly's protected report endpoint.</p>
+      </div>
+      <form id="token-form" class="token-form">
+        <label for="token-input">Report token</label>
+        <div class="token-row">
+          <input id="token-input" name="token" type="password" autocomplete="off" spellcheck="false" required>
+          <button class="button primary" type="submit">Open dashboard</button>
+        </div>
+        <p class="command-hint">Copy it from Keychain with:<br><code>security find-generic-password -w -a "$USER" -s "Jottly Analytics Report Token" | pbcopy</code></p>
+        <p id="auth-error" class="error" role="alert" hidden></p>
+      </form>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="toolbar" aria-label="Dashboard filters">
+        <div class="filter-group">
+          <label for="days-select">Window</label>
+          <select id="days-select">
+            <option value="7">7 days</option>
+            <option value="14">14 days</option>
+            <option value="30" selected>30 days</option>
+            <option value="60">60 days</option>
+            <option value="90">90 days</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="channel-select">Channel</label>
+          <select id="channel-select"><option value="all">All channels</option></select>
+        </div>
+        <div class="filter-group">
+          <label for="version-select">Version</label>
+          <select id="version-select"><option value="all">All versions</option></select>
+        </div>
+        <div class="toolbar-actions">
+          <button id="refresh-button" class="button" type="button">Refresh</button>
+          <button id="download-button" class="button" type="button">Download JSON</button>
+          <button id="signout-button" class="button quiet" type="button">Lock</button>
+        </div>
+      </div>
+
+      <div class="report-context">
+        <p id="date-label">No data loaded</p>
+        <p id="status-live" role="status" aria-live="polite"></p>
+      </div>
+
+      <aside class="method-note">
+        <strong>How to read this:</strong> counts are anonymous events, not unique people. Starts and finishes inside a date window are not cohorts, so observed ratios can exceed 100% when a game crosses the boundary.
+      </aside>
+
+      <section class="question-block" aria-labelledby="pulse-title">
+        <div class="section-heading">
+          <p class="eyebrow">At a glance</p>
+          <h2 id="pulse-title">What is happening?</h2>
+        </div>
+        <div id="summary-grid" class="summary-grid"></div>
+        <div id="insight-grid" class="insight-grid"></div>
+      </section>
+
+      <section class="question-block" aria-labelledby="modes-title">
+        <div class="section-heading">
+          <p class="eyebrow">Game modes</p>
+          <h2 id="modes-title">What are people choosing and finishing?</h2>
+        </div>
+        <div class="panel table-panel">
+          <table>
+            <thead><tr><th>Mode</th><th>Selected</th><th>Started</th><th>Finished</th><th>Left</th><th>Observed finish ratio</th></tr></thead>
+            <tbody id="mode-body"></tbody>
+          </table>
+        </div>
+        <div class="two-column">
+          <article class="panel">
+            <h3>Starts by source</h3>
+            <div id="source-list" class="bar-list"></div>
+          </article>
+          <article class="panel">
+            <h3>Finished-game outcomes</h3>
+            <div id="outcome-list" class="bar-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="question-block" aria-labelledby="onboarding-title">
+        <div class="section-heading">
+          <p class="eyebrow">Onboarding</p>
+          <h2 id="onboarding-title">Are new players finding the game?</h2>
+        </div>
+        <article class="panel">
+          <p class="panel-note">Independent milestone counts. They are directional signals, not a user-level funnel.</p>
+          <div id="onboarding-list" class="milestone-list"></div>
+        </article>
+      </section>
+
+      <section class="question-block" aria-labelledby="sharing-title">
+        <div class="section-heading">
+          <p class="eyebrow">Sharing</p>
+          <h2 id="sharing-title">What do people share, and how?</h2>
+        </div>
+        <div id="sharing-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel">
+            <h3>Completed shares by purpose</h3>
+            <div id="share-source-list" class="bar-list"></div>
+          </article>
+          <article class="panel">
+            <h3>Completed shares by channel</h3>
+            <div id="share-channel-list" class="bar-list"></div>
+          </article>
+        </div>
+      </section>
+
+      <section class="question-block" aria-labelledby="friction-title">
+        <div class="section-heading">
+          <p class="eyebrow">Friction</p>
+          <h2 id="friction-title">Where do players need help?</h2>
+        </div>
+        <div id="friction-grid" class="summary-grid compact"></div>
+        <article class="panel">
+          <h3>Games left by turn</h3>
+          <div id="left-turn-list" class="bar-list"></div>
+        </article>
+      </section>
+
+      <section class="question-block" aria-labelledby="reliability-title">
+        <div class="section-heading">
+          <p class="eyebrow">Reliability</p>
+          <h2 id="reliability-title">Does the app feel fast and dependable?</h2>
+        </div>
+        <div id="reliability-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel">
+            <h3>Home cache paint</h3>
+            <div id="cache-list" class="bar-list"></div>
+          </article>
+          <article class="panel">
+            <h3>Home reconciliation</h3>
+            <div id="reconcile-list" class="bar-list"></div>
+          </article>
+        </div>
+        <article class="panel">
+          <h3>Offline fallbacks by reason</h3>
+          <div id="offline-list" class="bar-list"></div>
+        </article>
+      </section>
+
+      <section class="question-block" aria-labelledby="trend-title">
+        <div class="section-heading">
+          <p class="eyebrow">Trend</p>
+          <h2 id="trend-title">What changed day by day?</h2>
+        </div>
+        <div class="panel table-panel">
+          <table>
+            <thead><tr><th>Day</th><th>Started</th><th>Finished</th><th>Left</th><th>Shared</th></tr></thead>
+            <tbody id="activity-body"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script type="module" src="/assets/analytics-dashboard.js"></script>
+</body>
+</html>
