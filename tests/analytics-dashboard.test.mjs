@@ -40,6 +40,30 @@ test("the dashboard answers mode, completion, source, and outcome questions", ()
   );
 });
 
+test("Shapeshifter has its own ordered dashboard row", () => {
+  const model = buildDashboardModel([
+    row("game_started", 3, { mode: "shapeshifter", game_source: "solo" }),
+    row("game_completed", 2, { mode: "shapeshifter", game_source: "solo", outcome: "won" }),
+  ]);
+
+  assert.deepEqual(model.modes.map(({ key }) => key), [
+    "lightning", "cowpoke", "classic", "shapeshifter", "mystery",
+  ]);
+  assert.deepEqual(
+    model.modes.find(({ key }) => key === "shapeshifter"),
+    {
+      key: "shapeshifter",
+      label: "Shapeshifter",
+      selected: 0,
+      started: 3,
+      completed: 2,
+      left: 0,
+      observedFinishRatio: 2 / 3,
+      outcomes: [{ key: "won", count: 2 }],
+    },
+  );
+});
+
 test("support reports do not masquerade as player sharing", () => {
   const model = buildDashboardModel(rows);
   assert.equal(model.sharing.opened, 5);

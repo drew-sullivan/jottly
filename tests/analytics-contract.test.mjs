@@ -22,6 +22,13 @@ test("accepts the anonymous aggregate contract", () => {
   assert.equal(validatePayload({ schemaVersion: 1, entries: [entry] }, now).ok, true);
 });
 
+test("accepts every player-facing mode including Shapeshifter", () => {
+  for (const mode of ["lightning", "cowpoke", "classic", "shapeshifter", "mystery"]) {
+    const result = validatePayload({ schemaVersion: 1, entries: [{ ...entry, mode }] }, now);
+    assert.equal(result.ok, true, mode);
+  }
+});
+
 test("rejects identifiers, words, exact timestamps, and arbitrary dimensions", () => {
   for (const key of ["player_id", "device_id", "game_id", "opponent_id", "word", "timestamp", "name"]) {
     const result = validatePayload({ schemaVersion: 1, entries: [{ ...entry, [key]: "private" }] }, now);

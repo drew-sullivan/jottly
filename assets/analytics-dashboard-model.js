@@ -1,8 +1,9 @@
-export const MODE_ORDER = Object.freeze(["lightning", "cowpoke", "classic", "mystery"]);
+export const MODE_ORDER = Object.freeze(["lightning", "cowpoke", "classic", "shapeshifter", "mystery"]);
 export const MODE_LABELS = Object.freeze({
   lightning: "Lightning",
   cowpoke: "Cowpoke",
   classic: "Classic",
+  shapeshifter: "Shapeshifter",
   mystery: "Mystery",
 });
 

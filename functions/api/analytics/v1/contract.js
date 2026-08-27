@@ -15,7 +15,7 @@ export const allowedValues = Object.freeze({
     "first_rematch_started", "returned_next_day", "returned_next_week",
     "local_events_dropped",
   ],
-  mode: ["lightning", "cowpoke", "classic", "mystery"],
+  mode: ["lightning", "cowpoke", "classic", "shapeshifter", "mystery"],
   game_source: ["solo", "friend", "daily", "invitation", "rematch"],
   share_source: [
     "friend_invitation", "game_result", "daily_result", "streak",
