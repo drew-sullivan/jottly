@@ -18,6 +18,20 @@
 <meta name="twitter:description" content="The same secret word for everyone, every day. Tap to get Jottly and play today's puzzle.">
 <meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
 <meta name="apple-itunes-app" content="app-id=6780044797, app-argument=https://icedmatchalabs.com/daily">
+<script>
+  // Keep the selected Daily clue style when Safari handles the Universal Link before the app.
+  (() => {
+    const lightning = "lightningSolitaire6V1";
+    const ruleset = new URLSearchParams(window.location.search).get("ruleset");
+    if (ruleset !== lightning) return;
+    const query = `?ruleset=${encodeURIComponent(lightning)}`;
+    document.querySelector('meta[name="apple-itunes-app"]').content =
+      `app-id=6780044797, app-argument=https://icedmatchalabs.com/daily${query}`;
+    window.addEventListener("DOMContentLoaded", () => {
+      document.getElementById("daily-open-link").href = `jotto://daily${query}`;
+    });
+  })();
+</script>
 <style>
   :root{
     --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
@@ -101,7 +115,7 @@
         <img src="/assets/app-store-badge.svg" alt="Download on the App Store" style="height:56px; width:auto; display:block">
       </picture>
     </a>
-    <p class="fine">Already have Jottly? <a href="jotto://daily">Open today's challenge</a>.</p>
+    <p class="fine">Already have Jottly? <a id="daily-open-link" href="jotto://daily">Open today's challenge</a>.</p>
   </section>
 </div>
 

@@ -58,6 +58,8 @@ has daily.html 'href="https://icedmatchalabs.com/daily"' "canonical is /daily"
 has daily.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
 has daily.html "app-argument=https://icedmatchalabs.com/daily" "Smart App Banner deep-links the Daily"
 has daily.html 'href="jotto://daily"' "Open button uses the jotto://daily scheme fallback"
+has daily.html 'ruleset !== lightning' "Daily fallback accepts only the supported mode override"
+has daily.html 'jotto://daily${query}' "Daily fallback preserves the selected clue style"
 
 echo "== solo.html (carries fresh JotBot game intent without a game ID) =="
 has solo.html 'href="https://icedmatchalabs.com/solo"' "canonical is /solo"

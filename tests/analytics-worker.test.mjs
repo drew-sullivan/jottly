@@ -117,7 +117,7 @@ class FakeDB {
     return { sql, values: [], bind: (...values) => ({ sql, values }) };
   }
   async batch(statements) {
-    if (statements.every((statement) => /^\s*CREATE /i.test(statement.sql))) {
+    if (statements.every((statement) => (statement.values?.length ?? 0) === 0)) {
       return statements.map(() => ({ success: true, meta: { changes: 0 } }));
     }
     return statements.map(({ values }) => {

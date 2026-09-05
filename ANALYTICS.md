@@ -3,6 +3,16 @@
 Jottly sends small, first-party aggregate counters to `/api/analytics/v1/events`. The contract rejects
 unknown fields and has no player, device, game, opponent, word, name, or exact timestamp dimension.
 Retry IDs deduplicate a durable client batch; they are random per aggregate row, not installation IDs.
+Game-design telemetry is deliberately bounded to catalog/remixed/unlisted origin, word-length buckets,
+an allowlisted rule identifier, coarse interaction contexts, and coarse failure reasons. Custom titles,
+descriptions, definitions, configured letters, raw errors, record identifiers, and game identifiers are
+never uploaded.
+
+The app emits one `active_install_day` counter per enabled install per UTC day and one
+`active_install_week` counter per ISO week. These provide privacy-preserving approximate DAU and WAU
+without uploading a stable install identifier. Onboarding milestones carry only a coarse ISO install
+week such as `2026-W36`; for upgrades, that is the first analytics-enabled week rather than the
+historical App Store installation date.
 
 ## Cloudflare deployment
 
@@ -32,7 +42,15 @@ Copy the token from macOS Keychain before opening the page:
 security find-generic-password -w -a "$USER" -s "Jottly Analytics Report Token" | pbcopy
 ```
 
-The dashboard reports aggregate event counts for mode interest and finishes, onboarding milestones,
-player-facing shares, gameplay friction, and reliability. Counts are events rather than unique users.
+The dashboard reports a five-question product scorecard, privacy-preserving active-install counts,
+install-week onboarding cohorts, aggregate event counts for mode interest and finishes, Remix
+creations, game origin, word lengths, rule-level starts and outcomes, game-start/invitation/move
+latency and failures, invitation and shared-game journeys, suggestion usage, rules help, notification
+routing, player-facing shares, completion durations by mode/source, conversion by source/game kind,
+termination reasons, offline queue recovery, gameplay friction, and data-health signals.
+
+General counts are events rather than unique users. The active-install events and first-use milestones
+are the exceptions: the app deduplicates them locally before aggregation, without exposing the local
+marker or an identifier to the server.
 Starts and finishes within a selected window are not cohorts, so the UI labels their quotient as an
 "observed finish ratio" and allows it to exceed 100% when a game crosses the window boundary.

@@ -35,10 +35,10 @@ test("valid aggregates write only the approved columns", async () => {
   assert.equal(db.schemaExecutions, 1);
   assert.equal(db.writeBatches.length, 1);
   assert.equal(db.writeBatches[0].length, 1);
-  assert.equal(db.writeBatches[0][0].values.length, 16);
+  assert.equal(db.writeBatches[0][0].values.length, 22);
   assert.equal(db.writeBatches[0][0].values[0], payload.entries[0].entry_id);
   assert.equal(db.writeBatches[0][0].sql.includes("player"), false);
-  assert.equal(db.writeBatches[0][0].sql.includes("word"), false);
+  assert.equal(db.writeBatches[0][0].sql.includes("word_length"), true);
   assert.equal(db.writeBatches[0][0].sql.includes("timestamp"), false);
 });
 
@@ -112,7 +112,20 @@ test("report ranges are deterministic for malformed, fractional, and excessive i
 test("the migration makes retry ids the primary idempotency key", async () => {
   const sql = await readFile(new URL("../migrations/0001_anonymous_analytics.sql", import.meta.url), "utf8");
   assert.match(sql, /entry_id TEXT PRIMARY KEY/);
-  assert.doesNotMatch(sql, /player|device|game_id|opponent|word|timestamp/i);
+  assert.match(
+    sql,
+    /INSERT OR IGNORE INTO anonymous_analytics_events_v2[\s\S]+FROM anonymous_analytics_events;/
+  );
+  assert.match(
+    sql,
+    /INSERT OR IGNORE INTO anonymous_analytics_events_v3[\s\S]+FROM anonymous_analytics_events_v2;/
+  );
+  assert.match(
+    sql,
+    /INSERT OR IGNORE INTO anonymous_analytics_events_v4[\s\S]+FROM anonymous_analytics_events_v3;/
+  );
+  assert.match(sql, /install_cohort TEXT/);
+  assert.doesNotMatch(sql, /player|device|game_id|opponent|timestamp|name/i);
 });
 
 function context(body, db, extraHeaders = {}) {
@@ -148,7 +161,7 @@ class FakeDB {
   }
 
   async batch(statements) {
-    if (statements.every((statement) => /^\s*CREATE /i.test(statement.sql))) {
+    if (statements.every((statement) => (statement.values?.length ?? 0) === 0)) {
       this.schemaExecutions += 1;
       return statements.map(() => ({ success: true, meta: { changes: 0 } }));
     }

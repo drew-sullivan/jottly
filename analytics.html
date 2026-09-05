@@ -84,6 +84,16 @@
         <div id="insight-grid" class="insight-grid"></div>
       </section>
 
+      <section class="question-block" aria-labelledby="scorecard-title">
+        <div class="section-heading">
+          <p class="eyebrow">Product scorecard</p>
+          <h2 id="scorecard-title">Are people finding something worth returning to?</h2>
+        </div>
+        <div id="scorecard-grid" class="summary-grid compact"></div>
+        <div id="active-install-grid" class="summary-grid compact"></div>
+        <p class="panel-note">Active-install counts are privacy-preserving device events emitted once per day or week. No install identifier is uploaded.</p>
+      </section>
+
       <section class="question-block" aria-labelledby="modes-title">
         <div class="section-heading">
           <p class="eyebrow">Game modes</p>
@@ -105,6 +115,116 @@
             <div id="outcome-list" class="bar-list"></div>
           </article>
         </div>
+        <div class="two-column">
+          <article class="panel table-panel">
+            <h3>Conversion by source</h3>
+            <table><thead><tr><th>Source</th><th>Started</th><th>Finished</th><th>Left</th><th>Observed finish ratio</th></tr></thead><tbody id="source-conversion-body"></tbody></table>
+          </article>
+          <article class="panel table-panel">
+            <h3>Conversion by game kind</h3>
+            <table><thead><tr><th>Kind</th><th>Started</th><th>Finished</th><th>Left</th><th>Observed finish ratio</th></tr></thead><tbody id="kind-conversion-body"></tbody></table>
+          </article>
+        </div>
+        <div class="two-column">
+          <article class="panel table-panel">
+            <h3>Completion time by mode</h3>
+            <table><thead><tr><th>Mode</th><th>&lt;5m</th><th>5–15m</th><th>15–60m</th><th>1–24h</th><th>1–7d</th><th>7d+</th></tr></thead><tbody id="mode-duration-body"></tbody></table>
+          </article>
+          <article class="panel table-panel">
+            <h3>Completion time by source</h3>
+            <table><thead><tr><th>Source</th><th>&lt;5m</th><th>5–15m</th><th>15–60m</th><th>1–24h</th><th>1–7d</th><th>7d+</th></tr></thead><tbody id="source-duration-body"></tbody></table>
+          </article>
+        </div>
+      </section>
+
+      <section class="question-block" aria-labelledby="design-title">
+        <div class="section-heading">
+          <p class="eyebrow">Game design</p>
+          <h2 id="design-title">What kinds of games and rules are people using?</h2>
+        </div>
+        <div id="creation-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel">
+            <h3>Created game modes</h3>
+            <div id="creation-mode-list" class="bar-list"></div>
+          </article>
+          <article class="panel">
+            <h3>Created word lengths</h3>
+            <div id="creation-length-list" class="bar-list"></div>
+          </article>
+        </div>
+        <article class="panel">
+          <h3>Rules in created games</h3>
+          <div id="created-rule-list" class="bar-list"></div>
+        </article>
+        <div class="two-column">
+          <article class="panel">
+            <h3>Starts by game kind</h3>
+            <div id="game-kind-list" class="bar-list"></div>
+          </article>
+          <article class="panel">
+            <h3>Starts by word length</h3>
+            <div id="word-length-list" class="bar-list"></div>
+          </article>
+        </div>
+        <article class="panel">
+          <h3>Rules in started games</h3>
+          <div id="played-rule-list" class="bar-list"></div>
+        </article>
+      </section>
+
+      <section class="question-block" aria-labelledby="journeys-title">
+        <div class="section-heading">
+          <p class="eyebrow">Journeys</p>
+          <h2 id="journeys-title">Where do important flows succeed or stop?</h2>
+        </div>
+        <p class="panel-note">These are directional event sequences, not user-level cohorts. Each stage has its own honest count.</p>
+        <div class="two-column">
+          <article class="panel"><h3>Starting a game</h3><div id="start-funnel" class="milestone-list"></div></article>
+          <article class="panel"><h3>Friend invitations</h3><div id="invite-funnel" class="milestone-list"></div></article>
+          <article class="panel"><h3>Remix creation</h3><div id="remix-funnel" class="milestone-list"></div></article>
+          <article class="panel"><h3>Shared games</h3><div id="shared-game-funnel" class="milestone-list"></div></article>
+        </div>
+      </section>
+
+      <section class="question-block" aria-labelledby="quality-title">
+        <div class="section-heading">
+          <p class="eyebrow">Experience quality</p>
+          <h2 id="quality-title">What helps people play, and where do they struggle?</h2>
+        </div>
+        <h3>Game start experience</h3>
+        <div id="start-experience-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel"><h3>Ready time</h3><div id="start-performance-list" class="bar-list"></div></article>
+          <article class="panel"><h3>Start failures</h3><div id="start-failure-list" class="bar-list"></div></article>
+        </div>
+        <h3>Invitation join experience</h3>
+        <div id="invite-experience-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel"><h3>Join time</h3><div id="invite-performance-list" class="bar-list"></div></article>
+          <article class="panel"><h3>Invite failures</h3><div id="invite-failure-list" class="bar-list"></div></article>
+        </div>
+        <h3>Move submission experience</h3>
+        <div id="move-experience-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel"><h3>Submit time</h3><div id="move-performance-list" class="bar-list"></div></article>
+          <article class="panel"><h3>Submit failures</h3><div id="move-failure-list" class="bar-list"></div></article>
+        </div>
+        <h3>Word suggestions</h3>
+        <div id="suggestion-summary" class="summary-grid compact"></div>
+        <article class="panel"><h3>Suggestions shown by context</h3><div id="suggestion-context-list" class="bar-list"></div></article>
+        <h3>Rules help</h3>
+        <div id="rules-help-summary" class="summary-grid compact"></div>
+        <article class="panel"><h3>Help opened by context</h3><div id="rules-help-context-list" class="bar-list"></div></article>
+        <h3>Notifications</h3>
+        <div id="notification-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel table-panel">
+            <h3>Rule outcomes</h3>
+            <table><thead><tr><th>Rule</th><th>Started</th><th>Finished</th><th>Left</th><th>Observed finish ratio</th></tr></thead><tbody id="rule-outcome-body"></tbody></table>
+          </article>
+          <article class="panel"><h3>Why games ended</h3><div id="termination-list" class="bar-list"></div></article>
+        </div>
       </section>
 
       <section class="question-block" aria-labelledby="onboarding-title">
@@ -113,9 +233,13 @@
           <h2 id="onboarding-title">Are new players finding the game?</h2>
         </div>
         <article class="panel">
-          <p class="panel-note">Independent milestone counts. They are directional signals, not a user-level funnel.</p>
+          <p class="panel-note">Legacy milestone counts remain directional. Cohort rows below use once-per-install milestones grouped only by install week.</p>
           <div id="onboarding-list" class="milestone-list"></div>
         </article>
+        <div class="panel table-panel">
+          <h3>Install-week activation funnel</h3>
+          <table><thead><tr><th>Cohort</th><th>First open</th><th>Picker</th><th>Started</th><th>First guess</th><th>Finished</th><th>Second game</th><th>Activation</th></tr></thead><tbody id="cohort-body"></tbody></table>
+        </div>
       </section>
 
       <section class="question-block" aria-labelledby="sharing-title">
@@ -168,6 +292,10 @@
           <h3>Offline fallbacks by reason</h3>
           <div id="offline-list" class="bar-list"></div>
         </article>
+        <div class="two-column">
+          <article class="panel"><h3>Queued syncs by reason</h3><div id="sync-queue-list" class="bar-list"></div></article>
+          <article class="panel"><h3>Outbox drain time</h3><div id="drain-performance-list" class="bar-list"></div></article>
+        </div>
       </section>
 
       <section class="question-block" aria-labelledby="trend-title">
@@ -177,10 +305,27 @@
         </div>
         <div class="panel table-panel">
           <table>
-            <thead><tr><th>Day</th><th>Started</th><th>Finished</th><th>Left</th><th>Shared</th></tr></thead>
+            <thead><tr><th>Day</th><th>Active installs</th><th>Started</th><th>Finished</th><th>Left</th><th>Shared</th></tr></thead>
             <tbody id="activity-body"></tbody>
           </table>
         </div>
+      </section>
+
+      <section class="question-block" aria-labelledby="health-title">
+        <div class="section-heading">
+          <p class="eyebrow">Data health</p>
+          <h2 id="health-title">Can these numbers be trusted?</h2>
+        </div>
+        <div id="data-health-summary" class="summary-grid compact"></div>
+        <div class="two-column">
+          <article class="panel"><h3>Events by app version</h3><div id="health-version-list" class="bar-list"></div></article>
+          <article class="panel"><h3>Events by release channel</h3><div id="health-channel-list" class="bar-list"></div></article>
+        </div>
+        <article class="panel table-panel">
+          <h3>Bounded dimension quality</h3>
+          <p class="panel-note">Coverage is descriptive because many dimensions are intentionally optional. Unknown rate is measured only among populated events.</p>
+          <table><thead><tr><th>Dimension</th><th>Populated</th><th>Coverage</th><th>Unknown</th><th>Unknown rate</th></tr></thead><tbody id="dimension-health-body"></tbody></table>
+        </article>
       </section>
     </section>
   </main>
