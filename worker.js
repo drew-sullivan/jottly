@@ -1,8 +1,13 @@
 import { onRequestPost as receiveAnalytics } from "./functions/api/analytics/v1/events.js";
 import { onRequestGet as reportAnalytics } from "./functions/api/analytics/v1/report.js";
+import { onRequestGet as readCommunityCatalog } from "./functions/api/community/v1/catalog.js";
+import { onRequestGet as readCommunityHealth } from "./functions/api/community/v1/health.js";
+import { runCommunitySweep } from "./functions/api/community/v1/sweep.js";
 
 const eventsPath = "/api/analytics/v1/events";
 const reportPath = "/api/analytics/v1/report";
+const communityCatalogPath = "/api/community/v1/games";
+const communityHealthPath = "/api/community/v1/health";
 
 export default {
   async fetch(request, env, executionContext) {
@@ -18,11 +23,33 @@ export default {
       return reportAnalytics({ request, env, executionContext });
     }
 
+    if (path === communityCatalogPath) {
+      if (request.method !== "GET") return methodNotAllowed("GET");
+      return readCommunityCatalog({ request, env, executionContext });
+    }
+
+    if (path === communityHealthPath) {
+      if (request.method !== "GET") return methodNotAllowed("GET");
+      return readCommunityHealth({ request, env, executionContext });
+    }
+
     if (path.startsWith("/api/")) {
       return json({ error: "Not found" }, 404);
     }
 
     return env.ASSETS.fetch(request);
+  },
+
+  scheduled(controller, env, ctx) {
+    ctx.waitUntil(runCommunitySweep({
+      env,
+      asOfMilliseconds: controller.scheduledTime,
+    }).then((summary) => {
+      console.log(JSON.stringify({ event: "community_catalog_sweep", ...summary }));
+    }).catch(() => {
+      console.error(JSON.stringify({ event: "community_catalog_sweep", status: "failed" }));
+      throw new Error("Community catalog sweep failed");
+    }));
   },
 };
 

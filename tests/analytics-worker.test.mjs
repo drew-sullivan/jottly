@@ -35,7 +35,62 @@ test("unknown API routes and wrong methods fail closed instead of serving assets
   const wrongMethod = await worker.fetch(request("/api/analytics/v1/events", "GET"), env);
   assert.equal(wrongMethod.status, 405);
   assert.equal(wrongMethod.headers.get("allow"), "POST");
+  const communityWrite = await worker.fetch(request("/api/community/v1/games", "POST"), env);
+  assert.equal(communityWrite.status, 405);
+  assert.equal(communityWrite.headers.get("allow"), "GET");
+  const healthWrite = await worker.fetch(request("/api/community/v1/health", "POST"), env);
+  assert.equal(healthWrite.status, 405);
+  assert.equal(healthWrite.headers.get("allow"), "GET");
   assert.equal(assets.requests.length, 0);
+});
+
+test("the community health route bypasses assets and reports snapshot freshness", async () => {
+  const assets = new FakeAssets();
+  const generated = Date.now();
+  const response = await worker.fetch(request("/api/community/v1/health", "GET"), {
+    COMMUNITY_DB: new CommunityDB({
+      generated_at_ms: generated,
+      payload_json: JSON.stringify({ games: Array(6).fill({}) }),
+    }),
+    ASSETS: assets,
+  });
+  assert.equal(response.status, 200);
+  assert.equal((await response.json()).entryCount, 6);
+  assert.equal(assets.requests.length, 0);
+});
+
+test("the public community route serves only the last published D1 snapshot", async () => {
+  const assets = new FakeAssets();
+  const payload = JSON.stringify({ schemaVersion: 1, games: [] });
+  const response = await worker.fetch(request("/api/community/v1/games", "GET"), {
+    COMMUNITY_DB: new CommunityDB({ payload_json: payload, payload_sha256: "abc" }),
+    ASSETS: assets,
+  });
+  assert.equal(response.status, 200);
+  assert.equal(await response.text(), payload);
+  assert.equal(response.headers.get("etag"), '"abc"');
+  assert.equal(assets.requests.length, 0);
+});
+
+test("a failed scheduled sweep stays privacy-safe and fails the platform invocation", async () => {
+  let pending;
+  const messages = [];
+  const originalError = console.error;
+  console.error = (message) => messages.push(message);
+  try {
+    worker.scheduled(
+      { scheduledTime: Date.parse("2026-09-08T12:00:00Z") },
+      {},
+      { waitUntil: (promise) => { pending = promise; } },
+    );
+    await assert.rejects(pending, /Community catalog sweep failed/);
+  } finally {
+    console.error = originalError;
+  }
+
+  assert.deepEqual(messages.map((message) => JSON.parse(message)), [
+    { event: "community_catalog_sweep", status: "failed" },
+  ]);
 });
 
 test("concurrent schema checks share one operation and a failed bootstrap can retry", async () => {
@@ -57,8 +112,11 @@ test("concurrent schema checks share one operation and a failed bootstrap can re
 });
 
 test("the executable schema and migration cannot drift", async () => {
-  const migration = await readFile(new URL("../migrations/0001_anonymous_analytics.sql", import.meta.url), "utf8");
-  assert.equal(normalizeSQL(analyticsSchemaSQL), normalizeSQL(migration));
+  const migrations = await Promise.all([
+    "../migrations/0001_anonymous_analytics.sql",
+    "../migrations/0003_community_analytics.sql",
+  ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
+  assert.equal(normalizeSQL(analyticsSchemaSQL), normalizeSQL(migrations.join("\n")));
 });
 
 test("Wrangler keeps static assets fast and provisions the anonymous D1 binding", async () => {
@@ -69,7 +127,11 @@ test("Wrangler keeps static assets fast and provisions the anonymous D1 binding"
   assert.equal(config.keep_vars, true);
   assert.deepEqual(config.assets.run_worker_first, ["/api/*"]);
   assert.equal(config.assets.binding, "ASSETS");
-  assert.deepEqual(config.d1_databases, [{ binding: "ANALYTICS_DB" }]);
+  assert.deepEqual(config.d1_databases, [
+    { binding: "ANALYTICS_DB" },
+    { binding: "COMMUNITY_DB" },
+  ]);
+  assert.deepEqual(config.triggers.crons, ["17 7 * * *"]);
 });
 
 function validPayload() {
@@ -140,4 +202,14 @@ class DeferredSchemaDB {
   }
   resolve() { this.pending.shift()?.resolve({ count: 2, duration: 0 }); }
   reject(error) { this.pending.shift()?.reject(error); }
+}
+
+class CommunityDB {
+  constructor(row) { this.row = row; }
+  prepare() {
+    return {
+      run: async () => ({ meta: { changes: 0 } }),
+      first: async () => this.row,
+    };
+  }
 }

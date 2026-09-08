@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "catalog": {
+    "maximumEntries": 6,
+    "maximumBytes": 524288,
+    "selectionSources": ["weeklyPopular", "recentlyPopular", "featured"]
+  },
+  "package": {
+    "schemaVersion": 1,
+    "contractProtocolVersion": 1,
+    "canonicalTopology": "solo",
+    "carrierTopologies": ["solo", "headToHead"],
+    "authorship": "player",
+    "maximumTitleCharacters": 80,
+    "maximumSubtitleCharacters": 240
+  }
+}

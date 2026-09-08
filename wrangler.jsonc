@@ -6,6 +6,23 @@
   "observability": {
     "enabled": true
   },
+  "triggers": {
+    "crons": [
+      "17 7 * * *"
+    ]
+  },
+  "vars": {
+    "CLOUDKIT_CONTAINER": "iCloud.com.dsull.Jotto",
+    "CLOUDKIT_ENVIRONMENT": "production",
+    "COMMUNITY_CATALOG_SIZE": "6",
+    "COMMUNITY_WEEKLY_WINDOW_DAYS": "7",
+    "COMMUNITY_FALLBACK_WINDOW_DAYS": "28",
+    "COMMUNITY_MINIMUM_DISTINCT_PAIRS": "1",
+    "COMMUNITY_ORGANIC_GRADUATION_PAIRS": "2",
+    "COMMUNITY_CATALOG_ENABLED": "true",
+    "COMMUNITY_CATALOG_ROLLOUT_PERCENTAGE": "100",
+    "COMMUNITY_CATALOG_STALE_AFTER_HOURS": "36"
+  },
   "assets": {
     "directory": ".",
     "binding": "ASSETS",
@@ -16,6 +33,9 @@
   "d1_databases": [
     {
       "binding": "ANALYTICS_DB"
+    },
+    {
+      "binding": "COMMUNITY_DB"
     }
   ]
 }

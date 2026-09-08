@@ -35,7 +35,7 @@ test("valid aggregates write only the approved columns", async () => {
   assert.equal(db.schemaExecutions, 1);
   assert.equal(db.writeBatches.length, 1);
   assert.equal(db.writeBatches[0].length, 1);
-  assert.equal(db.writeBatches[0][0].values.length, 22);
+  assert.equal(db.writeBatches[0][0].values.length, 23);
   assert.equal(db.writeBatches[0][0].values[0], payload.entries[0].entry_id);
   assert.equal(db.writeBatches[0][0].sql.includes("player"), false);
   assert.equal(db.writeBatches[0][0].sql.includes("word_length"), true);
@@ -110,7 +110,15 @@ test("report ranges are deterministic for malformed, fractional, and excessive i
 });
 
 test("the migration makes retry ids the primary idempotency key", async () => {
-  const sql = await readFile(new URL("../migrations/0001_anonymous_analytics.sql", import.meta.url), "utf8");
+  const baseline = await readFile(
+    new URL("../migrations/0001_anonymous_analytics.sql", import.meta.url),
+    "utf8",
+  );
+  const community = await readFile(
+    new URL("../migrations/0003_community_analytics.sql", import.meta.url),
+    "utf8",
+  );
+  const sql = `${baseline}\n${community}`;
   assert.match(sql, /entry_id TEXT PRIMARY KEY/);
   assert.match(
     sql,
@@ -124,7 +132,12 @@ test("the migration makes retry ids the primary idempotency key", async () => {
     sql,
     /INSERT OR IGNORE INTO anonymous_analytics_events_v4[\s\S]+FROM anonymous_analytics_events_v3;/
   );
+  assert.match(
+    sql,
+    /INSERT OR IGNORE INTO anonymous_analytics_events_v5[\s\S]+FROM anonymous_analytics_events_v4;/
+  );
   assert.match(sql, /install_cohort TEXT/);
+  assert.match(sql, /community_selection_source TEXT/);
   assert.doesNotMatch(sql, /player|device|game_id|opponent|timestamp|name/i);
 });
 

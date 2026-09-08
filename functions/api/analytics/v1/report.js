@@ -16,14 +16,16 @@ export async function onRequestGet(context) {
     SELECT day, category, event, app_version, release_channel, mode, game_source,
            game_kind, word_length, rule_id,
            share_source, share_channel, turn_bucket, duration_bucket, outcome,
-           performance_bucket, reliability_reason, context, reason, install_cohort,
+           performance_bucket, reliability_reason, community_selection_source,
+           context, reason, install_cohort,
            SUM(aggregate_count) AS count
-    FROM anonymous_analytics_events_v4
+    FROM anonymous_analytics_events_v5
     WHERE day >= date('now', ?)
     GROUP BY day, category, event, app_version, release_channel, mode, game_source,
              game_kind, word_length, rule_id,
              share_source, share_channel, turn_bucket, duration_bucket, outcome,
-             performance_bucket, reliability_reason, context, reason, install_cohort
+             performance_bucket, reliability_reason, community_selection_source,
+             context, reason, install_cohort
     ORDER BY day DESC, event ASC
   `).bind(`-${days - 1} days`).all();
   return json({ days, rows: result.results ?? [] }, 200);

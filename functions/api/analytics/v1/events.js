@@ -26,11 +26,12 @@ export async function onRequestPost(context) {
   await ensureAnalyticsSchema(context.env.ANALYTICS_DB);
 
   const statement = context.env.ANALYTICS_DB.prepare(`
-    INSERT OR IGNORE INTO anonymous_analytics_events_v4 (
+    INSERT OR IGNORE INTO anonymous_analytics_events_v5 (
       entry_id, day, category, event, app_version, release_channel, mode,
       game_source, game_kind, word_length, rule_id, share_source, share_channel, turn_bucket, duration_bucket,
-      outcome, performance_bucket, reliability_reason, context, reason, install_cohort, aggregate_count
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      outcome, performance_bucket, reliability_reason, community_selection_source,
+      context, reason, install_cohort, aggregate_count
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `);
   const results = await context.env.ANALYTICS_DB.batch(validation.entries.map((entry) => statement.bind(
     entry.entry_id, entry.day, entry.category, entry.event, entry.app_version,
@@ -38,7 +39,8 @@ export async function onRequestPost(context) {
     entry.game_kind ?? null, entry.word_length ?? null, entry.rule_id ?? null,
     entry.share_source ?? null, entry.share_channel ?? null, entry.turn_bucket ?? null,
     entry.duration_bucket ?? null, entry.outcome ?? null, entry.performance_bucket ?? null,
-    entry.reliability_reason ?? null, entry.context ?? null, entry.reason ?? null,
+    entry.reliability_reason ?? null, entry.community_selection_source ?? null,
+    entry.context ?? null, entry.reason ?? null,
     entry.install_cohort ?? null, entry.count
   )));
   const inserted = results.reduce((total, result) => {

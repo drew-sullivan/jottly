@@ -179,6 +179,40 @@ test("the dashboard connects suggestions, rules, notifications, rule outcomes, a
   assert.equal(model.reliability.outboxDrained, 2);
 });
 
+test("community discovery reports selection, starts, saves, tiers, and cache health without content IDs", () => {
+  const model = buildDashboardModel([
+    row("community_section_opened", 10, { context: "community_catalog" }),
+    row("community_game_selected", 6, {
+      mode: "custom", game_source: "solo", game_kind: "remixed", word_length: "7",
+      context: "community_catalog", community_selection_source: "weekly_popular",
+    }),
+    row("community_game_started", 4, {
+      mode: "custom", game_source: "solo", game_kind: "remixed", word_length: "7",
+      context: "community_catalog", community_selection_source: "weekly_popular",
+    }),
+    row("community_game_saved", 2, {
+      mode: "custom", game_kind: "remixed", word_length: "7", context: "community_catalog",
+      community_selection_source: "weekly_popular",
+    }),
+    row("community_catalog_cache_used", 8, { context: "community_catalog" }),
+    row("community_catalog_refresh_succeeded", 3, { context: "community_catalog" }),
+    row("community_catalog_refresh_failed", 1, { category: "reliability", context: "community_catalog" }),
+  ]);
+  assert.deepEqual({
+    opened: model.community.sectionOpened,
+    selected: model.community.selected,
+    started: model.community.started,
+    saved: model.community.saved,
+    ratio: model.community.observedStartRatio,
+  }, { opened: 10, selected: 6, started: 4, saved: 2, ratio: 2 / 3 });
+  assert.deepEqual(model.community.selectionsBySource, [{ key: "weekly_popular", count: 6 }]);
+  assert.deepEqual(model.community.startsBySource, [{ key: "weekly_popular", count: 4 }]);
+  assert.deepEqual(
+    [model.community.cacheUsed, model.community.refreshSucceeded, model.community.refreshFailed],
+    [8, 3, 1],
+  );
+});
+
 test("privacy-preserving cohorts produce the product scorecard and a real activation funnel", () => {
   const cohort = "2026-W35";
   const model = buildDashboardModel([

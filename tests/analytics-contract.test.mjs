@@ -127,6 +127,39 @@ test("accepts conflict as a bounded game-start failure reason", () => {
   assert.equal(validatePayload({ schemaVersion: 1, entries: [conflictedStart] }, now).ok, true);
 });
 
+test("community analytics reveal only a bounded tier and no content identity", () => {
+  const base = {
+    entry_id: entry.entry_id,
+    day: entry.day,
+    category: "product",
+    app_version: "3.4.0",
+    release_channel: "testflight",
+    count: 1,
+  };
+  const events = [
+    { ...base, event: "community_section_opened", context: "community_catalog" },
+    {
+      ...base, entry_id: "40b731c3-393d-4ba2-9d61-18e40338f901",
+      event: "community_game_selected", mode: "custom", game_source: "solo",
+      game_kind: "remixed", word_length: "7", context: "community_catalog",
+      community_selection_source: "weekly_popular",
+    },
+    {
+      ...base, entry_id: "40b731c3-393d-4ba2-9d61-18e40338f902",
+      event: "community_catalog_refresh_failed", category: "reliability", context: "community_catalog",
+    },
+  ];
+  assert.equal(validatePayload({ schemaVersion: 1, entries: events }, now).ok, true);
+  assert.equal(validatePayload({
+    schemaVersion: 1,
+    entries: [{ ...events[1], entry_id: crypto.randomUUID(), community_selection_source: "rank-1" }],
+  }, now).ok, false);
+  assert.equal(validatePayload({
+    schemaVersion: 1,
+    entries: [{ ...events[1], entry_id: crypto.randomUUID(), package_id: "authored.private" }],
+  }, now).ok, false);
+});
+
 test("journey dimensions remain bounded and event-specific", () => {
   const suggestions = {
     entry_id: entry.entry_id,

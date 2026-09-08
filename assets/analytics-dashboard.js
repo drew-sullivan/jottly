@@ -20,6 +20,7 @@ const refs = Object.fromEntries([
   "invite-performance-list", "invite-failure-list", "move-experience-summary",
   "move-performance-list", "move-failure-list", "cohort-body", "data-health-summary",
   "health-version-list", "health-channel-list", "dimension-health-body",
+  "community-summary", "community-selection-source-list", "community-start-source-list",
 ].map((id) => [id, document.getElementById(id)]));
 
 let reportToken = sessionStorage.getItem(STORAGE_KEY) ?? "";
@@ -96,6 +97,7 @@ function renderReport() {
   renderDurationTable(refs["mode-duration-body"], model.durationBreakdowns.byMode);
   renderDurationTable(refs["source-duration-body"], model.durationBreakdowns.bySource);
   renderGameDesign(model);
+  renderCommunity(model.community);
   renderJourneys(model.journeys);
   renderExperienceQuality(model);
   renderBarList(refs["source-list"], model.gameSources);
@@ -135,6 +137,18 @@ function renderGameDesign(model) {
   renderBarList(refs["game-kind-list"], model.gameKinds);
   renderBarList(refs["word-length-list"], model.wordLengths);
   renderBarList(refs["played-rule-list"], model.playedRules);
+}
+
+function renderCommunity(community) {
+  refs["community-summary"].replaceChildren(
+    metric("Section opened", community.sectionOpened, "picker disclosures"),
+    metric("Games selected", community.selected, "community card taps"),
+    metric("Games started", community.started, `${formatPercent(community.observedStartRatio)} of selections`),
+    metric("Games saved", community.saved, "added to Your Games"),
+    metric("Catalog refresh", community.refreshSucceeded, `${community.refreshFailed} failed · ${community.cacheUsed} cache uses`),
+  );
+  renderBarList(refs["community-selection-source-list"], community.selectionsBySource);
+  renderBarList(refs["community-start-source-list"], community.startsBySource);
 }
 
 function renderContext(model) {
