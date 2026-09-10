@@ -14,6 +14,11 @@ export function canonicalSoloDigest(sourcePackage) {
   return sourcePackage?.presentation?.sharedProvenance?.canonicalEnvelope?.definitionDigest ?? null;
 }
 
+export function packageMetadataRevision(sourcePackage) {
+  const value = sourcePackage?.presentation?.sharedProvenance?.metadataRevision ?? 1;
+  return Number.isSafeInteger(value) && value >= 1 ? value : null;
+}
+
 export function validateCommunitySourcePackage(sourcePackage) {
   if (!isPlainObject(sourcePackage) || sourcePackage.schemaVersion !== communityContract.package.schemaVersion) return invalid("package schema");
   const packageMatch = authoredPackagePattern.exec(sourcePackage.id ?? "");
@@ -45,6 +50,7 @@ export function validateCommunitySourcePackage(sourcePackage) {
   }
   const provenance = presentation.sharedProvenance;
   if (!isPlainObject(provenance) || provenance.schemaVersion !== 1) return invalid("package provenance");
+  if (packageMetadataRevision(sourcePackage) === null) return invalid("package metadata revision");
   if (provenance.savedGameID?.toLowerCase() !== packageMatch[1].toLowerCase()) {
     return invalid("package provenance identity");
   }
@@ -138,6 +144,22 @@ export async function sha256Hex(value) {
 
 export function packageContentFingerprint(sourcePackage) {
   return stableJSONStringify(sourcePackage);
+}
+
+export function packageImmutableIdentityFingerprint(sourcePackage) {
+  const copy = structuredClone(sourcePackage);
+  delete copy.revisionDigest;
+  delete copy.presentation.title;
+  delete copy.presentation.subtitle;
+  delete copy.presentation.glyph;
+  delete copy.presentation.sharedProvenance.metadataRevision;
+  return stableJSONStringify(copy);
+}
+
+export function packageRevisionContentFingerprint(sourcePackage) {
+  const copy = structuredClone(sourcePackage);
+  delete copy.presentation.sharedProvenance.metadataRevision;
+  return stableJSONStringify(copy);
 }
 
 function invalid(error) { return { ok: false, error }; }

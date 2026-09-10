@@ -82,7 +82,7 @@ test("health endpoint reports healthy, stale, missing, and invalid snapshots", a
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), {
     status: "healthy", generatedAtUnixMilliseconds: asOf,
-    ageMilliseconds: 35 * 3_600_000, entryCount: 6,
+    ageMilliseconds: 35 * 3_600_000, entryCount: 5,
   });
   response = await onRequestHealth({ env: { COMMUNITY_DB: healthy }, nowMilliseconds: asOf + 37 * 3_600_000 });
   assert.equal(response.status, 503);

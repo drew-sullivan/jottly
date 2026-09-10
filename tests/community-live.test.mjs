@@ -32,7 +32,7 @@ test("live catalog health meets the freshness SLO", { skip: !endpointLive }, asy
   assert.equal(response.status, 200);
   const health = await response.json();
   assert.equal(health.status, "healthy");
-  assert.equal(health.entryCount, 6);
+  assert.equal(health.entryCount, 5);
 });
 
 test("development CloudKit accepts the production signer and bounded query", { skip: !cloudKitLive }, async () => {

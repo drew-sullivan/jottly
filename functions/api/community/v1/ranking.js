@@ -1,4 +1,8 @@
-import { packageContentFingerprint } from "./contract.js";
+import {
+  packageImmutableIdentityFingerprint,
+  packageMetadataRevision,
+  packageRevisionContentFingerprint,
+} from "./contract.js";
 
 export const millisecondsPerDay = 86_400_000;
 
@@ -6,7 +10,7 @@ export function rankCommunityGames({
   observations,
   featuredPackages,
   asOfMilliseconds,
-  catalogSize = 6,
+  catalogSize = 5,
   weeklyWindowDays = 7,
   fallbackWindowDays = 28,
   minimumDistinctPairs = 1,
@@ -66,14 +70,31 @@ export function rankCommunityGames({
 }
 
 export function conflictingPackageIDs(observations) {
-  const fingerprints = new Map();
+  const packages = new Map();
   const conflicts = new Set();
   for (const observation of observations) {
-    const fingerprint = observation.packageFingerprint
-      ?? packageContentFingerprint(observation.sourcePackage);
-    const previous = fingerprints.get(observation.packageID);
-    if (previous !== undefined && previous !== fingerprint) conflicts.add(observation.packageID);
-    else fingerprints.set(observation.packageID, fingerprint);
+    const revision = packageMetadataRevision(observation.sourcePackage);
+    if (revision === null) {
+      conflicts.add(observation.packageID);
+      continue;
+    }
+    const immutableFingerprint = packageImmutableIdentityFingerprint(observation.sourcePackage);
+    const revisionFingerprint = packageRevisionContentFingerprint(observation.sourcePackage);
+    const existing = packages.get(observation.packageID);
+    if (existing === undefined) {
+      packages.set(observation.packageID, {
+        immutableFingerprint,
+        revisions: new Map([[revision, revisionFingerprint]]),
+      });
+      continue;
+    }
+    if (existing.immutableFingerprint !== immutableFingerprint
+        || (existing.revisions.has(revision)
+          && existing.revisions.get(revision) !== revisionFingerprint)) {
+      conflicts.add(observation.packageID);
+      continue;
+    }
+    existing.revisions.set(revision, revisionFingerprint);
   }
   return conflicts;
 }
@@ -86,19 +107,28 @@ function aggregateObservations(observations, window) {
     if (!Number.isSafeInteger(timestamp)
         || timestamp < window.fallbackStart
         || timestamp >= window.asOfMilliseconds) continue;
-    const day = new Date(timestamp).toISOString().slice(0, 10);
-    const contribution = `${observation.packageID}\u0000${observation.unorderedPairKey}\u0000${day}`;
-    if (counted.has(contribution)) continue;
-    counted.add(contribution);
     const aggregate = results.get(observation.packageID) ?? {
       packageID: observation.packageID,
       sourcePackage: observation.sourcePackage,
+      metadataRevision: packageMetadataRevision(observation.sourcePackage),
       weeklyCount: 0,
       weeklyPairs: new Set(),
       recentCount: 0,
       recentPairs: new Set(),
       mostRecentMilliseconds: 0,
     };
+    const metadataRevision = packageMetadataRevision(observation.sourcePackage);
+    if (metadataRevision > aggregate.metadataRevision) {
+      aggregate.sourcePackage = observation.sourcePackage;
+      aggregate.metadataRevision = metadataRevision;
+    }
+    aggregate.mostRecentMilliseconds = Math.max(aggregate.mostRecentMilliseconds, timestamp);
+    results.set(observation.packageID, aggregate);
+
+    const day = new Date(timestamp).toISOString().slice(0, 10);
+    const contribution = `${observation.packageID}\u0000${observation.unorderedPairKey}\u0000${day}`;
+    if (counted.has(contribution)) continue;
+    counted.add(contribution);
     if (timestamp >= window.weeklyStart) {
       aggregate.weeklyCount += 1;
       aggregate.weeklyPairs.add(observation.unorderedPairKey);
@@ -106,8 +136,6 @@ function aggregateObservations(observations, window) {
       aggregate.recentCount += 1;
       aggregate.recentPairs.add(observation.unorderedPairKey);
     }
-    aggregate.mostRecentMilliseconds = Math.max(aggregate.mostRecentMilliseconds, timestamp);
-    results.set(observation.packageID, aggregate);
   }
   return results;
 }

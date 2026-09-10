@@ -1,4 +1,8 @@
-export function communityPackage(index, { topology = "headToHead", title = `Game ${index}` } = {}) {
+export function communityPackage(index, {
+  topology = "headToHead",
+  title = `Game ${index}`,
+  metadataRevision = 1,
+} = {}) {
   const suffix = String(index).padStart(12, "0");
   const savedGameID = `00000000-0000-4000-8000-${suffix}`;
   const canonicalDigest = index.toString(16).padStart(64, "0");
@@ -21,6 +25,7 @@ export function communityPackage(index, { topology = "headToHead", title = `Game
       sharedProvenance: {
         schemaVersion: 1,
         savedGameID,
+        ...(metadataRevision === 1 ? {} : { metadataRevision }),
         canonicalEnvelope: {
           protocolVersion: 1,
           definition: { word: { length: 5 }, match: { kind: "solo" } },
@@ -64,7 +69,7 @@ export function completionRecord(sourcePackage, {
   };
 }
 
-export function featuredPool(count = 6, start = 100) {
+export function featuredPool(count = 5, start = 100) {
   return Array.from({ length: count }, (_, offset) => communityPackage(start + offset, { topology: "solo" }));
 }
 

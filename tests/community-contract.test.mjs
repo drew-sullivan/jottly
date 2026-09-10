@@ -44,6 +44,17 @@ test("package identity accepts the same canonical UUID space as Swift", () => {
   assert.equal(validateCommunitySourcePackage(sourcePackage).ok, true);
 });
 
+test("metadata revisions are positive safe integers and legacy packages default to revision one", () => {
+  const legacy = communityPackage(1);
+  assert.equal(validateCommunitySourcePackage(legacy).ok, true);
+  for (const metadataRevision of [0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1, "2"]) {
+    const candidate = communityPackage(1, { metadataRevision: 2 });
+    candidate.presentation.sharedProvenance.metadataRevision = metadataRevision;
+    assert.equal(validateCommunitySourcePackage(candidate).ok, false);
+  }
+  assert.equal(validateCommunitySourcePackage(communityPackage(1, { metadataRevision: 2 })).ok, true);
+});
+
 test("allowlists bind one exact package ID to one exact canonical digest", () => {
   const packages = [communityPackage(1), communityPackage(2)];
   const valid = validateCommunityAllowlist(allowlistFor(packages));
@@ -56,9 +67,9 @@ test("allowlists bind one exact package ID to one exact canonical digest", () =>
 test("featured pools are complete, unique, structurally valid, and allowlisted", () => {
   const packages = featuredPool();
   const allowlist = validateCommunityAllowlist(allowlistFor(packages)).values;
-  assert.equal(validateFeaturedPackages(packages, allowlist, 6).ok, true);
-  assert.equal(validateFeaturedPackages(packages.slice(0, 5), allowlist, 6).ok, false);
-  assert.equal(validateFeaturedPackages([...packages.slice(0, 5), packages[0]], allowlist, 6).ok, false);
+  assert.equal(validateFeaturedPackages(packages, allowlist, 5).ok, true);
+  assert.equal(validateFeaturedPackages(packages.slice(0, 4), allowlist, 5).ok, false);
+  assert.equal(validateFeaturedPackages([...packages.slice(0, 4), packages[0]], allowlist, 5).ok, false);
 });
 
 test("catalog validation requires contiguous ranks, bounded entries, timestamps, and unique packages", () => {

@@ -106,7 +106,7 @@ test("scheduled sweep queries once, ranks, and publishes only the public snapsho
     env: environment(), asOfMilliseconds: asOf, client, allowlistEntries, featuredPackages: featured,
     publish: async (_db, snapshot) => { published = snapshot; return { published: true }; },
   });
-  assert.equal(published.games.length, 6);
+  assert.equal(published.games.length, 5);
   assert.equal(published.games[0].selectionSource, "weeklyPopular");
   assert.equal(JSON.stringify(published).includes("player-a"), false);
   assert.equal(JSON.stringify(published).includes("never-published"), false);
@@ -115,7 +115,7 @@ test("scheduled sweep queries once, ranks, and publishes only the public snapsho
     inspected: summary.recordsInspected,
     qualifying: summary.qualifyingCompletions,
     published: summary.publishedEntryCount,
-  }, { pages: 3, inspected: 1, qualifying: 1, published: 6 });
+  }, { pages: 3, inspected: 1, qualifying: 1, published: 5 });
 });
 
 test("invalid featured configuration and a query failure never call publication", async () => {

@@ -12,7 +12,7 @@ secret words in D1.
 3. Verify the production `JottoGameState` system field `___modTime` is queryable and sortable. The
    Web Services request addresses that index as `systemFieldName: "modifiedTimestamp"`.
 4. Add `CLOUDKIT_KEY_ID` and `CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64` with `wrangler secret put`.
-5. Commit at least six reviewed packages to `community/featured-games-v1.js`.
+5. Commit at least five reviewed packages to `community/featured-games-v1.js`.
 6. Add every featured or organically eligible package ID and canonical Solo digest to
    `community/allowlist-v1.js`.
 7. Exercise the scheduled handler against development CloudKit, then perform a production dry run.
@@ -27,7 +27,7 @@ secret words in D1.
   install bucket, so rollout membership does not flap across launches.
 - `GET /api/community/v1/health` returns `200` only while a valid snapshot is newer than
   `COMMUNITY_CATALOG_STALE_AFTER_HOURS` (36 by default). Alert on any non-200 response, a failed
-  scheduled sweep, fewer than six published entries, or two consecutive stale snapshots.
+  scheduled sweep, fewer than five published entries, or two consecutive stale snapshots.
 - Roll forward in stages (10, 25, 50, 100 percent). Roll back by setting the percentage to zero;
   reserve the kill switch for disabling and clearing the feature outright.
 

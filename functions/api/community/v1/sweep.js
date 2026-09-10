@@ -181,7 +181,7 @@ function communityConfiguration(env, { allowDevelopmentSource = false } = {}) {
   const configuration = {
     containerIdentifier: env.CLOUDKIT_CONTAINER ?? "iCloud.com.dsull.Jotto",
     environment: env.CLOUDKIT_ENVIRONMENT ?? "production",
-    catalogSize: configuredInteger(env.COMMUNITY_CATALOG_SIZE, 6),
+    catalogSize: configuredInteger(env.COMMUNITY_CATALOG_SIZE, 5),
     weeklyWindowDays: configuredInteger(env.COMMUNITY_WEEKLY_WINDOW_DAYS, 7),
     fallbackWindowDays: configuredInteger(env.COMMUNITY_FALLBACK_WINDOW_DAYS, 28),
     minimumDistinctPairs: configuredInteger(env.COMMUNITY_MINIMUM_DISTINCT_PAIRS, 1),
