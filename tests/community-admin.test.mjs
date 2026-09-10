@@ -22,6 +22,11 @@ test("manual sweep is private, publishes reviewed games, and retries idempotentl
   delete firstResult.durationMilliseconds;
   assert.deepEqual(firstResult, {
     operationID,
+    runStatus: "succeeded",
+    scheduledAtUnixMilliseconds: now,
+    startedAtUnixMilliseconds: now,
+    finishedAtUnixMilliseconds: firstResult.finishedAtUnixMilliseconds,
+    replayed: false,
     status: "published",
     cloudKitPageCount: 0,
     recordsInspected: 0,
@@ -37,11 +42,21 @@ test("manual sweep is private, publishes reviewed games, and retries idempotentl
     generatedSnapshotAgeMilliseconds: 0,
     organicSourceStatus: "unconfigured",
   });
+  assert.ok(Number.isSafeInteger(firstResult.finishedAtUnixMilliseconds));
 
   const retry = await onRequestPost({ request: request(), env, nowMilliseconds: now });
   assert.equal(retry.status, 200);
-  assert.equal((await retry.json()).status, "superseded");
-  assert.equal(db.row.generated_at_ms, now);
+  const replay = await retry.json();
+  assert.equal(replay.status, "published");
+  assert.equal(replay.replayed, true);
+  assert.equal(db.catalogRow.generated_at_ms, now);
+
+  const operationStatus = await onRequestGet({
+    request: authorizedRequest("GET", undefined, `?operationID=${operationID}`),
+    env,
+  });
+  assert.equal(operationStatus.status, 200);
+  assert.equal((await operationStatus.json()).operationID, operationID);
 
   const status = await onRequestGet({
     request: authorizedRequest("GET"),
@@ -53,10 +68,23 @@ test("manual sweep is private, publishes reviewed games, and retries idempotentl
     status: "published",
     generatedAtUnixMilliseconds: now,
     ageMilliseconds: 500,
-    hash: db.row.payload_sha256,
+    hash: db.catalogRow.payload_sha256,
     catalogKind: "mixed",
     entryCount: 5,
+    recentRuns: [{ ...replay, replayed: false }],
   });
+
+  const scheduledOperationID = `scheduled:${now}`;
+  db.runs.set(scheduledOperationID, {
+    ...db.runs.get(operationID),
+    operation_id: scheduledOperationID,
+  });
+  const scheduledStatus = await onRequestGet({
+    request: authorizedRequest("GET", undefined, `?operationID=${scheduledOperationID}`),
+    env,
+  });
+  assert.equal(scheduledStatus.status, 200);
+  assert.equal((await scheduledStatus.json()).operationID, scheduledOperationID);
 });
 
 test("manual sweep hides from unauthorized callers and rejects malformed operations", async () => {
@@ -105,11 +133,12 @@ test("manual sweep hides from unauthorized callers and rejects malformed operati
   assert.equal(stale.status, 400);
   assert.equal(unexpected.status, 400);
   assert.equal(oversized.status, 400);
-  assert.equal(env.COMMUNITY_DB.row, null);
+  assert.equal(env.COMMUNITY_DB.catalogRow, null);
+  assert.equal(env.COMMUNITY_DB.runs.size, 0);
 });
 
-function authorizedRequest(method, body) {
-  return new Request("https://icedmatchalabs.com/api/community/v1/admin/sweep", {
+function authorizedRequest(method, body, query = "") {
+  return new Request(`https://icedmatchalabs.com/api/community/v1/admin/sweep${query}`, {
     method,
     headers: {
       authorization: `Bearer ${token}`,
@@ -121,30 +150,71 @@ function authorizedRequest(method, body) {
 
 class CommunityDB {
   constructor() {
-    this.row = null;
+    this.catalogRow = null;
+    this.runs = new Map();
   }
 
   prepare(sql) {
+    const execute = async (values) => {
+      if (sql.includes("INSERT INTO community_catalog_current")) {
+        const [generatedAt, hash, payload] = values;
+        if (this.catalogRow !== null && generatedAt <= this.catalogRow.generated_at_ms) {
+          return { meta: { changes: 0 } };
+        }
+        this.catalogRow = {
+          generated_at_ms: generatedAt,
+          payload_sha256: hash,
+          payload_json: payload,
+        };
+        return { meta: { changes: 1 } };
+      }
+      if (sql.includes("INSERT OR IGNORE INTO community_catalog_runs")) {
+        const [id, scheduledAt, startedAt] = values;
+        if (this.runs.has(id)) return { meta: { changes: 0 } };
+        this.runs.set(id, {
+          operation_id: id,
+          scheduled_at_ms: scheduledAt,
+          started_at_ms: startedAt,
+          finished_at_ms: null,
+          status: "in_progress",
+          summary_json: null,
+          error_code: null,
+        });
+        return { meta: { changes: 1 } };
+      }
+      if (sql.includes("status = 'succeeded'")) {
+        const [finishedAt, summary, id] = values;
+        Object.assign(this.runs.get(id), {
+          finished_at_ms: finishedAt,
+          status: "succeeded",
+          summary_json: summary,
+          error_code: null,
+        });
+        return { meta: { changes: 1 } };
+      }
+      if (sql.includes("status = 'failed'")) {
+        const [finishedAt, errorCode, id] = values;
+        Object.assign(this.runs.get(id), {
+          finished_at_ms: finishedAt,
+          status: "failed",
+          error_code: errorCode,
+        });
+        return { meta: { changes: 1 } };
+      }
+      return { meta: { changes: 0 } };
+    };
+    const readFirst = async (values) => {
+      if (sql.includes("FROM community_catalog_runs")) return this.runs.get(values[0]) ?? null;
+      return this.catalogRow;
+    };
     return {
       bind: (...values) => ({
-        run: async () => {
-          if (!sql.includes("INSERT INTO community_catalog_current")) {
-            return { meta: { changes: 0 } };
-          }
-          const [generatedAt, hash, payload] = values;
-          if (this.row !== null && generatedAt <= this.row.generated_at_ms) {
-            return { meta: { changes: 0 } };
-          }
-          this.row = {
-            generated_at_ms: generatedAt,
-            payload_sha256: hash,
-            payload_json: payload,
-          };
-          return { meta: { changes: 1 } };
-        },
+        run: () => execute(values),
+        first: () => readFirst(values),
+        all: async () => ({ results: [...this.runs.values()].sort((a, b) => b.started_at_ms - a.started_at_ms) }),
       }),
       run: async () => ({ meta: { changes: 0 } }),
-      first: async () => this.row,
+      first: () => readFirst([]),
     };
   }
 }

@@ -7,7 +7,8 @@ secret words in D1.
 ## Production Enablement
 
 1. Create a dedicated D1 database and attach it as `COMMUNITY_DB`.
-2. Apply `migrations/0002_community_catalog.sql` to `COMMUNITY_DB` and
+2. Apply `migrations/0002_community_catalog.sql` and
+   `migrations/0004_community_catalog_runs.sql` to `COMMUNITY_DB`, and apply
    `migrations/0003_community_analytics.sql` to `ANALYTICS_DB`.
 3. Verify the production `JottoGameState` system field `___modTime` is queryable and sortable. The
    Web Services request addresses that index as `systemFieldName: "modifiedTimestamp"`.
@@ -37,9 +38,16 @@ curl -X POST \
   https://icedmatchalabs.com/api/community/v1/admin/sweep
 ```
 
-`GET` reports only snapshot age, hash, kind, and entry count. `POST` accepts a UUID operation ID
-and a timestamp within ten minutes, then runs the same publication pipeline as the cron. Repeating
-the exact operation is harmless: D1 only accepts a snapshot newer than the current publication.
+`GET` reports snapshot age, hash, kind, entry count, and the 20 most recent persisted runs. Add
+`?operationID=<UUID>` for one manual run or `?operationID=scheduled:<UNIX_MILLISECONDS>` for one
+scheduled run. `POST` accepts a UUID operation ID and a timestamp within ten minutes, then runs the
+same publication pipeline as the cron. Repeating the exact operation returns its stored status and
+never executes or alerts twice. Run state is claimed before the sweep and finishes as either
+`succeeded` or `failed`, so a missing response can always be reconciled by operation ID.
+
+Optionally set `COMMUNITY_ALERT_WEBHOOK_URL` as a Worker secret. A failed scheduled or manual sweep
+posts one bounded JSON event containing its operation ID, source, stable error code, and timestamp.
+Webhook failures are logged but never replace, retry, or obscure the durable D1 result.
 
 ## Runtime Controls and SLOs
 

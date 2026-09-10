@@ -112,17 +112,19 @@ test("D1 read failures degrade to the same uncached service response", async () 
 });
 
 test("community executable schema matches its migration", async () => {
-  const migration = await (await import("node:fs/promises")).readFile(
-    new URL("../migrations/0002_community_catalog.sql", import.meta.url), "utf8",
-  );
-  assert.equal(normalizeSQL(communitySchemaSQL), normalizeSQL(migration));
+  const { readFile } = await import("node:fs/promises");
+  const migrations = await Promise.all([
+    "../migrations/0002_community_catalog.sql",
+    "../migrations/0004_community_catalog_runs.sql",
+  ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
+  assert.equal(normalizeSQL(communitySchemaSQL), normalizeSQL(migrations.join("\n")));
 });
 
 test("concurrent schema checks coalesce and failed initialization retries", async () => {
   const db = new DeferredSchemaDB();
   const first = ensureCommunitySchema(db);
   const second = ensureCommunitySchema(db);
-  assert.equal(db.calls, 1);
+  assert.equal(db.calls, 2);
   db.resolve();
   await Promise.all([first, second]);
 
@@ -131,7 +133,7 @@ test("concurrent schema checks coalesce and failed initialization retries", asyn
   retry.reject(new Error("D1 down"));
   await assert.rejects(failed, /D1 down/);
   const recovered = ensureCommunitySchema(retry);
-  assert.equal(retry.calls, 2);
+  assert.equal(retry.calls, 4);
   retry.resolve();
   await recovered;
 });
@@ -186,8 +188,14 @@ class DeferredSchemaDB {
       return new Promise((resolve, reject) => this.pending.push({ resolve, reject }));
     } };
   }
-  resolve() { this.pending.shift()?.resolve({ meta: { changes: 0 } }); }
-  reject(error) { this.pending.shift()?.reject(error); }
+  resolve() {
+    const pending = this.pending.splice(0);
+    pending.forEach(({ resolve }) => resolve({ meta: { changes: 0 } }));
+  }
+  reject(error) {
+    const pending = this.pending.splice(0);
+    pending.forEach(({ reject }) => reject(error));
+  }
 }
 
 class FaultingCatalogDB {

@@ -6,7 +6,7 @@ import {
   onRequestGet as readCommunitySweepStatus,
   onRequestPost as runCommunitySweepNow,
 } from "./functions/api/community/v1/admin.js";
-import { runCommunitySweep } from "./functions/api/community/v1/sweep.js";
+import { projectCommunityCatalogRun, runTrackedCommunitySweep } from "./functions/api/community/v1/operations.js";
 
 const eventsPath = "/api/analytics/v1/events";
 const reportPath = "/api/analytics/v1/report";
@@ -56,14 +56,16 @@ export default {
   },
 
   scheduled(controller, env, ctx) {
-    ctx.waitUntil(runCommunitySweep({
+    const operationID = `scheduled:${controller.scheduledTime}`;
+    ctx.waitUntil(runTrackedCommunitySweep({
       env,
-      asOfMilliseconds: controller.scheduledTime,
-    }).then((summary) => {
-      console.log(JSON.stringify({ event: "community_catalog_sweep", ...summary }));
-    }).catch(() => {
-      console.error(JSON.stringify({ event: "community_catalog_sweep", status: "failed" }));
-      throw new Error("Community catalog sweep failed");
+      operationID,
+      scheduledAtMilliseconds: controller.scheduledTime,
+      source: "scheduled",
+    }).then(({ row, replayed }) => {
+      const result = projectCommunityCatalogRun(row, { replayed });
+      console.log(JSON.stringify({ event: "community_catalog_sweep", ...result }));
+      if (result.runStatus === "failed") throw new Error("Community catalog sweep failed");
     }));
   },
 };

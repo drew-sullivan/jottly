@@ -99,9 +99,9 @@ test("a failed scheduled sweep stays privacy-safe and fails the platform invocat
     console.error = originalError;
   }
 
-  assert.deepEqual(messages.map((message) => JSON.parse(message)), [
-    { event: "community_catalog_sweep", status: "failed" },
-  ]);
+  const events = messages.map((message) => JSON.parse(message));
+  assert.deepEqual(events.map(({ event }) => event), ["community_catalog_alert"]);
+  assert.equal(events[0].errorCode, "community_db_unavailable");
 });
 
 test("concurrent schema checks share one operation and a failed bootstrap can retry", async () => {

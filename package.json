@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "generate:community": "node scripts/generate-featured-community-games.mjs",
+    "check:community": "node scripts/generate-featured-community-games.mjs --check",
     "test": "node --test tests/*.test.mjs"
   }
 }

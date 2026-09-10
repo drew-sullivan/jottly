@@ -1,7 +1,15 @@
-import { readCurrentCommunityCatalog } from "./schema.js";
-import { runCommunitySweep } from "./sweep.js";
+import {
+  listRecentCommunityCatalogRuns,
+  readCommunityCatalogRun,
+  readCurrentCommunityCatalog,
+} from "./schema.js";
+import {
+  projectCommunityCatalogRun,
+  runTrackedCommunitySweep,
+} from "./operations.js";
 
 const operationIDPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+const scheduledOperationIDPattern = /^scheduled:[0-9]{10,16}$/;
 const maximumClockSkewMilliseconds = 10 * 60 * 1_000;
 const maximumBodyBytes = 1_024;
 
@@ -32,14 +40,24 @@ export async function onRequestPost({ request, env, nowMilliseconds = Date.now()
   const operationID = body?.operationID;
   const scheduledTime = body?.scheduledTime;
   if (!operationIDPattern.test(operationID ?? "")
-      || !Number.isSafeInteger(scheduledTime)
-      || Math.abs(scheduledTime - nowMilliseconds) > maximumClockSkewMilliseconds) {
+      || !Number.isSafeInteger(scheduledTime)) {
     return json({ error: "Invalid request" }, 400);
   }
 
   try {
-    const summary = await runCommunitySweep({ env, asOfMilliseconds: scheduledTime });
-    return json({ operationID, ...summary }, 200);
+    const existing = await readCommunityCatalogRun(env.COMMUNITY_DB, operationID);
+    if (existing) return runResponse(existing, true);
+    if (Math.abs(scheduledTime - nowMilliseconds) > maximumClockSkewMilliseconds) {
+      return json({ error: "Invalid request" }, 400);
+    }
+    const result = await runTrackedCommunitySweep({
+      env,
+      operationID,
+      scheduledAtMilliseconds: scheduledTime,
+      startedAtMilliseconds: nowMilliseconds,
+      source: "manual",
+    });
+    return runResponse(result.row, result.replayed);
   } catch {
     return json({ operationID, status: "failed" }, 503);
   }
@@ -49,9 +67,16 @@ export async function onRequestGet({ request, env, nowMilliseconds = Date.now() 
   if (!(await isAuthorized(request, env.COMMUNITY_ADMIN_TOKEN))) return notFound();
   if (!env.COMMUNITY_DB) return json({ status: "unavailable" }, 503);
   try {
+    const requestedOperationID = new URL(request.url).searchParams.get("operationID");
+    if (requestedOperationID !== null) {
+      if (!isOperationID(requestedOperationID)) return json({ error: "Invalid request" }, 400);
+      const run = await readCommunityCatalogRun(env.COMMUNITY_DB, requestedOperationID);
+      return run ? runResponse(run, true) : json({ status: "missing" }, 404);
+    }
     const row = await readCurrentCommunityCatalog(env.COMMUNITY_DB);
     if (!row) return json({ status: "missing" }, 503);
     const payload = JSON.parse(row.payload_json);
+    const recentRuns = await listRecentCommunityCatalogRuns(env.COMMUNITY_DB);
     return json({
       status: "published",
       generatedAtUnixMilliseconds: row.generated_at_ms,
@@ -59,10 +84,19 @@ export async function onRequestGet({ request, env, nowMilliseconds = Date.now() 
       hash: row.payload_sha256,
       catalogKind: payload.catalogKind,
       entryCount: Array.isArray(payload.games) ? payload.games.length : 0,
+      recentRuns: recentRuns.map((run) => projectCommunityCatalogRun(run)),
     }, 200);
   } catch {
     return json({ status: "unavailable" }, 503);
   }
+}
+
+function runResponse(row, replayed) {
+  const projected = projectCommunityCatalogRun(row, { replayed });
+  if (!projected) return json({ status: "missing" }, 404);
+  if (projected.runStatus === "in_progress") return json(projected, 202);
+  if (projected.runStatus === "failed") return json(projected, 503);
+  return json(projected, 200);
 }
 
 async function isAuthorized(request, expectedToken) {
@@ -90,6 +124,10 @@ function isPlainObject(value) {
     && typeof value === "object"
     && !Array.isArray(value)
     && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+function isOperationID(value) {
+  return operationIDPattern.test(value) || scheduledOperationIDPattern.test(value);
 }
 
 function notFound() {
