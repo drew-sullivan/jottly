@@ -2,12 +2,17 @@ import { onRequestPost as receiveAnalytics } from "./functions/api/analytics/v1/
 import { onRequestGet as reportAnalytics } from "./functions/api/analytics/v1/report.js";
 import { onRequestGet as readCommunityCatalog } from "./functions/api/community/v1/catalog.js";
 import { onRequestGet as readCommunityHealth } from "./functions/api/community/v1/health.js";
+import {
+  onRequestGet as readCommunitySweepStatus,
+  onRequestPost as runCommunitySweepNow,
+} from "./functions/api/community/v1/admin.js";
 import { runCommunitySweep } from "./functions/api/community/v1/sweep.js";
 
 const eventsPath = "/api/analytics/v1/events";
 const reportPath = "/api/analytics/v1/report";
 const communityCatalogPath = "/api/community/v1/games";
 const communityHealthPath = "/api/community/v1/health";
+const communitySweepPath = "/api/community/v1/admin/sweep";
 
 export default {
   async fetch(request, env, executionContext) {
@@ -31,6 +36,16 @@ export default {
     if (path === communityHealthPath) {
       if (request.method !== "GET") return methodNotAllowed("GET");
       return readCommunityHealth({ request, env, executionContext });
+    }
+
+    if (path === communitySweepPath) {
+      if (request.method === "GET") {
+        return readCommunitySweepStatus({ request, env, executionContext });
+      }
+      if (request.method === "POST") {
+        return runCommunitySweepNow({ request, env, executionContext });
+      }
+      return methodNotAllowed("GET, POST");
     }
 
     if (path.startsWith("/api/")) {

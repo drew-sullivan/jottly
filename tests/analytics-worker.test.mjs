@@ -41,6 +41,17 @@ test("unknown API routes and wrong methods fail closed instead of serving assets
   const healthWrite = await worker.fetch(request("/api/community/v1/health", "POST"), env);
   assert.equal(healthWrite.status, 405);
   assert.equal(healthWrite.headers.get("allow"), "GET");
+  const adminWithoutCredentials = await worker.fetch(
+    request("/api/community/v1/admin/sweep", "GET"),
+    env,
+  );
+  assert.equal(adminWithoutCredentials.status, 404);
+  const adminWrongMethod = await worker.fetch(
+    request("/api/community/v1/admin/sweep", "DELETE"),
+    env,
+  );
+  assert.equal(adminWrongMethod.status, 405);
+  assert.equal(adminWrongMethod.headers.get("allow"), "GET, POST");
   assert.equal(assets.requests.length, 0);
 });
 

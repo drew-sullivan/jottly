@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { communityAllowlist } from "../community/allowlist-v1.js";
@@ -15,6 +16,18 @@ import {
 import { onRequestGet as getCommunityCatalog } from "../functions/api/community/v1/catalog.js";
 import { publishCommunityCatalog } from "../functions/api/community/v1/schema.js";
 import { runCommunitySweep } from "../functions/api/community/v1/sweep.js";
+
+const featuredCatalogArtifactDigest = "060b82ce97fb51a001ddea25dda46bae9996e343fea652d9d565c130c406782a";
+
+test("the app and website consume the same featured catalog artifact", async () => {
+  const fixture = await readFile(
+    new URL("./fixtures/featured-community-packages-v1.json", import.meta.url),
+  );
+  assert.equal(
+    createHash("sha256").update(fixture).digest("hex"),
+    featuredCatalogArtifactDigest,
+  );
+});
 
 test("checked-in JotBot originals exactly match the deterministic generator", async () => {
   const generated = buildFeaturedCommunityPackages();

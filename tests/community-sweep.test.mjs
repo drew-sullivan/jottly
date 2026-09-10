@@ -115,10 +115,11 @@ test("scheduled sweep queries once, ranks, and publishes only the public snapsho
     inspected: summary.recordsInspected,
     qualifying: summary.qualifyingCompletions,
     published: summary.publishedEntryCount,
-  }, { pages: 3, inspected: 1, qualifying: 1, published: 5 });
+    organicSource: summary.organicSourceStatus,
+  }, { pages: 3, inspected: 1, qualifying: 1, published: 5, organicSource: "available" });
 });
 
-test("invalid featured configuration and a query failure never call publication", async () => {
+test("invalid featured configuration never calls publication", async () => {
   let publicationCalls = 0;
   const publish = async () => { publicationCalls += 1; };
   await assert.rejects(runCommunitySweep({
@@ -126,12 +127,57 @@ test("invalid featured configuration and a query failure never call publication"
     client: { queryGameStates: async () => ({ records: [], pageCount: 1 }) },
     allowlistEntries: [], featuredPackages: [], publish,
   }), /featured/);
+  assert.equal(publicationCalls, 0);
+});
+
+test("reviewed featured games publish when CloudKit is unconfigured or unavailable", async () => {
   const featured = featuredPool();
-  await assert.rejects(runCommunitySweep({
-    env: environment(), asOfMilliseconds: asOf,
+  const snapshots = [];
+  const publish = async (_db, snapshot) => {
+    snapshots.push(snapshot);
+    return { published: true };
+  };
+  const withoutCredentials = environment();
+  delete withoutCredentials.CLOUDKIT_KEY_ID;
+  delete withoutCredentials.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64;
+
+  const unconfigured = await runCommunitySweep({
+    env: withoutCredentials,
+    asOfMilliseconds: asOf,
+    allowlistEntries: allowlistFor(featured),
+    featuredPackages: featured,
+    publish,
+  });
+  const unavailable = await runCommunitySweep({
+    env: environment(),
+    asOfMilliseconds: asOf + 1,
     client: { queryGameStates: async () => { throw new Error("query failed"); } },
-    allowlistEntries: allowlistFor(featured), featuredPackages: featured, publish,
-  }), /query failed/);
+    allowlistEntries: allowlistFor(featured),
+    featuredPackages: featured,
+    publish,
+  });
+
+  assert.equal(unconfigured.organicSourceStatus, "unconfigured");
+  assert.equal(unavailable.organicSourceStatus, "unavailable");
+  assert.deepEqual(snapshots.map((snapshot) => snapshot.games.length), [5, 5]);
+  assert.ok(snapshots.every((snapshot) => (
+    snapshot.games.every((game) => game.selectionSource === "featured")
+  )));
+});
+
+test("a partially installed CloudKit credential fails before publication", async () => {
+  const featured = featuredPool();
+  let publicationCalls = 0;
+  const env = environment();
+  delete env.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64;
+
+  await assert.rejects(runCommunitySweep({
+    env,
+    asOfMilliseconds: asOf,
+    allowlistEntries: allowlistFor(featured),
+    featuredPackages: featured,
+    publish: async () => { publicationCalls += 1; },
+  }), /configuration/);
   assert.equal(publicationCalls, 0);
 });
 

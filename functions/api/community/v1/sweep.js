@@ -40,14 +40,31 @@ export async function runCommunitySweep({
   if (!featuredValidation.ok) throw new Error("Invalid featured package pool");
   if (!env.COMMUNITY_DB) throw new Error("Community D1 binding unavailable");
 
-  const cloudKit = client ?? new CloudKitCommunityClient({
-    containerIdentifier: configuration.containerIdentifier,
-    environment: configuration.environment,
-    keyID: env.CLOUDKIT_KEY_ID,
-    privateKeyPKCS8Base64: env.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64,
-  });
   const fallbackStart = asOfMilliseconds - configuration.fallbackWindowDays * 86_400_000;
-  const query = await cloudKit.queryGameStates({ fallbackStartMilliseconds: fallbackStart, asOfMilliseconds });
+  let organicSourceStatus = "available";
+  let query = { records: [], pageCount: 0 };
+  const cloudKit = client ?? (configuration.hasCloudKitCredentials
+    ? new CloudKitCommunityClient({
+      containerIdentifier: configuration.containerIdentifier,
+      environment: configuration.environment,
+      keyID: env.CLOUDKIT_KEY_ID,
+      privateKeyPKCS8Base64: env.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64,
+    })
+    : null);
+  if (cloudKit === null) {
+    organicSourceStatus = "unconfigured";
+  } else {
+    try {
+      query = await cloudKit.queryGameStates({
+        fallbackStartMilliseconds: fallbackStart,
+        asOfMilliseconds,
+      });
+    } catch {
+      // Reviewed featured packages are a complete, independently publishable source. Organic
+      // discovery enriches their ranking, but an unavailable upstream must never empty production.
+      organicSourceStatus = "unavailable";
+    }
+  }
   const projection = projectCommunityObservations({
     records: query.records,
     allowlist,
@@ -88,6 +105,7 @@ export async function runCommunitySweep({
     featuredFillCount: ranked.metrics.featuredFillCount,
     publishedEntryCount: ranked.games.length,
     generatedSnapshotAgeMilliseconds: 0,
+    organicSourceStatus,
   };
 }
 
@@ -178,6 +196,13 @@ function decodeStateData(value) {
 }
 
 function communityConfiguration(env, { allowDevelopmentSource = false } = {}) {
+  const hasCloudKitKeyID = typeof env.CLOUDKIT_KEY_ID === "string"
+    && env.CLOUDKIT_KEY_ID.length > 0;
+  const hasCloudKitPrivateKey = typeof env.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64 === "string"
+    && env.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64.length > 0;
+  if (hasCloudKitKeyID !== hasCloudKitPrivateKey) {
+    throw new Error("Incomplete production CloudKit configuration");
+  }
   const configuration = {
     containerIdentifier: env.CLOUDKIT_CONTAINER ?? "iCloud.com.dsull.Jotto",
     environment: env.CLOUDKIT_ENVIRONMENT ?? "production",
@@ -186,13 +211,12 @@ function communityConfiguration(env, { allowDevelopmentSource = false } = {}) {
     fallbackWindowDays: configuredInteger(env.COMMUNITY_FALLBACK_WINDOW_DAYS, 28),
     minimumDistinctPairs: configuredInteger(env.COMMUNITY_MINIMUM_DISTINCT_PAIRS, 1),
     organicGraduationPairs: configuredInteger(env.COMMUNITY_ORGANIC_GRADUATION_PAIRS, 2),
+    hasCloudKitCredentials: hasCloudKitKeyID && hasCloudKitPrivateKey,
   };
   const validEnvironment = configuration.environment === "production"
     || (allowDevelopmentSource && configuration.environment === "development");
   if (!configuration.containerIdentifier
       || !validEnvironment
-      || !env.CLOUDKIT_KEY_ID
-      || !env.CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64
       || configuration.catalogSize > communityCatalogMaximumEntries
       || configuration.fallbackWindowDays <= configuration.weeklyWindowDays) {
     throw new Error("Incomplete production CloudKit configuration");

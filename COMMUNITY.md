@@ -11,13 +11,35 @@ secret words in D1.
    `migrations/0003_community_analytics.sql` to `ANALYTICS_DB`.
 3. Verify the production `JottoGameState` system field `___modTime` is queryable and sortable. The
    Web Services request addresses that index as `systemFieldName: "modifiedTimestamp"`.
-4. Add `CLOUDKIT_KEY_ID` and `CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64` with `wrangler secret put`.
+4. Add `CLOUDKIT_KEY_ID` and `CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64` with `wrangler secret put`
+   when organic ranking is ready. Reviewed featured games publish even while CloudKit is
+   unconfigured or temporarily unavailable.
 5. Commit at least five reviewed packages to `community/featured-games-v1.js`.
 6. Add every featured or organically eligible package ID and canonical Solo digest to
    `community/allowlist-v1.js`.
 7. Exercise the scheduled handler against development CloudKit, then perform a production dry run.
 8. Verify `GET /api/community/v1/games`, its ETag/304 behavior, and the TestFlight cache before
    enabling the production cron.
+
+## Manual Operations
+
+Set a random `COMMUNITY_ADMIN_TOKEN` of at least 32 characters as a Worker secret. The protected
+surface deliberately returns `404` for missing or invalid credentials:
+
+```bash
+curl -H "Authorization: Bearer $COMMUNITY_ADMIN_TOKEN" \
+  https://icedmatchalabs.com/api/community/v1/admin/sweep
+
+curl -X POST \
+  -H "Authorization: Bearer $COMMUNITY_ADMIN_TOKEN" \
+  -H "Content-Type: application/json" \
+  --data '{"operationID":"<UUID>","scheduledTime":<CURRENT_UNIX_MILLISECONDS>}' \
+  https://icedmatchalabs.com/api/community/v1/admin/sweep
+```
+
+`GET` reports only snapshot age, hash, kind, and entry count. `POST` accepts a UUID operation ID
+and a timestamp within ten minutes, then runs the same publication pipeline as the cron. Repeating
+the exact operation is harmless: D1 only accepts a snapshot newer than the current publication.
 
 ## Runtime Controls and SLOs
 
@@ -70,8 +92,10 @@ The end-to-end variant additionally requires the exact Swift-encoded package fro
 completed development game. It performs the real signed query, projects that completion, builds a
 snapshot in memory, and validates the same DTO consumed by iOS. It cannot publish to production D1.
 
-Until the reviewed featured pool and exact allowlist are populated, scheduled sweeps fail closed and
-the endpoint returns `503` rather than inventing community content.
+The reviewed featured pool is a complete bootstrap source and does not depend on CloudKit. A
+partial CloudKit credential installation fails closed because it indicates a deployment mistake;
+an entirely absent configuration or a transient query failure publishes featured games and reports
+the organic source as `unconfigured` or `unavailable` in private operation results.
 
 ## Key Rotation
 
