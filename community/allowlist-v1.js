@@ -2,7 +2,7 @@
 export const communityAllowlist = Object.freeze([
   {
     "packageID": "authored.51000000-0000-4000-8000-000000000001",
-    "canonicalDefinitionDigest": "294a2626e43102b593abe04a1c083772ecb129bd3da8f4f458d75beb6d797438"
+    "canonicalDefinitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
   },
   {
     "packageID": "authored.51000000-0000-4000-8000-000000000002",

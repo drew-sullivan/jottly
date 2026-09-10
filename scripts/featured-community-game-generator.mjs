@@ -6,6 +6,12 @@ const lexicon = Object.freeze({
   contentDigest: "922ef9098cd1562cedccda8822963ca5d81800e38b787333c7ad5d97e87771d9",
 });
 
+const pocketVowelsLexicon = Object.freeze({
+  id: "com.icedmatchalabs.jottly.pocket-vowels",
+  version: 1,
+  contentDigest: "e31a8097fbe6c4c0ccf3863aca81e0f3ac891f1c7b4ce13581cfcaa93de55232",
+});
+
 const component = Object.freeze({
   fixedSecret: "com.icedmatchalabs.jottly.target.fixed-secret",
   membership: "com.icedmatchalabs.jottly.feedback.membership",
@@ -16,20 +22,23 @@ const component = Object.freeze({
   sharedOpeningGuess: "com.icedmatchalabs.jottly.modifier.shared-opening-guess",
   clueBoost: "com.icedmatchalabs.jottly.modifier.clue-boost",
   wordChain: "com.icedmatchalabs.jottly.modifier.word-chain",
+  availableLetters: "com.icedmatchalabs.jottly.modifier.available-letters",
 });
 
 export const featuredCommunityGameSpecs = Object.freeze([
   Object.freeze({
     id: "51000000-0000-4000-8000-000000000001",
     title: "Pocket Vowels",
-    subtitle: "Find a pocket vowel before your coffee cools (under 1-min. game)",
+    subtitle: "Crack a four-letter vowel code using exact and misplaced clues (3-min. game)",
     glyph: "glyph_lightning_alt_3",
     fallbackLetter: "L",
     definition: definition({
-      wordLength: 1,
-      allowsDuplicates: false,
-      feedback: perLetterFeedback(),
-      guessLimit: 3,
+      wordLength: 4,
+      allowsDuplicates: true,
+      lexicon: pocketVowelsLexicon,
+      feedback: exactAndPresentFeedback(),
+      guessLimit: 8,
+      modifiers: [rule(component.availableLetters, { letters: "aeiouy" })],
     }),
   }),
   Object.freeze({
@@ -114,10 +123,17 @@ export function stableJSONStringify(value) {
   return JSON.stringify(value);
 }
 
-function definition({ wordLength, allowsDuplicates, feedback, guessLimit, modifiers = [] }) {
+function definition({
+  wordLength,
+  allowsDuplicates,
+  feedback,
+  guessLimit,
+  modifiers = [],
+  lexicon: selectedLexicon = lexicon,
+}) {
   return {
     schemaVersion: 1,
-    word: { length: wordLength, allowsDuplicates, lexicon },
+    word: { length: wordLength, allowsDuplicates, lexicon: selectedLexicon },
     match: { kind: "solo", grantsFinalEqualizer: false },
     target: rule(component.fixedSecret),
     feedback: [...feedback].sort(compareRules),
@@ -226,7 +242,7 @@ function buildPackage(spec) {
   const requirements = {
     contractProtocolVersion: 1,
     definitionSchemaVersion: 1,
-    lexicon,
+    lexicon: spec.definition.word.lexicon,
     components: [
       spec.definition.target,
       ...spec.definition.feedback,

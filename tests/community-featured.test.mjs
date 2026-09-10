@@ -17,7 +17,7 @@ import { onRequestGet as getCommunityCatalog } from "../functions/api/community/
 import { publishCommunityCatalog } from "../functions/api/community/v1/schema.js";
 import { runCommunitySweep } from "../functions/api/community/v1/sweep.js";
 
-const featuredCatalogArtifactDigest = "060b82ce97fb51a001ddea25dda46bae9996e343fea652d9d565c130c406782a";
+const featuredCatalogArtifactDigest = "91472e6d14a12ae72cbec7f01f9e9f1cde86fee46b49781a4d568fbe79d2e9fd";
 
 test("the app and website consume the same featured catalog artifact", async () => {
   const fixture = await readFile(
@@ -61,6 +61,10 @@ test("the five reviewed originals are valid, allowlisted, unique, and attributed
     assert.match(sourcePackage.presentation.subtitle, /\([^)]+-min\. game\)$/);
     assert.equal(sourcePackage.presentation.glyph.fallback.artwork.startsWith("glyph_"), true);
     assert.equal(sourcePackage.contract.definition.match.kind, "solo");
+    assert.deepEqual(
+      sourcePackage.requirements.lexicon,
+      sourcePackage.contract.definition.word.lexicon,
+    );
   }
 });
 
@@ -75,6 +79,16 @@ test("each original carries the reviewed config rather than a title-driven mode"
   const doubleTake = byTitle.get("Double Take");
   assert.equal(doubleTake.word.length, 5);
   assert.equal(doubleTake.guessTransformations[0].configuration.pattern, "required");
+  const pocketVowels = byTitle.get("Pocket Vowels");
+  assert.equal(pocketVowels.word.length, 4);
+  assert.equal(pocketVowels.word.allowsDuplicates, true);
+  assert.equal(pocketVowels.word.lexicon.id, "com.icedmatchalabs.jottly.pocket-vowels");
+  assert.equal(pocketVowels.termination.find(({ typeID }) => typeID.endsWith("guess-limit")).configuration.count, 8);
+  assert.deepEqual(
+    pocketVowels.feedback.map((rule) => rule.configuration.disclosure),
+    ["aggregate", "aggregate"],
+  );
+  assert.equal(pocketVowels.guessTransformations[0].configuration.letters, "aeiouy");
   const commonGround = byTitle.get("Common Ground");
   assert.equal(commonGround.guessTransformations[0].configuration.word, "game");
   const xRay = byTitle.get("X-Ray");

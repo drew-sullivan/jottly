@@ -7,12 +7,12 @@
       "definition": {
         "schemaVersion": 1,
         "word": {
-          "length": 1,
-          "allowsDuplicates": false,
+          "length": 4,
+          "allowsDuplicates": true,
           "lexicon": {
-            "id": "com.icedmatchalabs.jottly.remix.words",
-            "version": 5,
-            "contentDigest": "922ef9098cd1562cedccda8822963ca5d81800e38b787333c7ad5d97e87771d9"
+            "id": "com.icedmatchalabs.jottly.pocket-vowels",
+            "version": 1,
+            "contentDigest": "e31a8097fbe6c4c0ccf3863aca81e0f3ac891f1c7b4ce13581cfcaa93de55232"
           }
         },
         "match": {
@@ -29,21 +29,29 @@
             "typeID": "com.icedmatchalabs.jottly.feedback.exact-position",
             "version": 1,
             "configuration": {
-              "disclosure": "perLetter"
+              "disclosure": "aggregate"
             }
           },
           {
             "typeID": "com.icedmatchalabs.jottly.feedback.membership",
             "version": 1,
             "configuration": {
-              "disclosure": "perLetter",
+              "disclosure": "aggregate",
               "includesExactPositions": false,
               "scoring": "occurrenceLimited"
             }
           }
         ],
         "startingHints": [],
-        "guessTransformations": [],
+        "guessTransformations": [
+          {
+            "typeID": "com.icedmatchalabs.jottly.modifier.available-letters",
+            "version": 1,
+            "configuration": {
+              "letters": "aeiouy"
+            }
+          }
+        ],
         "termination": [
           {
             "typeID": "com.icedmatchalabs.jottly.termination.exact-word-wins",
@@ -54,16 +62,16 @@
             "typeID": "com.icedmatchalabs.jottly.termination.guess-limit",
             "version": 1,
             "configuration": {
-              "count": 3
+              "count": 8
             }
           }
         ]
       },
-      "definitionDigest": "294a2626e43102b593abe04a1c083772ecb129bd3da8f4f458d75beb6d797438"
+      "definitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
     },
     "presentation": {
       "title": "Pocket Vowels",
-      "subtitle": "Find a pocket vowel before your coffee cools (under 1-min. game)",
+      "subtitle": "Crack a four-letter vowel code using exact and misplaced clues (3-min. game)",
       "glyph": {
         "fallback": {
           "letter": "L",
@@ -85,12 +93,12 @@
           "definition": {
             "schemaVersion": 1,
             "word": {
-              "length": 1,
-              "allowsDuplicates": false,
+              "length": 4,
+              "allowsDuplicates": true,
               "lexicon": {
-                "id": "com.icedmatchalabs.jottly.remix.words",
-                "version": 5,
-                "contentDigest": "922ef9098cd1562cedccda8822963ca5d81800e38b787333c7ad5d97e87771d9"
+                "id": "com.icedmatchalabs.jottly.pocket-vowels",
+                "version": 1,
+                "contentDigest": "e31a8097fbe6c4c0ccf3863aca81e0f3ac891f1c7b4ce13581cfcaa93de55232"
               }
             },
             "match": {
@@ -107,21 +115,29 @@
                 "typeID": "com.icedmatchalabs.jottly.feedback.exact-position",
                 "version": 1,
                 "configuration": {
-                  "disclosure": "perLetter"
+                  "disclosure": "aggregate"
                 }
               },
               {
                 "typeID": "com.icedmatchalabs.jottly.feedback.membership",
                 "version": 1,
                 "configuration": {
-                  "disclosure": "perLetter",
+                  "disclosure": "aggregate",
                   "includesExactPositions": false,
                   "scoring": "occurrenceLimited"
                 }
               }
             ],
             "startingHints": [],
-            "guessTransformations": [],
+            "guessTransformations": [
+              {
+                "typeID": "com.icedmatchalabs.jottly.modifier.available-letters",
+                "version": 1,
+                "configuration": {
+                  "letters": "aeiouy"
+                }
+              }
+            ],
             "termination": [
               {
                 "typeID": "com.icedmatchalabs.jottly.termination.exact-word-wins",
@@ -132,18 +148,18 @@
                 "typeID": "com.icedmatchalabs.jottly.termination.guess-limit",
                 "version": 1,
                 "configuration": {
-                  "count": 3
+                  "count": 8
                 }
               }
             ]
           },
-          "definitionDigest": "294a2626e43102b593abe04a1c083772ecb129bd3da8f4f458d75beb6d797438"
+          "definitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
         },
         "remixLineage": {
           "origin": {
             "catalogID": "community.jotbot.original.v1",
             "title": "JotBot Originals",
-            "definitionDigest": "294a2626e43102b593abe04a1c083772ecb129bd3da8f4f458d75beb6d797438"
+            "definitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
           },
           "remixDepth": 1,
           "recentAncestors": []
@@ -154,9 +170,9 @@
       "contractProtocolVersion": 1,
       "definitionSchemaVersion": 1,
       "lexicon": {
-        "id": "com.icedmatchalabs.jottly.remix.words",
-        "version": 5,
-        "contentDigest": "922ef9098cd1562cedccda8822963ca5d81800e38b787333c7ad5d97e87771d9"
+        "id": "com.icedmatchalabs.jottly.pocket-vowels",
+        "version": 1,
+        "contentDigest": "e31a8097fbe6c4c0ccf3863aca81e0f3ac891f1c7b4ce13581cfcaa93de55232"
       },
       "components": [
         {
@@ -165,6 +181,10 @@
         },
         {
           "typeID": "com.icedmatchalabs.jottly.feedback.membership",
+          "version": 1
+        },
+        {
+          "typeID": "com.icedmatchalabs.jottly.modifier.available-letters",
           "version": 1
         },
         {
@@ -186,7 +206,7 @@
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "b58a115adbd68cae08e2ccd2befd87ce922e774680886af17a8aea7a126525d3"
+    "revisionDigest": "f67359f6afb8dd3c8f3077e1afa3601088cabc420e2e79deac6374cc142cccf5"
   },
   {
     "schemaVersion": 1,
