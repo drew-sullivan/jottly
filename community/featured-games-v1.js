@@ -72,7 +72,8 @@ export const featuredCommunityPackages = Object.freeze([
     },
     "presentation": {
       "title": "Pocket Vowels",
-      "subtitle": "Crack a four-letter vowel code using exact and misplaced clues (3-min. game)",
+      "subtitle": "Crack a four-letter vowel code using exact and misplaced clues",
+      "estimatedDurationMinutes": 3,
       "glyph": {
         "fallback": {
           "letter": "L",
@@ -207,7 +208,7 @@ export const featuredCommunityPackages = Object.freeze([
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "f67359f6afb8dd3c8f3077e1afa3601088cabc420e2e79deac6374cc142cccf5"
+    "revisionDigest": "a11c58134ed6390b910e91ca1efb02fc61fe85afe8445c144cb6a6f158edb37c"
   },
   {
     "schemaVersion": 1,
@@ -281,7 +282,8 @@ export const featuredCommunityPackages = Object.freeze([
     },
     "presentation": {
       "title": "Double Take",
-      "subtitle": "Every word repeats itself. Spot the pattern fast (2-min. game)",
+      "subtitle": "Every word repeats itself. Spot the pattern fast",
+      "estimatedDurationMinutes": 2,
       "glyph": {
         "fallback": {
           "letter": "E",
@@ -416,7 +418,7 @@ export const featuredCommunityPackages = Object.freeze([
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "83393372f1fb17ad34ad8ca78a0d4de7e55ebe4448d9a913161b7196304579c5"
+    "revisionDigest": "5a87509ae28d56a25f903315aee9148a91c222ae79ac4234bcdad71b475fc669"
   },
   {
     "schemaVersion": 1,
@@ -490,7 +492,8 @@ export const featuredCommunityPackages = Object.freeze([
     },
     "presentation": {
       "title": "Common Ground",
-      "subtitle": "Race from the same opening word and prove your deduction chops (3-min. game)",
+      "subtitle": "Race from the same opening word and prove your deduction chops",
+      "estimatedDurationMinutes": 3,
       "glyph": {
         "fallback": {
           "letter": "P",
@@ -625,7 +628,7 @@ export const featuredCommunityPackages = Object.freeze([
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "4ec454dac27ab9cd6a095f1771725548e6e07e35def437e9ea1d50512fc2cab5"
+    "revisionDigest": "c269c4d6ff9df10007a12e75274822f655d21b2f86681e7f2cd0b66bd271a676"
   },
   {
     "schemaVersion": 1,
@@ -691,7 +694,8 @@ export const featuredCommunityPackages = Object.freeze([
     },
     "presentation": {
       "title": "X-Ray",
-      "subtitle": "See which letters belong and count the ones perfectly placed (5-min. game)",
+      "subtitle": "See which letters belong and count the ones perfectly placed",
+      "estimatedDurationMinutes": 5,
       "glyph": {
         "fallback": {
           "letter": "C",
@@ -814,7 +818,7 @@ export const featuredCommunityPackages = Object.freeze([
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "b82b5cabfcd662552b7036ce475e5a6f43559fb26e1b33b846340841474c8533"
+    "revisionDigest": "c1a8964a1355cd6d144ae757265b2e48397f118ad3ff5198270f20d7f9841b03"
   },
   {
     "schemaVersion": 1,
@@ -888,7 +892,8 @@ export const featuredCommunityPackages = Object.freeze([
     },
     "presentation": {
       "title": "Chain of Evidence",
-      "subtitle": "Every guess must connect to the last. Build your case carefully (10-min. game)",
+      "subtitle": "Every guess must connect to the last. Build your case carefully",
+      "estimatedDurationMinutes": 10,
       "glyph": {
         "fallback": {
           "letter": "F",
@@ -1023,6 +1028,6 @@ export const featuredCommunityPackages = Object.freeze([
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "bbf5135fecfae30118f979dfe88c8256fcf2347e5ec66e4ffb06a7f67a8b742f"
+    "revisionDigest": "0ea926decb18ad74f579394f96cc7d9b56505a8660a32c75dd36a63cbff71463"
   }
 ]);

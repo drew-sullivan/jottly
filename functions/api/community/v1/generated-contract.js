@@ -14,5 +14,6 @@ export const communityContract = Object.freeze({
     authorship: "player",
     maximumTitleCharacters: 80,
     maximumSubtitleCharacters: 240,
+    maximumEstimatedDurationMinutes: 999,
   }),
 });

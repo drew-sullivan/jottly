@@ -20,6 +20,7 @@ export const communityContract = Object.freeze({
     authorship: ${JSON.stringify(source.package.authorship)},
     maximumTitleCharacters: ${source.package.maximumTitleCharacters},
     maximumSubtitleCharacters: ${source.package.maximumSubtitleCharacters},
+    maximumEstimatedDurationMinutes: ${source.package.maximumEstimatedDurationMinutes},
   }),
 });
 `;

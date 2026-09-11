@@ -55,6 +55,22 @@ test("metadata revisions are positive safe integers and legacy packages default 
   assert.equal(validateCommunitySourcePackage(communityPackage(1, { metadataRevision: 2 })).ok, true);
 });
 
+test("estimated duration is optional bounded presentation metadata", () => {
+  const legacy = communityPackage(1);
+  assert.equal(validateCommunitySourcePackage(legacy).ok, true);
+
+  for (const minutes of [1, 59, 60, 999]) {
+    const candidate = communityPackage(1);
+    candidate.presentation.estimatedDurationMinutes = minutes;
+    assert.equal(validateCommunitySourcePackage(candidate).ok, true, `${minutes} minutes`);
+  }
+  for (const minutes of [0, -1, 1.5, 1000, "5"]) {
+    const candidate = communityPackage(1);
+    candidate.presentation.estimatedDurationMinutes = minutes;
+    assert.equal(validateCommunitySourcePackage(candidate).ok, false, `${minutes} is invalid`);
+  }
+});
+
 test("allowlists bind one exact package ID to one exact canonical digest", () => {
   const packages = [communityPackage(1), communityPackage(2)];
   const valid = validateCommunityAllowlist(allowlistFor(packages));

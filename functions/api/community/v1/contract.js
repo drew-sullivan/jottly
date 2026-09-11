@@ -48,6 +48,13 @@ export function validateCommunitySourcePackage(sourcePackage) {
       || presentation.subtitle.length > communityContract.package.maximumSubtitleCharacters) {
     return invalid("package subtitle");
   }
+  if (presentation.estimatedDurationMinutes !== undefined
+      && (!Number.isSafeInteger(presentation.estimatedDurationMinutes)
+        || presentation.estimatedDurationMinutes < 1
+        || presentation.estimatedDurationMinutes
+          > communityContract.package.maximumEstimatedDurationMinutes)) {
+    return invalid("package duration");
+  }
   const provenance = presentation.sharedProvenance;
   if (!isPlainObject(provenance) || provenance.schemaVersion !== 1) return invalid("package provenance");
   if (packageMetadataRevision(sourcePackage) === null) return invalid("package metadata revision");
@@ -152,6 +159,7 @@ export function packageImmutableIdentityFingerprint(sourcePackage) {
   delete copy.presentation.title;
   delete copy.presentation.subtitle;
   delete copy.presentation.glyph;
+  delete copy.presentation.estimatedDurationMinutes;
   delete copy.presentation.sharedProvenance.metadataRevision;
   return stableJSONStringify(copy);
 }

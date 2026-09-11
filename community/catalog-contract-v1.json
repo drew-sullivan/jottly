@@ -12,6 +12,7 @@
     "carrierTopologies": ["solo", "headToHead"],
     "authorship": "player",
     "maximumTitleCharacters": 80,
-    "maximumSubtitleCharacters": 240
+    "maximumSubtitleCharacters": 240,
+    "maximumEstimatedDurationMinutes": 999
   }
 }

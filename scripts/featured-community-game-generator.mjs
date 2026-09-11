@@ -29,7 +29,8 @@ export const featuredCommunityGameSpecs = Object.freeze([
   Object.freeze({
     id: "51000000-0000-4000-8000-000000000001",
     title: "Pocket Vowels",
-    subtitle: "Crack a four-letter vowel code using exact and misplaced clues (3-min. game)",
+    subtitle: "Crack a four-letter vowel code using exact and misplaced clues",
+    estimatedDurationMinutes: 3,
     glyph: "glyph_lightning_alt_3",
     fallbackLetter: "L",
     definition: definition({
@@ -44,7 +45,8 @@ export const featuredCommunityGameSpecs = Object.freeze([
   Object.freeze({
     id: "51000000-0000-4000-8000-000000000002",
     title: "Double Take",
-    subtitle: "Every word repeats itself. Spot the pattern fast (2-min. game)",
+    subtitle: "Every word repeats itself. Spot the pattern fast",
+    estimatedDurationMinutes: 2,
     glyph: "glyph_eye",
     fallbackLetter: "E",
     definition: definition({
@@ -58,7 +60,8 @@ export const featuredCommunityGameSpecs = Object.freeze([
   Object.freeze({
     id: "51000000-0000-4000-8000-000000000003",
     title: "Common Ground",
-    subtitle: "Race from the same opening word and prove your deduction chops (3-min. game)",
+    subtitle: "Race from the same opening word and prove your deduction chops",
+    estimatedDurationMinutes: 3,
     glyph: "glyph_puzzle_piece_3",
     fallbackLetter: "P",
     definition: definition({
@@ -72,7 +75,8 @@ export const featuredCommunityGameSpecs = Object.freeze([
   Object.freeze({
     id: "51000000-0000-4000-8000-000000000004",
     title: "X-Ray",
-    subtitle: "See which letters belong and count the ones perfectly placed (5-min. game)",
+    subtitle: "See which letters belong and count the ones perfectly placed",
+    estimatedDurationMinutes: 5,
     glyph: "glyph_crystal_ball",
     fallbackLetter: "C",
     definition: definition({
@@ -85,7 +89,8 @@ export const featuredCommunityGameSpecs = Object.freeze([
   Object.freeze({
     id: "51000000-0000-4000-8000-000000000005",
     title: "Chain of Evidence",
-    subtitle: "Every guess must connect to the last. Build your case carefully (10-min. game)",
+    subtitle: "Every guess must connect to the last. Build your case carefully",
+    estimatedDurationMinutes: 10,
     glyph: "glyph_footprints",
     fallbackLetter: "F",
     definition: definition({
@@ -208,6 +213,7 @@ function buildPackage(spec) {
   const presentation = {
     title: spec.title,
     subtitle: spec.subtitle,
+    estimatedDurationMinutes: spec.estimatedDurationMinutes,
     glyph: {
       fallback: {
         letter: spec.fallbackLetter,

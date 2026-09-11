@@ -17,7 +17,7 @@ import { onRequestGet as getCommunityCatalog } from "../functions/api/community/
 import { publishCommunityCatalog } from "../functions/api/community/v1/schema.js";
 import { runCommunitySweep } from "../functions/api/community/v1/sweep.js";
 
-const featuredCatalogArtifactDigest = "91472e6d14a12ae72cbec7f01f9e9f1cde86fee46b49781a4d568fbe79d2e9fd";
+const featuredCatalogArtifactDigest = "ca99a56299c58e05096dafd09f62e0a6472208597141f5702f0126e4da7e0a37";
 
 test("the app and website consume the same featured catalog artifact", async () => {
   const fixture = await readFile(
@@ -58,7 +58,7 @@ test("the five reviewed originals are valid, allowlisted, unique, and attributed
   assert.equal(new Set(communityAllowlist.map(({ canonicalDefinitionDigest }) => canonicalDefinitionDigest)).size, 5);
   for (const sourcePackage of featuredCommunityPackages) {
     assert.equal(sourcePackage.presentation.creator.displayName, "JotBot");
-    assert.match(sourcePackage.presentation.subtitle, /\([^)]+-min\. game\)$/);
+    assert.doesNotMatch(sourcePackage.presentation.subtitle, /min\. game/i);
     assert.equal(sourcePackage.presentation.glyph.fallback.artwork.startsWith("glyph_"), true);
     assert.equal(sourcePackage.contract.definition.match.kind, "solo");
     assert.deepEqual(
@@ -94,6 +94,20 @@ test("each original carries the reviewed config rather than a title-driven mode"
   const xRay = byTitle.get("X-Ray");
   assert.deepEqual(xRay.feedback.map((rule) => rule.configuration.disclosure), ["aggregate", "perLetter"]);
   const chain = byTitle.get("Chain of Evidence");
+
+  assert.deepEqual(
+    Object.fromEntries(featuredCommunityGameSpecs.map((game) => [
+      game.title,
+      game.estimatedDurationMinutes,
+    ])),
+    {
+      "Pocket Vowels": 3,
+      "Double Take": 2,
+      "Common Ground": 3,
+      "X-Ray": 5,
+      "Chain of Evidence": 10,
+    },
+  );
   assert.deepEqual(
     chain.guessTransformations.map(({ typeID }) => typeID.split(".").at(-1)),
     ["word-chain", "clue-boost"],

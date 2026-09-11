@@ -77,6 +77,7 @@ test("a newer metadata revision updates community presentation without splitting
   const edited = communityPackage(1, { title: "A Better Name", metadataRevision: 2 });
   edited.presentation.subtitle = "A corrected description";
   edited.presentation.glyph = { kind: "letterTile", value: "B" };
+  edited.presentation.estimatedDurationMinutes = 12;
   edited.revisionDigest = "f".repeat(64);
   const result = rankCommunityGames({
     observations: [
@@ -89,6 +90,7 @@ test("a newer metadata revision updates community presentation without splitting
   assert.equal(result.metrics.conflictingPackageCount, 0);
   assert.equal(game.sourcePackage.presentation.title, "A Better Name");
   assert.equal(game.sourcePackage.presentation.subtitle, "A corrected description");
+  assert.equal(game.sourcePackage.presentation.estimatedDurationMinutes, 12);
 });
 
 test("metadata revision selection is deterministic regardless of observation order", () => {
