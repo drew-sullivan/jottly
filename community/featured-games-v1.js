@@ -66,9 +66,18 @@ export const featuredCommunityPackages = Object.freeze([
               "count": 8
             }
           }
+        ],
+        "playerExperience": [
+          {
+            "typeID": "com.icedmatchalabs.jottly.experience.auto-deduction",
+            "version": 1,
+            "configuration": {
+              "enabled": false
+            }
+          }
         ]
       },
-      "definitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
+      "definitionDigest": "69b0178e08fdb77a6124c428f7e658304119d04f8493d4e48a50030409200ec7"
     },
     "presentation": {
       "title": "Pocket Vowels",
@@ -153,15 +162,24 @@ export const featuredCommunityPackages = Object.freeze([
                   "count": 8
                 }
               }
+            ],
+            "playerExperience": [
+              {
+                "typeID": "com.icedmatchalabs.jottly.experience.auto-deduction",
+                "version": 1,
+                "configuration": {
+                  "enabled": false
+                }
+              }
             ]
           },
-          "definitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
+          "definitionDigest": "69b0178e08fdb77a6124c428f7e658304119d04f8493d4e48a50030409200ec7"
         },
         "remixLineage": {
           "origin": {
             "catalogID": "community.jotbot.original.v1",
             "title": "JotBot Originals",
-            "definitionDigest": "d87cdc8bdea9224eea926c0350b11b8c454f083231ad158227571dae88e85169"
+            "definitionDigest": "69b0178e08fdb77a6124c428f7e658304119d04f8493d4e48a50030409200ec7"
           },
           "remixDepth": 1,
           "recentAncestors": []
@@ -177,6 +195,10 @@ export const featuredCommunityPackages = Object.freeze([
         "contentDigest": "e31a8097fbe6c4c0ccf3863aca81e0f3ac891f1c7b4ce13581cfcaa93de55232"
       },
       "components": [
+        {
+          "typeID": "com.icedmatchalabs.jottly.experience.auto-deduction",
+          "version": 1
+        },
         {
           "typeID": "com.icedmatchalabs.jottly.feedback.exact-position",
           "version": 1
@@ -208,7 +230,7 @@ export const featuredCommunityPackages = Object.freeze([
       "showsRulesOnEntry": true,
       "participatesInCatalogStatistics": false
     },
-    "revisionDigest": "a11c58134ed6390b910e91ca1efb02fc61fe85afe8445c144cb6a6f158edb37c"
+    "revisionDigest": "16a0fd350c0fd3e4676fbf8d49e508941e5f5e51d497790fc260840467149435"
   },
   {
     "schemaVersion": 1,

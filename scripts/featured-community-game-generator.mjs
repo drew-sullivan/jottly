@@ -23,6 +23,7 @@ const component = Object.freeze({
   clueBoost: "com.icedmatchalabs.jottly.modifier.clue-boost",
   wordChain: "com.icedmatchalabs.jottly.modifier.word-chain",
   availableLetters: "com.icedmatchalabs.jottly.modifier.available-letters",
+  autoDeductionPermission: "com.icedmatchalabs.jottly.experience.auto-deduction",
 });
 
 export const featuredCommunityGameSpecs = Object.freeze([
@@ -39,7 +40,10 @@ export const featuredCommunityGameSpecs = Object.freeze([
       lexicon: pocketVowelsLexicon,
       feedback: exactAndPresentFeedback(),
       guessLimit: 8,
-      modifiers: [rule(component.availableLetters, { letters: "aeiouy" })],
+      modifiers: [
+        rule(component.availableLetters, { letters: "aeiouy" }),
+      ],
+      playerExperience: [rule(component.autoDeductionPermission, { enabled: false })],
     }),
   }),
   Object.freeze({
@@ -134,9 +138,10 @@ function definition({
   feedback,
   guessLimit,
   modifiers = [],
+  playerExperience = [],
   lexicon: selectedLexicon = lexicon,
 }) {
-  return {
+  const result = {
     schemaVersion: 1,
     word: { length: wordLength, allowsDuplicates, lexicon: selectedLexicon },
     match: { kind: "solo", grantsFinalEqualizer: false },
@@ -149,6 +154,10 @@ function definition({
       rule(component.guessLimit, { count: guessLimit }),
     ].sort(compareRules),
   };
+  if (playerExperience.length > 0) {
+    result.playerExperience = [...playerExperience].sort(compareRules);
+  }
+  return result;
 }
 
 function perLetterFeedback() {
@@ -202,6 +211,17 @@ function compareRules(left, right) {
     || stableJSONStringify(left.configuration).localeCompare(stableJSONStringify(right.configuration));
 }
 
+function allDefinitionComponents(definition) {
+  return [
+    definition.target,
+    ...definition.feedback,
+    ...definition.startingHints,
+    ...definition.guessTransformations,
+    ...(definition.playerExperience ?? []),
+    ...definition.termination,
+  ];
+}
+
 function buildPackage(spec) {
   const definitionDigest = sha256Hex(stableJSONStringify(spec.definition));
   const envelope = {
@@ -249,13 +269,7 @@ function buildPackage(spec) {
     contractProtocolVersion: 1,
     definitionSchemaVersion: 1,
     lexicon: spec.definition.word.lexicon,
-    components: [
-      spec.definition.target,
-      ...spec.definition.feedback,
-      ...spec.definition.startingHints,
-      ...spec.definition.guessTransformations,
-      ...spec.definition.termination,
-    ]
+    components: allDefinitionComponents(spec.definition)
       .map(({ typeID, version }) => ({ typeID, version }))
       .sort((left, right) => left.typeID.localeCompare(right.typeID) || left.version - right.version),
   };

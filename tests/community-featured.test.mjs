@@ -17,7 +17,7 @@ import { onRequestGet as getCommunityCatalog } from "../functions/api/community/
 import { publishCommunityCatalog } from "../functions/api/community/v1/schema.js";
 import { runCommunitySweep } from "../functions/api/community/v1/sweep.js";
 
-const featuredCatalogArtifactDigest = "ca99a56299c58e05096dafd09f62e0a6472208597141f5702f0126e4da7e0a37";
+const featuredCatalogArtifactDigest = "efa70d6fc7df1de9a74ec1ef3715972deb813e5de4c511e9d7859141a60c6dc6";
 
 test("the app and website consume the same featured catalog artifact", async () => {
   const fixture = await readFile(
@@ -65,6 +65,18 @@ test("the five reviewed originals are valid, allowlisted, unique, and attributed
       sourcePackage.requirements.lexicon,
       sourcePackage.contract.definition.word.lexicon,
     );
+    const definition = sourcePackage.contract.definition;
+    const expectedComponents = [
+      definition.target,
+      ...definition.feedback,
+      ...definition.startingHints,
+      ...definition.guessTransformations,
+      ...(definition.playerExperience ?? []),
+      ...definition.termination,
+    ]
+      .map(({ typeID, version }) => ({ typeID, version }))
+      .sort((left, right) => left.typeID.localeCompare(right.typeID) || left.version - right.version);
+    assert.deepEqual(sourcePackage.requirements.components, expectedComponents);
   }
 });
 
@@ -89,6 +101,11 @@ test("each original carries the reviewed config rather than a title-driven mode"
     ["aggregate", "aggregate"],
   );
   assert.equal(pocketVowels.guessTransformations[0].configuration.letters, "aeiouy");
+  assert.deepEqual(
+    pocketVowels.playerExperience.find(({ typeID }) => typeID.endsWith("auto-deduction"))
+      .configuration,
+    { enabled: false },
+  );
   const commonGround = byTitle.get("Common Ground");
   assert.equal(commonGround.guessTransformations[0].configuration.word, "game");
   const xRay = byTitle.get("X-Ray");
