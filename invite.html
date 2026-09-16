@@ -98,8 +98,8 @@
       <span class="tile coral">J</span><span class="tile apricot circle">O</span><span class="tile">T</span>
       <span class="tile">T</span><span class="tile teal circle">L</span><span class="tile">Y</span>
     </div>
-    <h1>A friend invited you.</h1>
-    <p class="lead">Jottly is a relaxed word game for friends and family. Deduce each other's secret word, a move at a time, on your own schedule.</p>
+    <h1 id="route-title">A friend invited you.</h1>
+    <p class="lead" id="route-lead">Jottly is a relaxed word game for friends and family. Deduce each other's secret word, a move at a time, on your own schedule.</p>
     <div class="pills">
       <span class="pill c">No ads</span>
       <span class="pill t">No tracking</span>
@@ -127,6 +127,15 @@
   // freshly installed app can recover it on first launch and drop the player straight into the game.
   // Progressive enhancement - if the Clipboard API is unavailable or denied, we just go to the store.
   (function () {
+    var isPackageShare = new URLSearchParams(location.search).get('intent') === 'shareGame';
+    if (isPackageShare) {
+      document.title = 'A friend shared a Jottly game';
+      var routeTitle = document.getElementById('route-title');
+      var routeLead = document.getElementById('route-lead');
+      if (routeTitle) routeTitle.textContent = 'A friend shared a game.';
+      if (routeLead) routeLead.textContent = 'Open Jottly to preview the exact rules, play it, save it, or remix it into your own game.';
+    }
+
     // Point "Open the game" at the custom-scheme fallback for THIS game, so an installed app opens even
     // when the universal link doesn't fire (Chrome, or a stale associated-domains cache).
     var openApp = document.getElementById('openapp');
