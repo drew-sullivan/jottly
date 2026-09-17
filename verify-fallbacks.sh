@@ -13,7 +13,7 @@
 set -uo pipefail
 cd "$(dirname "$0")"
 
-HOST="https://icedmatchalabs.com"
+HOST="${JOTTLY_FALLBACK_HOST:-https://icedmatchalabs.com}"
 APP_ID="6780044797"
 BUNDLE="8JKMQ4CU85.com.dsull.Jotto"
 
@@ -58,7 +58,7 @@ has daily.html 'href="https://icedmatchalabs.com/daily"' "canonical is /daily"
 has daily.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
 has daily.html "app-argument=https://icedmatchalabs.com/daily" "Smart App Banner deep-links the Daily"
 has daily.html 'href="jotto://daily"' "Open button uses the jotto://daily scheme fallback"
-has daily.html 'ruleset !== lightning' "Daily fallback accepts only the supported mode override"
+has daily.html 'getAll("ruleset")' "Daily fallback preserves the selected mode"
 has daily.html 'jotto://daily${query}' "Daily fallback preserves the selected clue style"
 
 echo "== solo.html (carries fresh JotBot game intent without a game ID) =="
@@ -66,13 +66,15 @@ has solo.html 'href="https://icedmatchalabs.com/solo"' "canonical is /solo"
 has solo.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
 has solo.html "app-argument=https://icedmatchalabs.com/solo" "Smart App Banner deep-links to Solo"
 has solo.html 'href="jotto://solo"' "Open button uses the jotto://solo scheme fallback"
+has solo.html "jotto://solo' + query" "Solo fallback preserves the selected mode"
 
 echo "== invite.html (carries the game ID via parse-time inject, never Daily) =="
 has invite.html 'og:image" content="https://icedmatchalabs.com/assets/app_icon.png"' "og:image is the app icon (rich Messages card)"
 has invite.html "location.origin + location.pathname + location.search" "Smart App Banner app-argument preserves the full invite URL incl ?env&v"
 has invite.html "<noscript>" "has a <noscript> app-id-only banner fallback"
 has invite.html 'id="openapp"' "has the Open-the-game button"
-has invite.html "'jotto://' + location.pathname.replace" "Open button builds a CLEAN jotto://join/<id> from the path (no query)"
+has invite.html "'jotto://' + location.pathname.replace" "Open button builds jotto://join/<id> from the path"
+has invite.html "') + location.search" "Open button preserves the full link query"
 if grep -qF "jotto://daily" invite.html; then fail "invite.html must NEVER reference jotto://daily"; else pass "invite.html never falls back to jotto://daily"; fi
 
 if [ "${1:-}" != "--live" ]; then
@@ -83,32 +85,60 @@ if [ "${1:-}" != "--live" ]; then
 fi
 
 echo "== live: $HOST =="
+live_tmp=$(mktemp -d)
+trap 'rm -rf -- "$live_tmp"' EXIT
+
+# A reachable page with the wrong status is a failed deployment, even when its body looks familiar.
+live_get() {
+  local path="$1" output="$2" status
+  if ! status=$(curl -sS --connect-timeout 5 --max-time 12 -o "$output" -w '%{http_code}' "$HOST$path"); then
+    fail "$path could not be fetched"
+    return 1
+  fi
+  if [ "$status" != "200" ]; then
+    fail "$path -> HTTP $status (want 200)"
+    return 1
+  fi
+  pass "$path -> 200"
+}
+
 # AASA at both paths: 200 + application/json + identical to the local canonical file.
 for path in "/.well-known/apple-app-site-association" "/apple-app-site-association"; do
-  ct=$(curl -sS -o /tmp/aasa.live -w '%{http_code} %{content_type}' "$HOST$path")
+  if ! ct=$(curl -sS --connect-timeout 5 --max-time 12 -o "$live_tmp/aasa" -w '%{http_code} %{content_type}' "$HOST$path"); then
+    fail "$path could not be fetched"
+    continue
+  fi
   code=${ct%% *}; type=${ct#* }
-  [ "$code" = "200" ] && pass "$path -> 200" || fail "$path -> $code (want 200)"
+  if [ "$code" != "200" ]; then
+    fail "$path -> HTTP $code (want 200)"
+    continue
+  fi
+  pass "$path -> 200"
   case "$type" in application/json*) pass "$path served as application/json" ;;
     *) fail "$path served as '$type' (want application/json)" ;; esac
-  cmp -s "$canon" /tmp/aasa.live && pass "$path body matches local AASA" || fail "$path body differs from local AASA"
+  cmp -s "$canon" "$live_tmp/aasa" && pass "$path body matches local AASA" || fail "$path body differs from local AASA"
 done
 
 # /daily: 200, carries the daily app-argument + jotto://daily open link.
-curl -sS "$HOST/daily" -o /tmp/daily.live -w '  daily -> HTTP %{http_code}\n'
-has /tmp/daily.live "app-argument=https://icedmatchalabs.com/daily" "live /daily deep-links the Daily"
-has /tmp/daily.live 'href="jotto://daily"' "live /daily has the jotto://daily open link"
+if live_get "/daily" "$live_tmp/daily"; then
+  has "$live_tmp/daily" "app-argument=https://icedmatchalabs.com/daily" "live /daily deep-links the Daily"
+  has "$live_tmp/daily" 'href="jotto://daily"' "live /daily has the jotto://daily open link"
+fi
 
 # /solo: 200, carries only the stable Solo action in both app entry points.
-curl -sS "$HOST/solo" -o /tmp/solo.live -w '  solo -> HTTP %{http_code}\n'
-has /tmp/solo.live "app-argument=https://icedmatchalabs.com/solo" "live /solo opens the Solo flow"
-has /tmp/solo.live 'href="jotto://solo"' "live /solo has the jotto://solo open link"
+if live_get "/solo" "$live_tmp/solo"; then
+  has "$live_tmp/solo" "app-argument=https://icedmatchalabs.com/solo" "live /solo opens the Solo flow"
+  has "$live_tmp/solo" 'href="jotto://solo"' "live /solo has the jotto://solo open link"
+fi
 
 # /join/<id>: 200, per-game app-argument inject + jotto://join/<id> open builder in the served HTML, never Daily.
 sample="verify-fallbacks-$$"
-curl -sS "$HOST/join/$sample" -o /tmp/join.live -w '  join -> HTTP %{http_code}\n'
-has /tmp/join.live "location.origin + location.pathname + location.search" "live /join app-argument preserves the full invite URL incl ?env&v"
-has /tmp/join.live "'jotto://' + location.pathname.replace" "live /join builds the clean jotto://join/<id> open link"
-if grep -qF "jotto://daily" /tmp/join.live; then fail "live /join must NEVER reference jotto://daily"; else pass "live /join never falls back to Daily"; fi
+if live_get "/join/$sample" "$live_tmp/join"; then
+  has "$live_tmp/join" "location.origin + location.pathname + location.search" "live /join app-argument preserves the full invite URL incl ?env&v"
+  has "$live_tmp/join" "'jotto://' + location.pathname.replace" "live /join builds the jotto://join/<id> open link"
+  has "$live_tmp/join" "') + location.search" "live /join preserves environment, version, and purpose"
+  if grep -qF "jotto://daily" "$live_tmp/join"; then fail "live /join must NEVER reference jotto://daily"; else pass "live /join never falls back to Daily"; fi
+fi
 
 echo
 [ "$fails" -eq 0 ] && echo "All fallback contracts hold, local and live." || echo "$fails check(s) failed."

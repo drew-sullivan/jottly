@@ -139,7 +139,9 @@
     // Point "Open the game" at the custom-scheme fallback for THIS game, so an installed app opens even
     // when the universal link doesn't fire (Chrome, or a stale associated-domains cache).
     var openApp = document.getElementById('openapp');
-    if (openApp) openApp.href = 'jotto://' + location.pathname.replace(/^\/+/, '');
+    if (openApp) {
+      openApp.href = 'jotto://' + location.pathname.replace(/^\/+/, '') + location.search;
+    }
 
     var get = document.getElementById('get');
     if (!get || !(navigator.clipboard && navigator.clipboard.writeText)) return;

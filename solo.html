@@ -18,6 +18,18 @@
 <meta name="twitter:description" content="Deduce JotBot's secret word on your own or race the bot.">
 <meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
 <meta name="apple-itunes-app" content="app-id=6780044797, app-argument=https://icedmatchalabs.com/solo">
+<script>
+  // Preserve the selected catalog mode if Safari renders this page instead of opening the app.
+  const modes = new URLSearchParams(location.search).getAll('ruleset');
+  if (modes.length === 1 && /^[A-Za-z0-9]+$/.test(modes[0])) {
+    const query = '?ruleset=' + encodeURIComponent(modes[0]);
+    document.querySelector('meta[name="apple-itunes-app"]').content =
+      'app-id=6780044797, app-argument=https://icedmatchalabs.com/solo' + query;
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('solo-open-link').href = 'jotto://solo' + query;
+    });
+  }
+</script>
 <style>
   :root{
     --coral:#F36B4F; --apricot:#F7B267; --teal:#26A096; --aqua:#60CEC4;
@@ -101,7 +113,7 @@
         <img src="/assets/app-store-badge.svg" alt="Download on the App Store" style="height:56px; width:auto; display:block">
       </picture>
     </a>
-    <p class="fine">Already have Jottly? <a href="jotto://solo">Play Solo</a>.</p>
+    <p class="fine">Already have Jottly? <a id="solo-open-link" href="jotto://solo">Play Solo</a>.</p>
   </section>
 </div>
 

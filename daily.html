@@ -21,10 +21,9 @@
 <script>
   // Keep the selected Daily clue style when Safari handles the Universal Link before the app.
   (() => {
-    const lightning = "lightningSolitaire6V1";
-    const ruleset = new URLSearchParams(window.location.search).get("ruleset");
-    if (ruleset !== lightning) return;
-    const query = `?ruleset=${encodeURIComponent(lightning)}`;
+    const modes = new URLSearchParams(window.location.search).getAll("ruleset");
+    if (modes.length !== 1 || !/^[A-Za-z0-9]+$/.test(modes[0])) return;
+    const query = `?ruleset=${encodeURIComponent(modes[0])}`;
     document.querySelector('meta[name="apple-itunes-app"]').content =
       `app-id=6780044797, app-argument=https://icedmatchalabs.com/daily${query}`;
     window.addEventListener("DOMContentLoaded", () => {
