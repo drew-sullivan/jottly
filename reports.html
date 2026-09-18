@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="/assets/favicon-iml.png">
+<link rel="stylesheet" href="/assets/reports.css">
+<script src="/assets/reports.js" defer></script>
+<title>Jottly Developer Reports</title>
+</head>
+<body>
+  <header class="app-bar">
+    <div class="brand-lockup">
+      <img src="/assets/app_icon.png" alt="" width="44" height="44">
+      <div><p class="eyebrow">Jottly</p><h1>Developer reports</h1></div>
+    </div>
+    <div class="toolbar">
+      <label for="status">Status</label>
+      <select id="status">
+        <option value="new">New</option>
+        <option value="in_progress">In progress</option>
+        <option value="needs_info">Needs info</option>
+        <option value="fixed">Fixed</option>
+        <option value="all">Recent</option>
+      </select>
+      <button id="refresh" type="button">Refresh</button>
+    </div>
+  </header>
+  <main>
+    <p id="notice" role="status" aria-live="polite">Loading reports…</p>
+    <div class="workspace">
+      <section class="ticket-list" aria-label="Tickets">
+        <div id="tickets"></div>
+      </section>
+      <section class="ticket-detail" aria-label="Selected ticket">
+        <div id="detail-empty">Select a report to see its details.</div>
+        <div id="detail" hidden>
+          <div class="detail-heading">
+            <div><p id="detail-kind" class="eyebrow"></p><h2 id="detail-title"></h2></div>
+            <span id="detail-status" class="status"></span>
+          </div>
+          <p id="detail-meta" class="secondary"></p>
+          <p id="detail-resolution" hidden></p>
+          <h3>Recent diagnostics</h3>
+          <pre id="detail-log"></pre>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>

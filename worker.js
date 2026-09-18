@@ -7,12 +7,19 @@ import {
   onRequestPost as runCommunitySweepNow,
 } from "./functions/api/community/v1/admin.js";
 import { projectCommunityCatalogRun, runTrackedCommunitySweep } from "./functions/api/community/v1/operations.js";
+import {
+  onRequestGet as listDevReports,
+  onRequestGetOne as readDevReport,
+  onRequestPatch as updateDevReport,
+  onRequestPost as createDevReport,
+} from "./functions/api/dev-reports/v1/reports.js";
 
 const eventsPath = "/api/analytics/v1/events";
 const reportPath = "/api/analytics/v1/report";
 const communityCatalogPath = "/api/community/v1/games";
 const communityHealthPath = "/api/community/v1/health";
 const communitySweepPath = "/api/community/v1/admin/sweep";
+const devReportsPath = "/api/dev-reports/v1";
 
 export default {
   async fetch(request, env, executionContext) {
@@ -46,6 +53,18 @@ export default {
         return runCommunitySweepNow({ request, env, executionContext });
       }
       return methodNotAllowed("GET, POST");
+    }
+
+    if (path === devReportsPath) {
+      if (request.method === "GET") return listDevReports({ request, env });
+      if (request.method === "POST") return createDevReport({ request, env });
+      return methodNotAllowed("GET, POST");
+    }
+
+    if (path.startsWith(`${devReportsPath}/`)) {
+      if (request.method === "GET") return readDevReport({ env, id: path.slice(devReportsPath.length + 1) });
+      if (request.method !== "PATCH") return methodNotAllowed("GET, PATCH");
+      return updateDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
     }
 
     if (path.startsWith("/api/")) {
