@@ -17,7 +17,7 @@ test("a bug and its recent diagnostics become one durable ticket", async () => {
   assert.equal(ticket.id, id);
   assert.equal(ticket.kind, "bug");
   assert.equal(ticket.description, report.description);
-  assert.equal(ticket.diagnostics, report.diagnostics);
+  assert.equal(Object.hasOwn(ticket, "diagnostics"), false);
   assert.equal(ticket.appVersion, "3.4.0");
   assert.equal(ticket.buildNumber, "500");
   assert.equal(ticket.status, "new");

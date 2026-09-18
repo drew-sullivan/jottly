@@ -26,7 +26,7 @@ export async function onRequestPost({ request, env, nowMilliseconds = Date.now()
     if (Number(inserted?.meta?.changes ?? 0) === 0 && !sameSubmission(row, body)) {
       return json({ error: "Report ID already belongs to a different submission" }, 409);
     }
-    return json(project(row), Number(inserted?.meta?.changes ?? 0) === 1 ? 201 : 200);
+    return json(project(row, false), Number(inserted?.meta?.changes ?? 0) === 1 ? 201 : 200);
   } catch {
     return json({ error: "Report inbox unavailable" }, 503);
   }
@@ -81,10 +81,10 @@ export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.
     `).bind(body.status, body.resolution.trim(), nowMilliseconds, id, body.expectedStatus).run();
     if (Number(updated?.meta?.changes ?? 0) !== 1) {
       const current = await readReport(db, id);
-      return current ? json({ error: "Report status changed", current: project(current) }, 409)
+      return current ? json({ error: "Report status changed", current: project(current, false) }, 409)
         : json({ error: "Report not found" }, 404);
     }
-    return json(project(await readReport(db, id)), 200);
+    return json(project(await readReport(db, id), false), 200);
   } catch {
     return json({ error: "Report inbox unavailable" }, 503);
   }
