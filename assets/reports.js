@@ -18,6 +18,7 @@ async function refresh() {
   selectedID = null;
   detail.hidden = true;
   empty.hidden = false;
+  detail.parentElement.classList.remove("has-selection");
   try {
     const { reports } = await requestJSON(`${endpoint}?status=${encodeURIComponent(status.value)}`);
     if (!Array.isArray(reports)) throw new Error("The report service returned an invalid list.");
@@ -63,7 +64,9 @@ async function openReport(id, button) {
     document.querySelector("#detail-log").textContent = report.diagnostics || "No diagnostic events attached.";
     empty.hidden = true;
     detail.hidden = false;
+    detail.parentElement.classList.add("has-selection");
     notice.textContent = "";
+    if (matchMedia("(max-width: 740px)").matches) detail.scrollIntoView({ behavior: "smooth", block: "start" });
   } catch (error) {
     notice.textContent = error.message;
   }

@@ -39,5 +39,5 @@ main { max-width: 1350px; margin: auto; padding: 20px clamp(16px, 3vw, 36px) 56p
 .secondary, #detail-empty { color: var(--secondary); }
 #detail-resolution { padding: 12px; border-left: 3px solid var(--coral); background: var(--paper); }
 pre { max-height: 56vh; overflow: auto; padding: 14px; border: 1px solid var(--border); border-radius: 4px; background: var(--paper); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
-@media (max-width: 740px) { .app-bar { align-items: start; flex-direction: column; } .workspace { grid-template-columns: 1fr; } .ticket-detail { min-height: 220px; } }
+@media (max-width: 740px) { .app-bar { align-items: start; flex-direction: column; } .workspace { grid-template-columns: 1fr; } .ticket-detail { min-height: 220px; } .ticket-detail:not(.has-selection) { display: none; } }
 @media (prefers-color-scheme: dark) { :root { --paper: #1d1b19; --surface: #282522; --ink: #f3f1ed; --secondary: #b7b1aa; --border: #514b45; } }
