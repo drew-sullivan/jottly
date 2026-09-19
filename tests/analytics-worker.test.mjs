@@ -126,6 +126,7 @@ test("the executable schema and migration cannot drift", async () => {
   const migrations = await Promise.all([
     "../migrations/0001_anonymous_analytics.sql",
     "../migrations/0003_community_analytics.sql",
+    "../migrations/0007_named_game_analytics.sql",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
   assert.equal(normalizeSQL(analyticsSchemaSQL), normalizeSQL(migrations.join("\n")));
 });

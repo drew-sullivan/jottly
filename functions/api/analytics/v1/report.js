@@ -14,15 +14,15 @@ export async function onRequestGet(context) {
     : 30;
   const result = await context.env.ANALYTICS_DB.prepare(`
     SELECT day, category, event, app_version, release_channel, mode, game_source,
-           game_kind, word_length, rule_id,
+           game_kind, game_slug, word_length, rule_id,
            share_source, share_channel, turn_bucket, duration_bucket, outcome,
            performance_bucket, reliability_reason, community_selection_source,
            context, reason, install_cohort,
            SUM(aggregate_count) AS count
-    FROM anonymous_analytics_events_v5
+    FROM anonymous_analytics_events_v6
     WHERE day >= date('now', ?)
     GROUP BY day, category, event, app_version, release_channel, mode, game_source,
-             game_kind, word_length, rule_id,
+             game_kind, game_slug, word_length, rule_id,
              share_source, share_channel, turn_bucket, duration_bucket, outcome,
              performance_bucket, reliability_reason, community_selection_source,
              context, reason, install_cohort

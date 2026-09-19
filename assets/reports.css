@@ -28,9 +28,6 @@ main { max-width: 1350px; margin: auto; padding: 20px clamp(16px, 3vw, 36px) 56p
 .auth-form label { width: 100%; font-weight: 700; }
 .auth-form input { flex: 1 1 250px; min-height: 42px; padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--ink); }
 .auth-form button { min-height: 42px; padding: 8px 14px; border: 1px solid var(--ink); border-radius: 6px; background: var(--ink); color: var(--surface); }
-.auth-form #sample { border-color: var(--border); background: var(--surface); color: var(--ink); }
-#sample-indicator { color: var(--coral); font-size: 12px; font-weight: 800; text-transform: uppercase; }
-#sample-banner { padding: 10px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); color: var(--secondary); }
 #notice { color: var(--secondary); min-height: 22px; }
 .table-scroll { overflow-x: auto; border-top: 1px solid var(--border); }
 table { width: 100%; border-collapse: collapse; background: var(--surface); }
@@ -40,7 +37,11 @@ td:first-child { width: 11rem; font: 12px/1.45 ui-monospace, SFMono-Regular, Men
 td:nth-child(2) { width: 100%; min-width: 18rem; }
 td:nth-child(3) { white-space: nowrap; }
 td:last-child { width: 1%; white-space: nowrap; }
-.status { color: var(--secondary); font-size: 13px; font-weight: 700; }
+.status { display: inline-flex; align-items: center; gap: 7px; color: var(--secondary); font-size: 13px; font-weight: 700; }
+.status-icon { display: inline-grid; width: 20px; height: 20px; place-items: center; border: 1px solid currentColor; border-radius: 50%; font-weight: 900; line-height: 1; }
+.status-fixed { color: #247a45; }
+.status-needs_info { color: #9b6500; }
+.status-in_progress { color: var(--coral); }
 .diagnostic-toggle { padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 13px; }
 .diagnostic-row td { padding: 0 12px 12px; background: var(--paper); }
 .diagnostic-row pre { max-height: 50vh; margin: 0; overflow: auto; padding: 12px; border-left: 2px solid var(--coral); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }

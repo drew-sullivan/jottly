@@ -16,6 +16,7 @@ test("a bug and its recent diagnostics become one durable ticket", async () => {
   assert.equal(created.status, 201);
   const ticket = await created.json();
   assert.equal(ticket.id, id);
+  assert.equal(ticket.ticketNumber, 1);
   assert.equal(ticket.kind, "bug");
   assert.equal(ticket.description, report.description);
   assert.equal(Object.hasOwn(ticket, "diagnostics"), false);
@@ -75,7 +76,13 @@ test("a ticket moves through a compare-and-swap work lifecycle", async () => {
   assert.equal((await update("in_progress", "fixed", "commit abc123;\n tests passed")).status, 200);
   assert.equal((await (await worker.fetch(request(path, "GET"), env)).json()).reports.length, 0);
   const fixed = await (await worker.fetch(request(`${path}?status=fixed`, "GET"), env)).json();
-  assert.deepEqual(fixed.reports[0], { id, description: payload().description, status: "fixed" });
+  assert.deepEqual(fixed.reports[0], {
+    id,
+    ticketNumber: 1,
+    description: payload().description,
+    createdAtMilliseconds: waiting.createdAtMilliseconds,
+    status: "fixed",
+  });
   const detail = await (await worker.fetch(request(`${path}/${id}`, "GET"), env)).json();
   assert.deepEqual(detail, fixed.reports[0]);
   const stored = await env.COMMUNITY_DB.prepare(
@@ -96,7 +103,13 @@ test("already-fixed tickets lose legacy diagnostics on the next report request",
   await worker.fetch(request(path, "POST", payload()), environment(sqlite));
   sqlite.prepare("UPDATE dev_reports SET status = 'fixed', resolution = 'commit old' WHERE id = ?").run(id);
   const detail = await (await worker.fetch(request(`${path}/${id}`, "GET"), environment(sqlite))).json();
-  assert.deepEqual(detail, { id, description: payload().description, status: "fixed" });
+  assert.deepEqual(detail, {
+    id,
+    ticketNumber: 1,
+    description: payload().description,
+    createdAtMilliseconds: detail.createdAtMilliseconds,
+    status: "fixed",
+  });
   const row = sqlite.prepare("SELECT diagnostics, app_version, build_number FROM dev_reports WHERE id = ?").get(id);
   assert.equal(row.diagnostics, "");
   assert.equal(row.app_version, payload().appVersion);
@@ -134,7 +147,9 @@ test("every queue shows the newest reports first and remains bounded", async () 
   const list = await (await worker.fetch(request(path, "GET"), env)).json();
   assert.equal(list.reports.length, 50);
   assert.equal(list.reports[0].description, "Feature 51");
+  assert.equal(list.reports[0].ticketNumber, 52);
   assert.equal(list.reports[49].description, "Feature 2");
+  assert.equal(list.reports[49].ticketNumber, 3);
   const recent = await (await worker.fetch(request(`${path}?status=all`, "GET"), env)).json();
   assert.equal(recent.reports.length, 50);
   assert.equal(recent.reports[0].description, "Feature 51");

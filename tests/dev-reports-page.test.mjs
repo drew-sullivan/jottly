@@ -39,7 +39,7 @@ function page(fetch, search = "") {
     });
     return nodes.get(selector);
   };
-  node("#status").value = "new";
+  node("#status").value = "all";
   node(".workspace").hidden = true;
   node(".toolbar").hidden = true;
   runInNewContext(script, {
@@ -98,59 +98,29 @@ test("locking clears rendered diagnostics and ignores a late authorized response
   assert.equal(node(".workspace").hidden, true);
 });
 
-test("sample tickets show every lifecycle state without touching the API or Keychain token", () => {
-  let requests = 0;
-  const { node, stored } = page(() => { requests += 1; throw new Error("demo must be local"); });
-  node("#sample").listeners.click();
-  assert.equal(node("#status").value, "all");
-  assert.equal(node("#sample-banner").hidden, false);
-  assert.equal(node("#sample-indicator").hidden, false);
-  assert.equal(node("#tickets").children.length, 6);
-  assert.equal(node("#notice").textContent, "6 sample tickets");
-  assert.equal(stored.size, 0);
-
-  const firstRow = node("#tickets").children[0];
-  assert.equal(firstRow.children[1].textContent, "A shared game link opened the wrong rule sheet");
-  const viewButton = firstRow.children[3].children[0];
-  viewButton.listeners.click();
-  assert.equal(node("#tickets").children.length, 7);
-  assert.match(node("#tickets").children[1].children[0].children[0].textContent, /\[sample\]/);
-  assert.equal(viewButton.textContent, "Hide");
-
-  node("#status").value = "in_progress";
-  node("#status").listeners.change();
-  assert.equal(node("#tickets").children.length, 1);
-  node("#status").value = "fixed";
-  node("#status").listeners.change();
-  assert.equal(node("#tickets").children.length, 2);
-  node("#exit-sample").listeners.click();
-  assert.equal(node(".workspace").hidden, true);
-  assert.equal(node("#sample-banner").hidden, true);
-  assert.equal(requests, 0);
-});
-
 test("reports render as simple newest-first rows with fixed diagnostics cleared", async () => {
   const { node } = page(async () => ({ status: 200, ok: true, json: async () => ({ reports: [
-    { id: "newest", status: "new", description: "Newest report" },
-    { id: "older", status: "fixed", description: "Older report" },
+    { id: "newest", ticketNumber: 12, createdAtMilliseconds: Date.UTC(2026, 8, 19, 12), status: "new", description: "Newest report" },
+    { id: "older", ticketNumber: 11, createdAtMilliseconds: Date.UTC(2026, 8, 18, 12), status: "fixed", description: "Older report" },
   ] }) }));
   node("#token-input").value = "valid-token";
   node("#auth-form").listeners.submit({ preventDefault() {} });
   await new Promise(setImmediate);
   const [newest, older] = node("#tickets").children;
-  assert.deepEqual(newest.children.map((cell) => cell.textContent), ["newest", "Newest report", "", ""]);
-  assert.equal(newest.children[2].children[0].textContent, "new");
+  assert.deepEqual(newest.children.map((cell) => cell.textContent), ["Sep 19, 2026 - 12", "Newest report", "", ""]);
+  assert.equal(newest.children[2].children[0].children[0].textContent, "•");
+  assert.equal(newest.children[2].children[0].children[1].textContent, "new");
   assert.equal(newest.children[3].children[0].textContent, "View");
-  assert.equal(older.children[0].textContent, "older");
+  assert.equal(older.children[0].textContent, "Sep 18, 2026 - 11");
+  assert.equal(older.children[2].children[0].children[0].textContent, "✓");
   assert.equal(older.children[3].children[0].textContent, "Cleared");
 });
 
-test("the sample URL opens the filled preview without a token or API request", () => {
+test("sample query parameters cannot expose ticket data without a token", () => {
   let requests = 0;
   const { node, stored } = page(() => { requests += 1; }, "?sample=1");
-  assert.equal(node("#tickets").children.length, 6);
-  assert.equal(node("#auth-form").hidden, true);
-  assert.equal(node("#sample-banner").hidden, false);
+  assert.equal(node("#tickets").children.length, 0);
+  assert.equal(node("#auth-form").hidden, false);
   assert.equal(stored.size, 0);
   assert.equal(requests, 0);
 });

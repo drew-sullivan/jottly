@@ -46,6 +46,41 @@ test("accepts only bounded anonymous game-design dimensions", () => {
   assert.equal(validatePayload({ schemaVersion: 1, entries: [{ ...ruleEvent, word_length: "999" }] }, now).ok, false);
 });
 
+test("accepts every value emitted by the app's current rule and share vocabularies", () => {
+  const base = {
+    ...entry,
+    event: "game_rule_used",
+    mode: "custom",
+    game_kind: "remixed",
+    game_slug: "mastered_mind",
+    word_length: "6",
+    rule_id: "disappearing_feedback",
+  };
+  delete base.turn_bucket;
+  delete base.duration_bucket;
+  delete base.outcome;
+  for (const rule_id of ["disappearing_feedback", "available_letters"]) {
+    assert.equal(validatePayload({ schemaVersion: 1, entries: [{ ...base, rule_id }] }, now).ok, true, rule_id);
+  }
+  const share = {
+    entry_id: entry.entry_id,
+    day: entry.day,
+    category: "product",
+    event: "share_sheet_opened",
+    app_version: entry.app_version,
+    release_channel: entry.release_channel,
+    share_source: "game_package",
+    count: 1,
+  };
+  assert.equal(validatePayload({ schemaVersion: 1, entries: [share] }, now).ok, true);
+});
+
+test("game identity is bounded and never accepts titles or package identifiers", () => {
+  assert.equal(validatePayload({ schemaVersion: 1, entries: [{ ...entry, game_slug: "mastered_mind" }] }, now).ok, true);
+  assert.equal(validatePayload({ schemaVersion: 1, entries: [{ ...entry, game_slug: "Mastered Mind by DSull" }] }, now).ok, false);
+  assert.equal(validatePayload({ schemaVersion: 1, entries: [{ ...entry, game_slug: "authored.ed0356be" }] }, now).ok, false);
+});
+
 test("rejects identifiers, words, exact timestamps, and arbitrary dimensions", () => {
   for (const key of ["player_id", "device_id", "game_id", "opponent_id", "word", "timestamp", "name"]) {
     const result = validatePayload({ schemaVersion: 1, entries: [{ ...entry, [key]: "private" }] }, now);

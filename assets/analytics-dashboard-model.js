@@ -20,6 +20,7 @@ const DURATION_ORDER = Object.freeze(["under_5m", "5_15m", "15_60m", "1_24h", "1
 const PERFORMANCE_ORDER = Object.freeze(["under_100ms", "100_250ms", "250ms_1s", "1_3s", "3s_plus"]);
 const SOURCE_ORDER = Object.freeze(["solo", "friend", "invitation", "rematch", "daily"]);
 const KIND_ORDER = Object.freeze(["catalog", "remixed", "unlisted"]);
+const GAME_ORDER = Object.freeze(["lightning", "cowpoke", "classic", "shapeshifter", "mastered_mind", "custom", "unlisted"]);
 const PRODUCT_SHARE_SOURCES = new Set([
   "friend_invitation", "game_result", "daily_result", "streak", "monthly_best", "tell_a_friend", "other",
 ]);
@@ -120,6 +121,7 @@ export function buildDashboardModel(inputRows, filters = {}) {
       rules: groupedCounts(rows, "rule_id", (row) => row.event === "game_rule_created"),
     },
     gameKinds: groupedCounts(rows, "game_kind", (row) => row.event === "game_started"),
+    games: groupedCounts(rows, "game_slug", (row) => row.event === "game_started", GAME_ORDER),
     wordLengths: groupedCounts(rows, "word_length", (row) => row.event === "game_started", WORD_LENGTH_ORDER),
     playedRules: groupedCounts(rows, "rule_id", (row) => row.event === "game_rule_used"),
     community: {
@@ -420,7 +422,7 @@ function buildConversion(rows, dimension, order) {
 }
 
 function buildDataHealth(rows) {
-  const dimensions = ["mode", "game_source", "game_kind", "word_length", "rule_id", "context", "reason"];
+  const dimensions = ["mode", "game_source", "game_kind", "game_slug", "word_length", "rule_id", "context", "reason"];
   const unknownDimensions = dimensions.map((dimension) => ({
     key: dimension,
     count: sum(rows, (row) => row[dimension] === "unknown" || row[dimension] === "other"),

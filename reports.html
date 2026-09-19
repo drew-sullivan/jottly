@@ -18,15 +18,13 @@
     <div class="toolbar" hidden>
       <label for="status">Status</label>
       <select id="status">
+        <option value="all">All</option>
         <option value="new">New</option>
         <option value="in_progress">In progress</option>
         <option value="needs_info">Needs info</option>
         <option value="fixed">Fixed</option>
-        <option value="all">Recent</option>
       </select>
       <button id="refresh" type="button">Refresh</button>
-      <span id="sample-indicator" hidden>Sample data</span>
-      <button id="exit-sample" type="button" hidden>Exit Preview</button>
       <button id="signout" type="button">Lock</button>
     </div>
   </header>
@@ -35,10 +33,8 @@
       <label for="token-input">Dashboard token</label>
       <input id="token-input" type="password" autocomplete="off" required>
       <button type="submit">Unlock reports</button>
-      <button id="sample" type="button">Preview Sample Tickets</button>
     </form>
     <p id="notice" role="status" aria-live="polite">Enter your dashboard token to view reports.</p>
-    <p id="sample-banner" hidden>Sample tickets only. Nothing here is saved or sent to the report inbox.</p>
     <div class="workspace" hidden>
       <div class="table-scroll">
         <table aria-label="Developer reports">

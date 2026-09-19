@@ -8,7 +8,7 @@ const refs = Object.fromEntries([
   "keychain-command", "copy-command-button",
   "date-label", "status-live", "summary-grid", "insight-grid", "mode-body", "source-list",
   "creation-summary", "creation-mode-list", "creation-length-list", "created-rule-list",
-  "game-kind-list", "word-length-list", "played-rule-list",
+  "game-list", "game-kind-list", "word-length-list", "played-rule-list",
   "outcome-list", "onboarding-list", "sharing-summary", "share-source-list", "share-channel-list",
   "friction-grid", "left-turn-list", "reliability-summary", "cache-list", "reconcile-list",
   "offline-list", "sync-queue-list", "drain-performance-list", "activity-body",
@@ -139,6 +139,7 @@ function renderGameDesign(model) {
   renderBarList(refs["creation-mode-list"], model.creations.modes);
   renderBarList(refs["creation-length-list"], model.creations.wordLengths);
   renderBarList(refs["created-rule-list"], model.creations.rules);
+  renderBarList(refs["game-list"], model.games);
   renderBarList(refs["game-kind-list"], model.gameKinds);
   renderBarList(refs["word-length-list"], model.wordLengths);
   renderBarList(refs["played-rule-list"], model.playedRules);

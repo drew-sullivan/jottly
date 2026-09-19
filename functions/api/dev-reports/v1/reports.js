@@ -46,8 +46,8 @@ export async function onRequestGet({ request, env }) {
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const statement = status === "all"
-      ? env.COMMUNITY_DB.prepare("SELECT * FROM dev_reports ORDER BY created_at_ms DESC, id DESC LIMIT 50")
-      : env.COMMUNITY_DB.prepare("SELECT * FROM dev_reports WHERE status = ? ORDER BY created_at_ms DESC, id DESC LIMIT 50").bind(status);
+      ? env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports ORDER BY created_at_ms DESC, rowid DESC LIMIT 50")
+      : env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE status = ? ORDER BY created_at_ms DESC, rowid DESC LIMIT 50").bind(status);
     const result = await statement.all();
     return json({ reports: (result.results ?? []).map((row) => project(row, false)) }, 200);
   } catch {
@@ -112,7 +112,7 @@ export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.
 }
 
 async function readReport(db, id) {
-  return db.prepare("SELECT * FROM dev_reports WHERE id = ?").bind(id).first();
+  return db.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE id = ?").bind(id).first();
 }
 
 async function readJSON(request) {
@@ -156,10 +156,17 @@ function sameSubmission(row, body) {
 
 function project(row, includeDiagnostics = true) {
   if (row.status === "fixed") {
-    return { id: row.id, description: row.description, status: row.status };
+    return {
+      id: row.id,
+      ticketNumber: row.ticket_number,
+      description: row.description,
+      createdAtMilliseconds: row.created_at_ms,
+      status: row.status,
+    };
   }
   const report = {
     id: row.id,
+    ticketNumber: row.ticket_number,
     kind: row.kind,
     description: row.description,
     appVersion: row.app_version,

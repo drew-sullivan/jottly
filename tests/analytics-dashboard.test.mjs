@@ -65,13 +65,13 @@ test("Shapeshifter has its own ordered dashboard row", () => {
   );
 });
 
-test("the dashboard exposes custom creation, game kind, word length, and rule usage", () => {
+test("the dashboard exposes named games, custom creation, kind, length, and rule usage", () => {
   const model = buildDashboardModel([
     row("game_created", 2, { mode: "custom", game_kind: "remixed", word_length: "7" }),
     row("game_rule_created", 2, {
       mode: "custom", game_kind: "remixed", word_length: "7", rule_id: "excluded_letters",
     }),
-    row("game_started", 3, { mode: "custom", game_source: "friend", game_kind: "remixed", word_length: "7" }),
+    row("game_started", 3, { mode: "custom", game_source: "friend", game_kind: "remixed", game_slug: "mastered_mind", word_length: "7" }),
     row("game_rule_used", 3, {
       mode: "custom", game_source: "friend", game_kind: "remixed", word_length: "7", rule_id: "excluded_letters",
     }),
@@ -82,6 +82,7 @@ test("the dashboard exposes custom creation, game kind, word length, and rule us
   assert.deepEqual(model.creations.wordLengths, [{ key: "7", count: 2 }]);
   assert.deepEqual(model.creations.rules, [{ key: "excluded_letters", count: 2 }]);
   assert.deepEqual(model.gameKinds, [{ key: "remixed", count: 3 }]);
+  assert.deepEqual(model.games, [{ key: "mastered_mind", count: 3 }]);
   assert.deepEqual(model.wordLengths, [{ key: "7", count: 3 }]);
   assert.deepEqual(model.playedRules, [{ key: "excluded_letters", count: 3 }]);
 });
@@ -387,6 +388,7 @@ function row(event, count, overrides = {}) {
     mode: null,
     game_source: null,
     game_kind: null,
+    game_slug: null,
     word_length: null,
     rule_id: null,
     share_source: null,

@@ -32,16 +32,17 @@ export const allowedValues = Object.freeze({
   mode: ["lightning", "cowpoke", "classic", "shapeshifter", "mystery", "custom"],
   game_source: ["solo", "friend", "daily", "invitation", "rematch"],
   game_kind: ["catalog", "remixed", "unlisted"],
+  game_slug: ["lightning", "cowpoke", "classic", "shapeshifter", "mastered_mind", "custom", "unlisted"],
   word_length: ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "other"],
   rule_id: [
     "fixed_target", "shapeshifting_target", "membership_feedback", "position_feedback",
     "known_letter_hint", "known_position_hint", "guess_limit", "exact_word_wins",
-    "shared_opener", "buy_hint", "last_chance_clue", "delayed_feedback", "clue_boost",
+    "shared_opener", "buy_hint", "last_chance_clue", "delayed_feedback", "disappearing_feedback", "clue_boost",
     "guaranteed_letter", "excluded_letters", "repeated_letters", "word_chain",
-    "zero_match_strikes", "other",
+    "available_letters", "zero_match_strikes", "other",
   ],
   share_source: [
-    "friend_invitation", "game_result", "daily_result", "streak",
+    "friend_invitation", "game_package", "game_result", "daily_result", "streak",
     "monthly_best", "tell_a_friend", "problem_report", "other",
   ],
   share_channel: ["messages", "airdrop", "mail", "copy_link", "other"],
@@ -294,6 +295,7 @@ export function validatePayload(payload, now = new Date()) {
     const expectedCategory = reliabilityEvents.has(entry.event) ? "reliability" : "product";
     if (entry.category !== expectedCategory) return failure("Event category mismatch");
     const allowedDimensions = new Set(dimensionsByEvent[entry.event] ?? []);
+    if (allowedDimensions.has("mode")) allowedDimensions.add("game_slug");
     for (const key of optionalKeys) {
       if (entry[key] !== undefined && !allowedDimensions.has(key)) return failure(`Unexpected ${key}`);
     }
