@@ -75,7 +75,21 @@ test("oversized and non-JSON requests are rejected before parsing", async () => 
 });
 
 test("reports are invisible without the server-side secret", async () => {
-  const db = new FakeDB([{ event: "game_started", count: 4 }]);
+  const candidateContract = {
+    protocolVersion: 1,
+    definition: { word: { length: 4 } },
+    definitionDigest: "a".repeat(64),
+  };
+  const db = new FakeDB(
+    [{ event: "game_started", count: 4 }],
+    [{
+      definition_digest: "a".repeat(64),
+      contract_json: JSON.stringify(candidateContract),
+      anonymous_install_count: 3,
+      first_received_at: "2026-09-18 12:00:00",
+      last_received_at: "2026-09-19 12:00:00",
+    }],
+  );
   const missing = await onRequestGet({
     request: new Request("https://icedmatchalabs.com/api/analytics/v1/report"),
     env: { ANALYTICS_DB: db, ANALYTICS_REPORT_TOKEN: "secret" },
@@ -93,7 +107,13 @@ test("reports are invisible without the server-side secret", async () => {
   assert.deepEqual(await allowed.json(), {
     days: 7,
     rows: [{ event: "game_started", count: 4 }],
-    lovedGameCandidates: [],
+    lovedGameCandidates: [{
+      definitionDigest: "a".repeat(64),
+      anonymousSubmissionCount: 3,
+      firstReceivedAt: "2026-09-18 12:00:00",
+      lastReceivedAt: "2026-09-19 12:00:00",
+      contract: candidateContract,
+    }],
   });
   assert.equal(db.schemaExecutions, 1);
 });
