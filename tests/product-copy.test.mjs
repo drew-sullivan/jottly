@@ -38,6 +38,10 @@ test("home explains the built-in lineup and current Remix workflow", () => {
   for (const game of ["Lightning", "Cowpoke", "Classic", "Shapeshifter", "Mastered Mind"]) {
     assert.match(home, new RegExp(`<h3>${game}</h3>`));
   }
+  for (const glyph of ["lightning", "cow", "shapeshifter", "brain"]) {
+    assert.match(home, new RegExp(`src="/assets/glyph_${glyph}\\.png"`));
+  }
+  assert.match(home, /class="game-glyph classic"[^>]*>C<\/span>/);
   assert.match(home, /Remix a template/);
   assert.match(home, /Playtest instantly/);
   assert.match(home, /Own your collection/);

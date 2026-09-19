@@ -76,6 +76,9 @@
   .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px}
   .feat{background:var(--cloud); border:1px solid var(--mist); border-radius:22px; padding:22px}
   .feat .dot{width:34px; height:34px; border-radius:10px; border:2px solid var(--ink); margin-bottom:12px}
+  .game-glyph{width:48px; height:48px; object-fit:contain; display:block; margin-bottom:12px}
+  .game-glyph.classic{border:1px solid var(--ink); border-radius:50%; background:var(--apricot); color:#111;
+                      display:flex; align-items:center; justify-content:center; font-size:25px; font-weight:800}
   .feat h3{margin:0 0 6px; font-size:20px}
   .feat p{margin:0; color:var(--stone); font-size:16px}
 
@@ -148,11 +151,11 @@
       <p style="margin-bottom:0">Play solo whenever you have a minute, challenge a friend on your own schedule, or jump into a game someone shared with you.</p>
     </div>
     <div class="grid">
-      <div class="feat"><div class="dot" style="background:#26A096"></div><h3>Lightning</h3><p>Familiar green and yellow feedback for every letter. Fast, direct, and easy to jump into.</p></div>
-      <div class="feat"><div class="dot" style="background:#F7B267"></div><h3>Cowpoke</h3><p>Learn how many letters match and how many are perfectly placed, but not which ones.</p></div>
-      <div class="feat"><div class="dot" style="background:#60CEC4"></div><h3>Classic</h3><p>One score tells you how many letters match. Every useful deduction is yours to make.</p></div>
-      <div class="feat"><div class="dot" style="background:#F36B4F"></div><h3>Shapeshifter</h3><p>Green and yellow clues meet a moving target that keeps honoring everything you have learned.</p></div>
-      <div class="feat"><div class="dot" style="background:#F7B267"></div><h3>Mastered Mind</h3><p>No words, just letters. Crack a four-letter vowel code in this quick logic game.</p></div>
+      <div class="feat"><img class="game-glyph" src="/assets/glyph_lightning.png" alt="" width="48" height="48"><h3>Lightning</h3><p>Familiar green and yellow feedback for every letter. Fast, direct, and easy to jump into.</p></div>
+      <div class="feat"><img class="game-glyph" src="/assets/glyph_cow.png" alt="" width="48" height="48"><h3>Cowpoke</h3><p>Learn how many letters match and how many are perfectly placed, but not which ones.</p></div>
+      <div class="feat"><span class="game-glyph classic" aria-hidden="true">C</span><h3>Classic</h3><p>One score tells you how many letters match. Every useful deduction is yours to make.</p></div>
+      <div class="feat"><img class="game-glyph" src="/assets/glyph_shapeshifter.png" alt="" width="48" height="48"><h3>Shapeshifter</h3><p>Green and yellow clues meet a moving target that keeps honoring everything you have learned.</p></div>
+      <div class="feat"><img class="game-glyph" src="/assets/glyph_brain.png" alt="" width="48" height="48"><h3>Mastered Mind</h3><p>No words, just letters. Crack a four-letter vowel code in this quick logic game.</p></div>
     </div>
   </section>
 
