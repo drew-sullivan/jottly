@@ -45,18 +45,99 @@ export async function onRequestPost(context) {
   const daily = await context.env.ANALYTICS_DB.prepare("SELECT COUNT(*) AS count FROM loved_game_candidates WHERE received_at >= date('now')").first();
   if (Number(daily?.count ?? 0) >= maximumDailySubmissions) return json({ error: "Daily intake full" }, 429);
   const result = await context.env.ANALYTICS_DB.prepare("INSERT OR IGNORE INTO loved_game_candidates (submission_id, definition_digest, contract_json) VALUES (?, ?, ?)")
-    .bind(payload.submissionID, payload.contract.definitionDigest, validation.canonicalContract).run();
+    .bind(payload.submissionID, validation.definitionDigest, validation.canonicalPayload).run();
   return json({ accepted: 1, inserted: Number(result?.meta?.changes ?? 0) }, 200);
 }
 
 export async function validateLovedGameCandidate(payload) {
-  if (!hasExactKeys(payload, ["schemaVersion", "submissionID", "contract"]) || payload.schemaVersion !== 1 || !uuidPattern.test(payload.submissionID ?? "")) return invalid("Invalid submission envelope");
-  const contract = payload.contract;
+  if (!isPlainObject(payload) || !uuidPattern.test(payload.submissionID ?? "")) return invalid("Invalid submission envelope");
+  if (payload.schemaVersion === 1 && hasExactKeys(payload, ["schemaVersion", "submissionID", "contract"])) {
+    const contractValidation = await validateGameContract(payload.contract);
+    if (!contractValidation.ok) return contractValidation;
+    return {
+      ok: true,
+      definitionDigest: payload.contract.definitionDigest,
+      canonicalPayload: stableJSONStringify(payload.contract),
+      payloadKind: "legacy-contract",
+    };
+  }
+  if (payload.schemaVersion !== 2 || !hasExactKeys(payload, ["schemaVersion", "submissionID", "package"])) return invalid("Invalid submission envelope");
+  return validateGamePackage(payload.package);
+}
+
+async function validateGamePackage(gamePackage) {
+  const packageKeys = ["schemaVersion", "id", "revisionDigest", "contract", "presentation", "requirements", "capabilities"];
+  if (!hasExactKeys(gamePackage, packageKeys)
+      || gamePackage.schemaVersion !== 1
+      || typeof gamePackage.id !== "string"
+      || !gamePackage.id.startsWith("authored.")
+      || gamePackage.id.length > 192
+      || !/^[\x21-\x7e]+$/.test(gamePackage.id)
+      || !digestPattern.test(gamePackage.revisionDigest ?? "")) return invalid("Invalid game package");
+  const contractValidation = await validateGameContract(gamePackage.contract);
+  if (!contractValidation.ok) return contractValidation;
+  if (!validatePresentation(gamePackage.presentation)
+      || !validateRequirements(gamePackage.requirements, gamePackage.contract)
+      || !validateCapabilities(gamePackage.capabilities)) return invalid("Invalid game package metadata");
+  const revisionPayload = {
+    schemaVersion: gamePackage.schemaVersion,
+    id: gamePackage.id,
+    contract: gamePackage.contract,
+    presentation: gamePackage.presentation,
+    requirements: gamePackage.requirements,
+    capabilities: gamePackage.capabilities,
+  };
+  if (await sha256Hex(stableJSONStringify(revisionPayload)) !== gamePackage.revisionDigest) {
+    return invalid("Package revision digest mismatch");
+  }
+  return {
+    ok: true,
+    definitionDigest: gamePackage.contract.definitionDigest,
+    canonicalPayload: stableJSONStringify(gamePackage),
+    payloadKind: "game-package",
+  };
+}
+
+async function validateGameContract(contract) {
   if (!hasExactKeys(contract, ["protocolVersion", "definition", "definitionDigest"]) || contract.protocolVersion !== 1 || !digestPattern.test(contract.definitionDigest ?? "")) return invalid("Invalid game contract");
   if (!validateDefinition(contract.definition)) return invalid("Invalid game definition");
   const canonicalDefinition = stableJSONStringify(contract.definition);
   if (await sha256Hex(canonicalDefinition) !== contract.definitionDigest) return invalid("Definition digest mismatch");
-  return { ok: true, canonicalContract: stableJSONStringify(contract) };
+  return { ok: true };
+}
+
+function validatePresentation(presentation) {
+  if (!hasOnlyKeys(presentation, ["title", "subtitle", "glyph", "authorship", "creator", "sharedProvenance", "estimatedDurationMinutes"])
+      || typeof presentation.title !== "string" || !presentation.title.trim() || presentation.title.length > 80
+      || typeof presentation.subtitle !== "string" || presentation.subtitle.length > 240
+      || presentation.authorship !== "player" || !isPlainObject(presentation.glyph)
+      || !isPlainObject(presentation.creator)
+      || typeof presentation.creator.displayName !== "string" || !presentation.creator.displayName.trim()) return false;
+  if (presentation.estimatedDurationMinutes !== undefined
+      && (!Number.isSafeInteger(presentation.estimatedDurationMinutes)
+        || presentation.estimatedDurationMinutes < 1 || presentation.estimatedDurationMinutes > 999)) return false;
+  return presentation.sharedProvenance === undefined || isPlainObject(presentation.sharedProvenance);
+}
+
+function validateRequirements(requirements, contract) {
+  if (!hasExactKeys(requirements, ["contractProtocolVersion", "definitionSchemaVersion", "lexicon", "components"])
+      || requirements.contractProtocolVersion !== contract.protocolVersion
+      || requirements.definitionSchemaVersion !== contract.definition.schemaVersion
+      || stableJSONStringify(requirements.lexicon) !== stableJSONStringify(contract.definition.word.lexicon)
+      || !Array.isArray(requirements.components)) return false;
+  const expected = [contract.definition.target, ...contract.definition.feedback,
+    ...contract.definition.startingHints, ...contract.definition.guessTransformations,
+    ...(contract.definition.playerExperience ?? []), ...contract.definition.termination]
+    .map(({ typeID, version }) => ({ typeID, version }))
+    .sort((a, b) => a.typeID.localeCompare(b.typeID) || a.version - b.version);
+  return stableJSONStringify(requirements.components) === stableJSONStringify(expected);
+}
+
+function validateCapabilities(capabilities) {
+  return hasExactKeys(capabilities, ["canSaveToLibrary", "showsRulesOnEntry", "participatesInCatalogStatistics"])
+    && capabilities.canSaveToLibrary === true
+    && typeof capabilities.showsRulesOnEntry === "boolean"
+    && typeof capabilities.participatesInCatalogStatistics === "boolean";
 }
 
 function validateDefinition(definition) {

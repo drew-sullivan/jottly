@@ -120,16 +120,27 @@ function renderReport() {
 
 function renderLovedGameCandidates(candidates) {
   if (!candidates.length) {
-    refs["loved-game-candidate-list"].replaceChildren(emptyMessage("No rules-only candidates yet."));
+    refs["loved-game-candidate-list"].replaceChildren(emptyMessage("No locally loved games yet."));
     return;
   }
   refs["loved-game-candidate-list"].replaceChildren(...candidates.map((candidate) => {
     const card = element("article", "panel candidate");
     const definition = candidate.contract.definition;
+    const presentation = candidate.package?.presentation;
+    const title = presentation?.title ?? `${definition.word.length}-letter game`;
+    const creator = presentation?.creator?.displayName;
+    const duration = presentation?.estimatedDurationMinutes;
     card.append(
-      element("h3", "", `${definition.word.length}-letter rules · ${candidate.anonymousSubmissionCount} anonymous signal${candidate.anonymousSubmissionCount === 1 ? "" : "s"}`),
-      element("p", "panel-note", `Digest ${candidate.definitionDigest.slice(0, 12)} · Last received ${candidate.lastReceivedAt}`),
-      element("pre", "candidate-json", JSON.stringify(candidate.contract, null, 2)),
+      element("h3", "", `${title} · ${candidate.anonymousSubmissionCount} private signal${candidate.anonymousSubmissionCount === 1 ? "" : "s"}`),
+      ...(presentation?.subtitle ? [element("p", "", presentation.subtitle)] : []),
+      element("p", "panel-note", [
+        creator ? `By ${creator}` : null,
+        duration ? `${duration} min` : null,
+        `${definition.word.length} letters`,
+        `Digest ${candidate.definitionDigest.slice(0, 12)}`,
+        `Last received ${candidate.lastReceivedAt}`,
+      ].filter(Boolean).join(" · ")),
+      element("pre", "candidate-json", JSON.stringify(candidate.package ?? candidate.contract, null, 2)),
     );
     return card;
   }));

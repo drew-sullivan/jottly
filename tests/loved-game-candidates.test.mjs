@@ -5,27 +5,37 @@ import { onRequestPost, validateLovedGameCandidate } from "../functions/api/anal
 import { sha256Hex, stableJSONStringify } from "../functions/api/community/v1/contract.js";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/featured-community-packages-v1.json", import.meta.url), "utf8"));
+const gamePackage = fixture[0];
 const contract = fixture[0].presentation.sharedProvenance.canonicalEnvelope;
 
 function payload(overrides = {}) {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     submissionID: crypto.randomUUID(),
-    contract: structuredClone(contract),
+    package: structuredClone(gamePackage),
     ...overrides,
   };
 }
 
-test("a canonical Solo rules bundle validates without presentation or identity", async () => {
+test("a complete authored Solo package validates with all reusable metadata", async () => {
   const candidate = payload();
   assert.deepEqual(await validateLovedGameCandidate(candidate), {
     ok: true,
-    canonicalContract: stableJSONStringify(candidate.contract),
+    definitionDigest: candidate.package.contract.definitionDigest,
+    canonicalPayload: stableJSONStringify(candidate.package),
+    payloadKind: "game-package",
   });
+  assert.equal(candidate.package.presentation.title, "Pocket Vowels");
+  assert.equal(candidate.package.presentation.creator.displayName, "JotBot");
+  assert.ok(candidate.package.presentation.glyph);
 });
 
 test("legacy contracts may omit the optional lexicon digest", async () => {
-  const candidate = payload();
+  const candidate = {
+    schemaVersion: 1,
+    submissionID: crypto.randomUUID(),
+    contract: structuredClone(contract),
+  };
   delete candidate.contract.definition.word.lexicon.contentDigest;
   candidate.contract.definitionDigest = await sha256Hex(
     stableJSONStringify(candidate.contract.definition),
@@ -36,10 +46,10 @@ test("legacy contracts may omit the optional lexicon digest", async () => {
 test("reviewed featured contracts without embedded gameplay data stay compatible", async () => {
   for (const game of fixture) {
     const candidate = payload({
-      contract: structuredClone(game.presentation.sharedProvenance.canonicalEnvelope),
+      package: structuredClone(game),
     });
     const result = await validateLovedGameCandidate(candidate);
-    const hasConcreteOpener = candidate.contract.definition.guessTransformations.some(
+    const hasConcreteOpener = candidate.package.contract.definition.guessTransformations.some(
       (component) => component.typeID === "com.icedmatchalabs.jottly.modifier.shared-opening-guess"
         && (component.version !== 2 || Object.keys(component.configuration).length > 0),
     );
@@ -51,7 +61,7 @@ test("reviewed featured contracts without embedded gameplay data stay compatible
   }
 });
 
-test("the intake persists a rules-only bundle idempotently", async () => {
+test("the intake persists the complete game package idempotently", async () => {
   const db = new CandidateDB();
   const candidate = payload();
   const first = await onRequestPost(context(candidate, db));
@@ -59,36 +69,32 @@ test("the intake persists a rules-only bundle idempotently", async () => {
   assert.deepEqual(await first.json(), { accepted: 1, inserted: 1 });
   assert.deepEqual(await replay.json(), { accepted: 1, inserted: 0 });
   assert.equal(db.rows.length, 1);
-  assert.equal(db.rows[0][1], contract.definitionDigest);
+  assert.equal(db.rows[0][1], gamePackage.contract.definitionDigest);
   const stored = JSON.parse(db.rows[0][2]);
-  assert.deepEqual(Object.keys(stored).sort(), ["definition", "definitionDigest", "protocolVersion"]);
-  assert.deepEqual(
-    Object.keys(stored.definition).sort(),
-    [
-      "feedback", "guessTransformations", "match", "playerExperience", "schemaVersion",
-      "startingHints", "target", "termination", "word",
-    ],
-  );
-  for (const forbidden of ["title", "subtitle", "creator", "glyph", "playerID", "secretWord", "gameID"]) {
-    assert.equal(Object.hasOwn(stored, forbidden), false);
-    assert.equal(Object.hasOwn(stored.definition, forbidden), false);
-  }
+  assert.deepEqual(stored, gamePackage);
+  assert.equal(stored.presentation.title, "Pocket Vowels");
+  assert.equal(stored.presentation.subtitle, gamePackage.presentation.subtitle);
+  assert.deepEqual(stored.presentation.glyph, gamePackage.presentation.glyph);
+  assert.deepEqual(stored.presentation.creator, gamePackage.presentation.creator);
+  assert.deepEqual(stored.presentation.sharedProvenance, gamePackage.presentation.sharedProvenance);
+  assert.equal(Object.hasOwn(stored, "secretWord"), false);
+  assert.equal(Object.hasOwn(stored, "guesses"), false);
 });
 
-test("validation rejects identity, presentation, tampering, non-Solo rules, and concrete opener words", async () => {
-  const identifying = payload({ creator: "Nope" });
-  assert.equal((await validateLovedGameCandidate(identifying)).ok, false);
+test("validation rejects gameplay state, tampering, non-Solo rules, and concrete opener words", async () => {
+  const gameplay = payload({ secretWord: "never" });
+  assert.equal((await validateLovedGameCandidate(gameplay)).ok, false);
 
   const tampered = payload();
-  tampered.contract.definition.word.length += 1;
+  tampered.package.presentation.title = "Changed without a revision";
   assert.equal((await validateLovedGameCandidate(tampered)).ok, false);
 
   const friend = payload();
-  friend.contract.definition.match.kind = "headToHead";
+  friend.package.contract.definition.match.kind = "headToHead";
   assert.equal((await validateLovedGameCandidate(friend)).ok, false);
 
   const opener = payload();
-  opener.contract.definition.guessTransformations.push({
+  opener.package.contract.definition.guessTransformations.push({
     typeID: "com.icedmatchalabs.jottly.modifier.shared-opening-guess",
     version: 1,
     configuration: { word: "crane" },

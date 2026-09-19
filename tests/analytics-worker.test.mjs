@@ -192,9 +192,9 @@ function validPayload() {
 
 function lovedGamePayload() {
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     submissionID: crypto.randomUUID(),
-    contract: structuredClone(featuredGames[0].presentation.sharedProvenance.canonicalEnvelope),
+    package: structuredClone(featuredGames[0]),
   };
 }
 

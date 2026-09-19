@@ -39,13 +39,20 @@ export async function onRequestGet(context) {
   return json({
     days,
     rows: result.results ?? [],
-    lovedGameCandidates: (candidates.results ?? []).map((candidate) => ({
-      definitionDigest: candidate.definition_digest,
-      anonymousSubmissionCount: Number(candidate.anonymous_install_count),
-      firstReceivedAt: candidate.first_received_at,
-      lastReceivedAt: candidate.last_received_at,
-      contract: JSON.parse(candidate.contract_json),
-    })),
+    lovedGameCandidates: (candidates.results ?? []).map((candidate) => {
+      const storedPayload = JSON.parse(candidate.contract_json);
+      const gamePackage = storedPayload?.presentation && storedPayload?.contract
+        ? storedPayload
+        : null;
+      return {
+        definitionDigest: candidate.definition_digest,
+        anonymousSubmissionCount: Number(candidate.anonymous_install_count),
+        firstReceivedAt: candidate.first_received_at,
+        lastReceivedAt: candidate.last_received_at,
+        package: gamePackage,
+        contract: gamePackage?.contract ?? storedPayload,
+      };
+    }),
   }, 200);
 }
 

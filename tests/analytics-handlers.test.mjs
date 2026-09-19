@@ -80,11 +80,21 @@ test("reports are invisible without the server-side secret", async () => {
     definition: { word: { length: 4 } },
     definitionDigest: "a".repeat(64),
   };
+  const candidatePackage = {
+    schemaVersion: 1,
+    id: "authored.00000000-0000-4000-8000-000000000001",
+    contract: candidateContract,
+    presentation: {
+      title: "A Local Favorite",
+      subtitle: "Complete private metadata",
+      creator: { displayName: "Player" },
+    },
+  };
   const db = new FakeDB(
     [{ event: "game_started", count: 4 }],
     [{
       definition_digest: "a".repeat(64),
-      contract_json: JSON.stringify(candidateContract),
+      contract_json: JSON.stringify(candidatePackage),
       anonymous_install_count: 3,
       first_received_at: "2026-09-18 12:00:00",
       last_received_at: "2026-09-19 12:00:00",
@@ -112,6 +122,7 @@ test("reports are invisible without the server-side secret", async () => {
       anonymousSubmissionCount: 3,
       firstReceivedAt: "2026-09-18 12:00:00",
       lastReceivedAt: "2026-09-19 12:00:00",
+      package: candidatePackage,
       contract: candidateContract,
     }],
   });
@@ -178,7 +189,7 @@ test("the migration makes retry ids the primary idempotency key", async () => {
   assert.doesNotMatch(sql, /player|device|game_id|opponent|timestamp|name/i);
   assert.match(lovedGames, /definition_digest TEXT NOT NULL/);
   assert.match(lovedGames, /contract_json TEXT NOT NULL/);
-  assert.doesNotMatch(lovedGames, /title|subtitle|creator|glyph|player|opponent|secret_word|game_id/i);
+  assert.doesNotMatch(lovedGames, /secret_word|guess_history|opponent/i);
 });
 
 function context(body, db, extraHeaders = {}) {
