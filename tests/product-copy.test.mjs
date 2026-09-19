@@ -28,12 +28,14 @@ test("home positions Jottly as a play, build, and share platform", () => {
   assert.match(home, /<p class="kicker">Share<\/p>/);
   assert.match(home, /millions of possible games/);
   assert.match(home, /Popular &amp; Featured/);
-  assert.match(home, /portable game definitions/);
+  assert.match(home, /Play solo whenever you have a minute/);
+  assert.match(home, /challenge a friend on your own schedule/);
+  assert.doesNotMatch(home, /portable game definitions|link carries the rules and presentation/);
 });
 
 test("home explains the built-in lineup and current Remix workflow", () => {
   const home = pages.index;
-  for (const game of ["Lightning", "Cowpoke", "Classic", "Shapeshifter"]) {
+  for (const game of ["Lightning", "Cowpoke", "Classic", "Shapeshifter", "Mastered Mind"]) {
     assert.match(home, new RegExp(`<h3>${game}</h3>`));
   }
   assert.match(home, /Remix a template/);
@@ -47,8 +49,8 @@ test("solo, invitation, and recommendation fallbacks describe their current dest
   assert.match(pages.solo, /Community/);
   assert.match(pages.solo, /Your Games/);
 
-  assert.match(pages.invite, /load this exact game and its rules/);
-  assert.match(pages.invite, /play it solo, save it, share it, or remix the rules/);
+  assert.match(pages.invite, /start playing with your friend/);
+  assert.match(pages.invite, /play it solo, save it for later, share it, or make it your own/);
 
   assert.match(pages.daily, /Today's JotBot recommendation\./);
   assert.match(pages.daily, /Jottly Favorites and the community/);

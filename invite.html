@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/png" href="/assets/favicon-iml.png">
 <title>You're invited to play a game on Jottly</title>
-<meta name="description" content="Open the exact game your friend shared, with all of its rules ready to play on Jottly.">
+<meta name="description" content="Open a game from a friend and start playing together or solo on Jottly.">
 <link rel="canonical" href="https://icedmatchalabs.com/join/">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jottly">
 <meta property="og:url" content="https://icedmatchalabs.com/join/">
 <meta property="og:title" content="You're invited to play a game on Jottly">
-<meta property="og:description" content="Open the exact game, load its rules, and start playing.">
+<meta property="og:description" content="A friend sent you a Jottly game. Open it and start playing.">
 <meta property="og:image" content="https://icedmatchalabs.com/assets/app_icon.png">
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="You're invited to play a game on Jottly">
-<meta name="twitter:description" content="Open the exact game, load its rules, and start playing.">
+<meta name="twitter:description" content="A friend sent you a Jottly game. Open it and start playing.">
 <meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
 <!-- Smart App Banner. Static hosting can't template the per-game app-argument, so we inject it during parse
      with a synchronous document.write: Safari is the only browser that shows this banner and it always runs
@@ -99,7 +99,7 @@
       <span class="tile">T</span><span class="tile teal circle">L</span><span class="tile">Y</span>
     </div>
     <h1 id="route-title">A friend invited you to play.</h1>
-    <p class="lead" id="route-lead">Open Jottly to load this exact game and its rules, choose your secret word, and start the match.</p>
+    <p class="lead" id="route-lead">Open Jottly, choose your secret word, and start playing with your friend.</p>
     <div class="pills">
       <span class="pill c">Play</span>
       <span class="pill t">Build</span>
@@ -132,7 +132,7 @@
       var routeTitle = document.getElementById('route-title');
       var routeLead = document.getElementById('route-lead');
       if (routeTitle) routeTitle.textContent = 'A friend shared a Jottly game.';
-      if (routeLead) routeLead.textContent = 'Open the exact game, play it solo, save it, share it, or remix the rules into something new.';
+      if (routeLead) routeLead.textContent = 'Open the game, play it solo, save it for later, share it, or make it your own.';
     }
 
     // Point "Open the game" at the custom-scheme fallback for THIS game, so an installed app opens even
