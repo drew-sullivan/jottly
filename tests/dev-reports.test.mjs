@@ -116,6 +116,16 @@ test("already-fixed tickets lose legacy diagnostics on the next report request",
   assert.equal(row.build_number, payload().buildNumber);
 });
 
+test("authorized cleanup deletes exactly one requested ticket", async () => {
+  const env = environment();
+  await worker.fetch(request(path, "POST", payload()), env);
+  const deleted = await worker.fetch(request(`${path}/${id}`, "DELETE"), env);
+  assert.equal(deleted.status, 204);
+  assert.equal((await worker.fetch(request(`${path}/${id}`, "GET"), env)).status, 404);
+  assert.equal((await worker.fetch(request(`${path}/${id}`, "DELETE"), env)).status, 404);
+  assert.equal((await worker.fetch(request(`${path}/${id}`, "DELETE", undefined, false), env)).status, 404);
+});
+
 test("reports are bounded and invalid requests never enter the queue", async () => {
   const env = environment();
   for (const body of [
@@ -176,7 +186,7 @@ test("missing storage and unsupported methods fail explicitly", async () => {
   assert.equal((await worker.fetch(request(path, "GET"), { ANALYTICS_REPORT_TOKEN: "test-report-token" })).status, 503);
   assert.equal((await worker.fetch(request(path, "DELETE"), {})).status, 405);
   assert.equal((await worker.fetch(request(`${path}/${id}`, "GET"), { ANALYTICS_REPORT_TOKEN: "test-report-token" })).status, 503);
-  assert.equal((await worker.fetch(request(`${path}/${id}`, "DELETE"), {})).status, 405);
+  assert.equal((await worker.fetch(request(`${path}/${id}`, "DELETE"), {})).status, 404);
 });
 
 test("report reads and status changes require the dashboard token, while app submissions remain public", async () => {

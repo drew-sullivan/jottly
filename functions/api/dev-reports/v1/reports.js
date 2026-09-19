@@ -111,6 +111,24 @@ export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.
   }
 }
 
+export async function onRequestDelete({ request, env, id }) {
+  if (!authorized(request, env)) return notFound();
+  if (!idPattern.test(id)) return json({ error: "Invalid report ID" }, 400);
+  if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
+  try {
+    await ensureDevReportSchema(env.COMMUNITY_DB);
+    const deleted = await env.COMMUNITY_DB.prepare(
+      "DELETE FROM dev_reports WHERE id = ?"
+    ).bind(id).run();
+    if (Number(deleted?.meta?.changes ?? 0) !== 1) {
+      return json({ error: "Report not found" }, 404);
+    }
+    return new Response(null, { status: 204, headers: { "cache-control": "no-store" } });
+  } catch {
+    return json({ error: "Report inbox unavailable" }, 503);
+  }
+}
+
 async function readReport(db, id) {
   return db.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE id = ?").bind(id).first();
 }

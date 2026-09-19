@@ -12,6 +12,7 @@ import {
   onRequestHealth as readDevReportHealth,
   onRequestGetOne as readDevReport,
   onRequestPatch as updateDevReport,
+  onRequestDelete as deleteDevReport,
   onRequestPost as createDevReport,
 } from "./functions/api/dev-reports/v1/reports.js";
 
@@ -70,8 +71,9 @@ export default {
 
     if (path.startsWith(`${devReportsPath}/`)) {
       if (request.method === "GET") return readDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
-      if (request.method !== "PATCH") return methodNotAllowed("GET, PATCH");
-      return updateDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
+      if (request.method === "PATCH") return updateDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
+      if (request.method === "DELETE") return deleteDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
+      return methodNotAllowed("GET, PATCH, DELETE");
     }
 
     if (path.startsWith("/api/")) {
