@@ -95,6 +95,19 @@ test("support reports do not masquerade as player sharing", () => {
   assert.deepEqual(model.sharing.channels, [{ key: "messages", count: 3 }]);
 });
 
+test("direct game-package shares count as player sharing", () => {
+  const model = buildDashboardModel([
+    row("share_sheet_opened", 4, { share_source: "game_package" }),
+    row("share_completed", 3, { share_source: "game_package", share_channel: "messages" }),
+    row("share_cancelled", 1, { share_source: "game_package" }),
+  ]);
+
+  assert.equal(model.sharing.opened, 4);
+  assert.equal(model.sharing.completed, 3);
+  assert.equal(model.sharing.cancelled, 1);
+  assert.deepEqual(model.sharing.channels, [{ key: "messages", count: 3 }]);
+});
+
 test("legacy onboarding remains available alongside the cohort funnel", () => {
   const model = buildDashboardModel(rows);
   assert.deepEqual(model.onboarding.slice(0, 4).map(({ key, count }) => ({ key, count })), [

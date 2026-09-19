@@ -22,7 +22,7 @@ const SOURCE_ORDER = Object.freeze(["solo", "friend", "invitation", "rematch", "
 const KIND_ORDER = Object.freeze(["catalog", "remixed", "unlisted"]);
 const GAME_ORDER = Object.freeze(["lightning", "cowpoke", "classic", "shapeshifter", "mastered_mind", "custom", "unlisted"]);
 const PRODUCT_SHARE_SOURCES = new Set([
-  "friend_invitation", "game_result", "daily_result", "streak", "monthly_best", "tell_a_friend", "other",
+  "friend_invitation", "game_package", "game_result", "daily_result", "streak", "monthly_best", "tell_a_friend", "other",
 ]);
 
 export function buildDashboardModel(inputRows, filters = {}) {
