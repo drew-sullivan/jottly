@@ -131,7 +131,7 @@ function renderLovedGameCandidates(candidates) {
     const creator = presentation?.creator?.displayName;
     const duration = presentation?.estimatedDurationMinutes;
     card.append(
-      element("h3", "", `${title} · ${candidate.anonymousSubmissionCount} private signal${candidate.anonymousSubmissionCount === 1 ? "" : "s"}`),
+      element("h3", "", `${title} · ${candidate.privateSubmissionCount} private signal${candidate.privateSubmissionCount === 1 ? "" : "s"}`),
       ...(presentation?.subtitle ? [element("p", "", presentation.subtitle)] : []),
       element("p", "panel-note", [
         creator ? `By ${creator}` : null,

@@ -29,7 +29,7 @@ export async function onRequestGet(context) {
     ORDER BY day DESC, event ASC
   `).bind(`-${days - 1} days`).all();
   const candidates = await context.env.ANALYTICS_DB.prepare(`
-    SELECT definition_digest, contract_json, COUNT(*) AS anonymous_install_count,
+    SELECT definition_digest, contract_json, COUNT(*) AS submission_count,
            MIN(received_at) AS first_received_at, MAX(received_at) AS last_received_at
     FROM loved_game_candidates
     GROUP BY definition_digest, contract_json
@@ -46,7 +46,7 @@ export async function onRequestGet(context) {
         : null;
       return {
         definitionDigest: candidate.definition_digest,
-        anonymousSubmissionCount: Number(candidate.anonymous_install_count),
+        privateSubmissionCount: Number(candidate.submission_count),
         firstReceivedAt: candidate.first_received_at,
         lastReceivedAt: candidate.last_received_at,
         package: gamePackage,

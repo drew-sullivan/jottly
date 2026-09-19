@@ -95,7 +95,7 @@ test("reports are invisible without the server-side secret", async () => {
     [{
       definition_digest: "a".repeat(64),
       contract_json: JSON.stringify(candidatePackage),
-      anonymous_install_count: 3,
+      submission_count: 3,
       first_received_at: "2026-09-18 12:00:00",
       last_received_at: "2026-09-19 12:00:00",
     }],
@@ -119,7 +119,7 @@ test("reports are invisible without the server-side secret", async () => {
     rows: [{ event: "game_started", count: 4 }],
     lovedGameCandidates: [{
       definitionDigest: "a".repeat(64),
-      anonymousSubmissionCount: 3,
+      privateSubmissionCount: 3,
       firstReceivedAt: "2026-09-18 12:00:00",
       lastReceivedAt: "2026-09-19 12:00:00",
       package: candidatePackage,
