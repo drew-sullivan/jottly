@@ -90,7 +90,11 @@ test("reports are invisible without the server-side secret", async () => {
     env: { ANALYTICS_DB: db, ANALYTICS_REPORT_TOKEN: "secret" },
   });
   assert.equal(allowed.status, 200);
-  assert.deepEqual(await allowed.json(), { days: 7, rows: [{ event: "game_started", count: 4 }] });
+  assert.deepEqual(await allowed.json(), {
+    days: 7,
+    rows: [{ event: "game_started", count: 4 }],
+    lovedGameCandidates: [],
+  });
   assert.equal(db.schemaExecutions, 1);
 });
 
@@ -122,6 +126,10 @@ test("the migration makes retry ids the primary idempotency key", async () => {
     new URL("../migrations/0007_named_game_analytics.sql", import.meta.url),
     "utf8",
   );
+  const lovedGames = await readFile(
+    new URL("../migrations/0008_loved_game_candidates.sql", import.meta.url),
+    "utf8",
+  );
   const sql = `${baseline}\n${community}\n${namedGames}`;
   assert.match(sql, /entry_id TEXT PRIMARY KEY/);
   assert.match(
@@ -148,6 +156,9 @@ test("the migration makes retry ids the primary idempotency key", async () => {
   assert.match(sql, /install_cohort TEXT/);
   assert.match(sql, /community_selection_source TEXT/);
   assert.doesNotMatch(sql, /player|device|game_id|opponent|timestamp|name/i);
+  assert.match(lovedGames, /definition_digest TEXT NOT NULL/);
+  assert.match(lovedGames, /contract_json TEXT NOT NULL/);
+  assert.doesNotMatch(lovedGames, /title|subtitle|creator|glyph|player|opponent|secret_word|game_id/i);
 });
 
 function context(body, db, extraHeaders = {}) {
@@ -162,8 +173,9 @@ function context(body, db, extraHeaders = {}) {
 }
 
 class FakeDB {
-  constructor(results = []) {
+  constructor(results = [], candidates = []) {
     this.results = results;
+    this.candidates = candidates;
     this.writeBatches = [];
     this.persistedEntryIDs = new Set();
     this.schemaExecutions = 0;
@@ -173,10 +185,11 @@ class FakeDB {
     const statement = {
       sql,
       values: [],
+      all: async () => ({ results: sql.includes("loved_game_candidates") ? this.candidates : this.results }),
       bind: (...values) => ({
         sql,
         values,
-        all: async () => ({ results: this.results }),
+        all: async () => ({ results: sql.includes("loved_game_candidates") ? this.candidates : this.results }),
       }),
     };
     return statement;

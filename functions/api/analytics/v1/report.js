@@ -28,7 +28,25 @@ export async function onRequestGet(context) {
              context, reason, install_cohort
     ORDER BY day DESC, event ASC
   `).bind(`-${days - 1} days`).all();
-  return json({ days, rows: result.results ?? [] }, 200);
+  const candidates = await context.env.ANALYTICS_DB.prepare(`
+    SELECT definition_digest, contract_json, COUNT(*) AS anonymous_install_count,
+           MIN(received_at) AS first_received_at, MAX(received_at) AS last_received_at
+    FROM loved_game_candidates
+    GROUP BY definition_digest, contract_json
+    ORDER BY anonymous_install_count DESC, last_received_at DESC, definition_digest ASC
+    LIMIT 100
+  `).all();
+  return json({
+    days,
+    rows: result.results ?? [],
+    lovedGameCandidates: (candidates.results ?? []).map((candidate) => ({
+      definitionDigest: candidate.definition_digest,
+      anonymousSubmissionCount: Number(candidate.anonymous_install_count),
+      firstReceivedAt: candidate.first_received_at,
+      lastReceivedAt: candidate.last_received_at,
+      contract: JSON.parse(candidate.contract_json),
+    })),
+  }, 200);
 }
 
 function json(value, status) {

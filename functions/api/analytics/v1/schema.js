@@ -209,6 +209,15 @@ SELECT entry_id, day, category, event, app_version, release_channel, mode, game_
 FROM anonymous_analytics_events_v5;
 `, `
 CREATE INDEX IF NOT EXISTS analytics_v6_day_event ON anonymous_analytics_events_v6(day, event);
+`, `
+CREATE TABLE IF NOT EXISTS loved_game_candidates (
+  submission_id TEXT PRIMARY KEY,
+  definition_digest TEXT NOT NULL,
+  contract_json TEXT NOT NULL,
+  received_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+) WITHOUT ROWID;
+`, `
+CREATE INDEX IF NOT EXISTS loved_game_candidates_digest ON loved_game_candidates(definition_digest);
 `]);
 
 export const analyticsSchemaSQL = analyticsSchemaStatements.join("\n");

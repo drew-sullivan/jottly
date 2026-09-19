@@ -22,6 +22,7 @@ const refs = Object.fromEntries([
   "move-performance-list", "move-failure-list", "cohort-body", "data-health-summary",
   "health-version-list", "health-channel-list", "dimension-health-body",
   "community-summary", "community-selection-source-list", "community-start-source-list",
+  "loved-game-candidate-list",
 ].map((id) => [id, document.getElementById(id)]));
 
 let reportToken = sessionStorage.getItem(STORAGE_KEY) ?? "";
@@ -65,7 +66,7 @@ async function loadReport() {
     if (response.status === 404) throw new DashboardError("That report token was not accepted.", "authorization");
     if (!response.ok) throw new DashboardError(`The report service returned ${response.status}.`, "service");
     const payload = await response.json();
-    if (!payload || !Array.isArray(payload.rows)) throw new DashboardError("The report response was malformed.", "service");
+    if (!payload || !Array.isArray(payload.rows) || !Array.isArray(payload.lovedGameCandidates)) throw new DashboardError("The report response was malformed.", "service");
     latestReport = payload;
     showDashboard();
     updateFilterOptions(payload.rows);
@@ -102,6 +103,7 @@ function renderReport() {
   renderDurationTable(refs["mode-duration-body"], model.durationBreakdowns.byMode);
   renderDurationTable(refs["source-duration-body"], model.durationBreakdowns.bySource);
   renderGameDesign(model);
+  renderLovedGameCandidates(latestReport.lovedGameCandidates);
   renderCommunity(model.community);
   renderJourneys(model.journeys);
   renderExperienceQuality(model);
@@ -114,6 +116,23 @@ function renderReport() {
   renderReliability(model.reliability);
   renderActivity(model.dailyActivity);
   renderDataHealth(model.dataHealth);
+}
+
+function renderLovedGameCandidates(candidates) {
+  if (!candidates.length) {
+    refs["loved-game-candidate-list"].replaceChildren(emptyMessage("No rules-only candidates yet."));
+    return;
+  }
+  refs["loved-game-candidate-list"].replaceChildren(...candidates.map((candidate) => {
+    const card = element("article", "panel candidate");
+    const definition = candidate.contract.definition;
+    card.append(
+      element("h3", "", `${definition.word.length}-letter rules · ${candidate.anonymousSubmissionCount} anonymous signal${candidate.anonymousSubmissionCount === 1 ? "" : "s"}`),
+      element("p", "panel-note", `Digest ${candidate.definitionDigest.slice(0, 12)} · Last received ${candidate.lastReceivedAt}`),
+      element("pre", "candidate-json", JSON.stringify(candidate.contract, null, 2)),
+    );
+    return card;
+  }));
 }
 
 function renderScorecard(model) {

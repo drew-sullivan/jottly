@@ -151,6 +151,15 @@ code { overflow-wrap: anywhere; color: var(--ink); }
 
 .panel { padding: 16px; }
 .panel-note { margin: -4px 0 16px; color: var(--secondary); font-size: 12px; }
+.candidate-list { display: grid; gap: 1rem; }
+.candidate-json {
+  max-height: 20rem;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 0.78rem;
+  line-height: 1.45;
+}
 .two-column { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 10px; }
 .table-panel { overflow-x: auto; padding: 0; }
 table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }

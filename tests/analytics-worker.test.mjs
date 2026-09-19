@@ -4,6 +4,11 @@ import test from "node:test";
 import worker from "../worker.js";
 import { analyticsSchemaSQL, ensureAnalyticsSchema } from "../functions/api/analytics/v1/schema.js";
 
+const featuredGames = JSON.parse(await readFile(
+  new URL("./fixtures/featured-community-packages-v1.json", import.meta.url),
+  "utf8",
+));
+
 test("the Worker routes analytics writes and leaves static pages on the asset binding", async () => {
   const db = new FakeDB();
   const assets = new FakeAssets();
@@ -24,6 +29,19 @@ test("the Worker routes analytics writes and leaves static pages on the asset bi
   assert.equal(pageResponse.status, 200);
   assert.equal(await pageResponse.text(), "asset:/daily");
   assert.equal(assets.requests.length, 1);
+
+  const lovedResponse = await worker.fetch(request(
+    "/api/analytics/v1/loved-games",
+    "POST",
+    lovedGamePayload(),
+    { "x-jottly-validate-only": "1" },
+  ), {
+    ANALYTICS_DB: db,
+    ASSETS: assets,
+  });
+  assert.equal(lovedResponse.status, 200);
+  assert.deepEqual(await lovedResponse.json(), { accepted: 1 });
+  assert.equal(assets.requests.length, 1);
 });
 
 test("unknown API routes and wrong methods fail closed instead of serving assets", async () => {
@@ -35,6 +53,9 @@ test("unknown API routes and wrong methods fail closed instead of serving assets
   const wrongMethod = await worker.fetch(request("/api/analytics/v1/events", "GET"), env);
   assert.equal(wrongMethod.status, 405);
   assert.equal(wrongMethod.headers.get("allow"), "POST");
+  const lovedWrongMethod = await worker.fetch(request("/api/analytics/v1/loved-games", "GET"), env);
+  assert.equal(lovedWrongMethod.status, 405);
+  assert.equal(lovedWrongMethod.headers.get("allow"), "POST");
   const communityWrite = await worker.fetch(request("/api/community/v1/games", "POST"), env);
   assert.equal(communityWrite.status, 405);
   assert.equal(communityWrite.headers.get("allow"), "GET");
@@ -132,6 +153,7 @@ test("the executable schema and migration cannot drift", async () => {
     "../migrations/0001_anonymous_analytics.sql",
     "../migrations/0003_community_analytics.sql",
     "../migrations/0007_named_game_analytics.sql",
+    "../migrations/0008_loved_game_candidates.sql",
   ].map((path) => readFile(new URL(path, import.meta.url), "utf8")));
   assert.equal(normalizeSQL(analyticsSchemaSQL), normalizeSQL(migrations.join("\n")));
 });
@@ -168,10 +190,18 @@ function validPayload() {
   };
 }
 
-function request(path, method, body) {
+function lovedGamePayload() {
+  return {
+    schemaVersion: 1,
+    submissionID: crypto.randomUUID(),
+    contract: structuredClone(featuredGames[0].presentation.sharedProvenance.canonicalEnvelope),
+  };
+}
+
+function request(path, method, body, extraHeaders = {}) {
   return new Request(`https://icedmatchalabs.com${path}`, {
     method,
-    headers: body ? { "content-type": "application/json" } : undefined,
+    headers: body ? { "content-type": "application/json", ...extraHeaders } : extraHeaders,
     body: body ? JSON.stringify(body) : undefined,
   });
 }

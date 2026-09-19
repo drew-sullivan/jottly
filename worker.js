@@ -1,5 +1,6 @@
 import { onRequestPost as receiveAnalytics } from "./functions/api/analytics/v1/events.js";
 import { onRequestGet as reportAnalytics } from "./functions/api/analytics/v1/report.js";
+import { onRequestPost as receiveLovedGame } from "./functions/api/analytics/v1/loved-games.js";
 import { onRequestGet as readCommunityCatalog } from "./functions/api/community/v1/catalog.js";
 import { onRequestGet as readCommunityHealth } from "./functions/api/community/v1/health.js";
 import {
@@ -18,6 +19,7 @@ import {
 
 const eventsPath = "/api/analytics/v1/events";
 const reportPath = "/api/analytics/v1/report";
+const lovedGamesPath = "/api/analytics/v1/loved-games";
 const communityCatalogPath = "/api/community/v1/games";
 const communityHealthPath = "/api/community/v1/health";
 const communitySweepPath = "/api/community/v1/admin/sweep";
@@ -36,6 +38,11 @@ export default {
     if (path === reportPath) {
       if (request.method !== "GET") return methodNotAllowed("GET");
       return reportAnalytics({ request, env, executionContext });
+    }
+
+    if (path === lovedGamesPath) {
+      if (request.method !== "POST") return methodNotAllowed("POST");
+      return receiveLovedGame({ request, env, executionContext });
     }
 
     if (path === communityCatalogPath) {
