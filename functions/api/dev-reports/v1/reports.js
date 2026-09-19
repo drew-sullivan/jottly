@@ -55,6 +55,17 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
+export async function onRequestHealth({ env }) {
+  if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
+  try {
+    await ensureDevReportSchema(env.COMMUNITY_DB);
+    await env.COMMUNITY_DB.prepare("SELECT 1 FROM dev_reports LIMIT 1").first();
+    return json({ status: "ok", schemaVersion: 1, queueAccess: "private" }, 200);
+  } catch {
+    return json({ error: "Report inbox unavailable" }, 503);
+  }
+}
+
 export async function onRequestGetOne({ request, env, id }) {
   if (!authorized(request, env)) return notFound();
   if (!idPattern.test(id)) return json({ error: "Invalid report ID" }, 400);

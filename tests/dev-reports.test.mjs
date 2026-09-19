@@ -6,6 +6,7 @@ import worker from "../worker.js";
 import { devReportSchemaSQL, clearFixedDiagnosticsSQL } from "../functions/api/dev-reports/v1/schema.js";
 
 const path = "https://icedmatchalabs.com/api/dev-reports/v1";
+const healthPath = `${path}/health`;
 const id = "a2f75428-f25c-4546-8b92-f40ad38a50bb";
 
 test("a bug and its recent diagnostics become one durable ticket", async () => {
@@ -31,6 +32,21 @@ test("a bug and its recent diagnostics become one durable ticket", async () => {
   assert.equal(Object.hasOwn(summary, "diagnostics"), false);
   const detail = await (await worker.fetch(request(`${path}/${id}`, "GET"), env)).json();
   assert.equal(detail.diagnostics, report.diagnostics);
+});
+
+test("public health proves the private queue storage is deployed without exposing tickets", async () => {
+  const healthy = await worker.fetch(request(healthPath, "GET", undefined, false), environment());
+  assert.equal(healthy.status, 200);
+  assert.deepEqual(await healthy.json(), {
+    status: "ok",
+    schemaVersion: 1,
+    queueAccess: "private",
+  });
+
+  const unavailable = await worker.fetch(request(healthPath, "GET", undefined, false), {});
+  assert.equal(unavailable.status, 503);
+  assert.deepEqual(await unavailable.json(), { error: "Report inbox unavailable" });
+  assert.equal((await worker.fetch(request(healthPath, "POST", {}, false), environment())).status, 405);
 });
 
 test("retries keep the same ticket, while an ID collision cannot rewrite it", async () => {

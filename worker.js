@@ -9,6 +9,7 @@ import {
 import { projectCommunityCatalogRun, runTrackedCommunitySweep } from "./functions/api/community/v1/operations.js";
 import {
   onRequestGet as listDevReports,
+  onRequestHealth as readDevReportHealth,
   onRequestGetOne as readDevReport,
   onRequestPatch as updateDevReport,
   onRequestPost as createDevReport,
@@ -20,6 +21,7 @@ const communityCatalogPath = "/api/community/v1/games";
 const communityHealthPath = "/api/community/v1/health";
 const communitySweepPath = "/api/community/v1/admin/sweep";
 const devReportsPath = "/api/dev-reports/v1";
+const devReportsHealthPath = `${devReportsPath}/health`;
 
 export default {
   async fetch(request, env, executionContext) {
@@ -53,6 +55,11 @@ export default {
         return runCommunitySweepNow({ request, env, executionContext });
       }
       return methodNotAllowed("GET, POST");
+    }
+
+    if (path === devReportsHealthPath) {
+      if (request.method !== "GET") return methodNotAllowed("GET");
+      return readDevReportHealth({ env });
     }
 
     if (path === devReportsPath) {
