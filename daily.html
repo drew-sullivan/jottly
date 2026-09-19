@@ -4,22 +4,22 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="icon" type="image/png" href="/assets/favicon-iml.png">
-<title>Play the Jottly Daily Challenge</title>
-<meta name="description" content="The Jottly daily challenge: the same secret word for everyone, every day. Get the app to play today's puzzle. No ads, no sign-up.">
+<title>Today's JotBot Recommendation</title>
+<meta name="description" content="JotBot recommends a different Jottly Favorite or community game each day. Open today's pick and start playing.">
 <link rel="canonical" href="https://icedmatchalabs.com/daily">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Jottly">
 <meta property="og:url" content="https://icedmatchalabs.com/daily">
-<meta property="og:title" content="Play the Jottly Daily Challenge">
-<meta property="og:description" content="The same secret word for everyone, every day. Tap to get Jottly and play today's puzzle.">
+<meta property="og:title" content="Today's JotBot Recommendation">
+<meta property="og:description" content="Open today's recommended Jottly game and start playing.">
 <meta property="og:image" content="https://icedmatchalabs.com/assets/app_icon.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Play the Jottly Daily Challenge">
-<meta name="twitter:description" content="The same secret word for everyone, every day. Tap to get Jottly and play today's puzzle.">
+<meta name="twitter:title" content="Today's JotBot Recommendation">
+<meta name="twitter:description" content="Open today's recommended Jottly game and start playing.">
 <meta name="twitter:image" content="https://icedmatchalabs.com/assets/app_icon.png">
 <meta name="apple-itunes-app" content="app-id=6780044797, app-argument=https://icedmatchalabs.com/daily">
 <script>
-  // Keep the selected Daily clue style when Safari handles the Universal Link before the app.
+  // Keep the recommended game selection when Safari handles the Universal Link before the app.
   (() => {
     const modes = new URLSearchParams(window.location.search).getAll("ruleset");
     if (modes.length !== 1 || !/^[A-Za-z0-9]+$/.test(modes[0])) return;
@@ -100,13 +100,11 @@
       <span class="tile coral">J</span><span class="tile apricot circle">O</span><span class="tile">T</span>
       <span class="tile">T</span><span class="tile teal circle">L</span><span class="tile">Y</span>
     </div>
-    <h1>Play the Daily Challenge.</h1>
-    <p class="lead">Everyone gets the same secret word each day. Deduce it in as few moves as you can, then keep your streak going.</p>
+    <h1>Today's JotBot recommendation.</h1>
+    <p class="lead">JotBot picks a different game each day from Jottly Favorites and the community. Tap once to jump straight into today's pick.</p>
     <div class="pills">
-      <span class="pill c">No ads</span>
-      <span class="pill t">No tracking</span>
-      <span class="pill a">No sign-up</span>
-      <span class="pill q">No in-app purchases</span>
+      <span class="pill c">A new pick daily</span>
+      <span class="pill t">Favorites + Community</span>
     </div>
     <a href="https://apps.apple.com/app/id6780044797" aria-label="Download Jottly on the App Store" style="display:inline-block">
       <picture>
@@ -114,7 +112,7 @@
         <img src="/assets/app-store-badge.svg" alt="Download on the App Store" style="height:56px; width:auto; display:block">
       </picture>
     </a>
-    <p class="fine">Already have Jottly? <a id="daily-open-link" href="jotto://daily">Open today's challenge</a>.</p>
+    <p class="fine">Already have Jottly? <a id="daily-open-link" href="jotto://daily">Play today's recommendation</a>.</p>
   </section>
 </div>
 
