@@ -40,22 +40,19 @@
     <p id="notice" role="status" aria-live="polite">Enter your dashboard token to view reports.</p>
     <p id="sample-banner" hidden>Sample tickets only. Nothing here is saved or sent to the report inbox.</p>
     <div class="workspace" hidden>
-      <section class="ticket-list" aria-label="Tickets">
-        <div id="tickets"></div>
-      </section>
-      <section class="ticket-detail" aria-label="Selected ticket">
-        <div id="detail-empty">Select a report to see its details.</div>
-        <div id="detail" hidden>
-          <div class="detail-heading">
-            <div><p id="detail-kind" class="eyebrow"></p><h2 id="detail-title"></h2></div>
-            <span id="detail-status" class="status"></span>
-          </div>
-          <p id="detail-meta" class="secondary"></p>
-          <p id="detail-resolution" hidden></p>
-          <h3>Recent diagnostics</h3>
-          <pre id="detail-log"></pre>
-        </div>
-      </section>
+      <div class="table-scroll">
+        <table aria-label="Developer reports">
+          <thead>
+            <tr>
+              <th scope="col">ID</th>
+              <th scope="col">Description</th>
+              <th scope="col">Status</th>
+              <th scope="col">Diagnostics</th>
+            </tr>
+          </thead>
+          <tbody id="tickets"></tbody>
+        </table>
+      </div>
     </div>
   </main>
 </body>

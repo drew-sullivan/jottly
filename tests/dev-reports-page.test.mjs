@@ -8,16 +8,34 @@ const script = await readFile(new URL("../assets/reports.js", import.meta.url), 
 function page(fetch, search = "") {
   const nodes = new Map();
   const stored = new Map();
+  let nextCreated = 0;
+  const makeNode = () => ({
+    hidden: false, textContent: "", value: "", listeners: {}, children: [], dataset: {}, disabled: false,
+    classList: { add() {}, remove() {}, toggle() {} },
+    parentElement: { classList: { add() {}, remove() {} } },
+    nextElementSibling: null,
+    addEventListener(event, listener) { this.listeners[event] = listener; },
+    replaceChildren(...children) { this.children = children; linkSiblings(this); },
+    querySelector(selector) { return this.children.find((child) => selector === ".diagnostic-row" && child.className === "diagnostic-row") ?? null; },
+    querySelectorAll(selector) { return descendants(this).filter((child) => selector === ".diagnostic-toggle" ? child.className === "diagnostic-toggle" : true); },
+    setAttribute(name, value) { this[name] = value; },
+    append(...children) { this.children.push(...children); linkSiblings(this); },
+    after(child) {
+      for (const parent of nodes.values()) {
+        const index = parent.children.indexOf(this);
+        if (index >= 0) { parent.children.splice(index + 1, 0, child); linkSiblings(parent); return; }
+      }
+    },
+    remove() {
+      for (const parent of nodes.values()) {
+        const index = parent.children.indexOf(this);
+        if (index >= 0) { parent.children.splice(index, 1); linkSiblings(parent); return; }
+      }
+    },
+  });
   const node = (selector) => {
     if (!nodes.has(selector)) nodes.set(selector, {
-      hidden: false, textContent: "", value: "", listeners: {}, children: [],
-      classList: { add() {}, remove() {}, toggle() {} },
-      parentElement: { classList: { add() {}, remove() {} } },
-      addEventListener(event, listener) { this.listeners[event] = listener; },
-      replaceChildren(...children) { this.children = children; },
-      querySelectorAll() { return this.children; },
-      setAttribute() {},
-      append(...children) { this.children.push(...children); },
+      ...makeNode(),
     });
     return nodes.get(selector);
   };
@@ -25,7 +43,7 @@ function page(fetch, search = "") {
   node(".workspace").hidden = true;
   node(".toolbar").hidden = true;
   runInNewContext(script, {
-    document: { querySelector: node, createElement: () => node(`created-${nodes.size}`) },
+    document: { querySelector: node, createElement: () => node(`created-${nextCreated++}`) },
     sessionStorage: {
       getItem: (key) => stored.get(key) ?? null,
       setItem: (key, value) => stored.set(key, value),
@@ -34,10 +52,17 @@ function page(fetch, search = "") {
     fetch,
     location: { search },
     URLSearchParams,
-    matchMedia: () => ({ matches: false }),
     encodeURIComponent,
   });
   return { node, stored };
+}
+
+function descendants(parent) {
+  return parent.children.flatMap((child) => [child, ...descendants(child)]);
+}
+
+function linkSiblings(parent) {
+  parent.children.forEach((child, index) => { child.nextElementSibling = parent.children[index + 1] ?? null; });
 }
 
 test("report page reveals no data before authentication and locks on a bad token", async () => {
@@ -62,9 +87,7 @@ test("locking clears rendered diagnostics and ignores a late authorized response
   const { node, stored } = page(() => new Promise((resolve) => { finishFetch = resolve; }));
   node("#token-input").value = "valid-token";
   node("#auth-form").listeners.submit({ preventDefault() {} });
-  node("#detail-log").textContent = "private diagnostic";
   node("#signout").listeners.click();
-  assert.equal(node("#detail-log").textContent, "");
   assert.equal(node(".workspace").hidden, true);
   assert.equal(stored.size, 0);
   finishFetch({ status: 200, ok: true, json: async () => ({
@@ -86,9 +109,13 @@ test("sample tickets show every lifecycle state without touching the API or Keyc
   assert.equal(node("#notice").textContent, "6 sample tickets");
   assert.equal(stored.size, 0);
 
-  node("#tickets").children[0].listeners.click();
-  assert.match(node("#detail-log").textContent, /\[sample\]/);
-  assert.match(node("#detail-title").textContent, /shared game link/);
+  const firstRow = node("#tickets").children[0];
+  assert.equal(firstRow.children[1].textContent, "A shared game link opened the wrong rule sheet");
+  const viewButton = firstRow.children[3].children[0];
+  viewButton.listeners.click();
+  assert.equal(node("#tickets").children.length, 7);
+  assert.match(node("#tickets").children[1].children[0].children[0].textContent, /\[sample\]/);
+  assert.equal(viewButton.textContent, "Hide");
 
   node("#status").value = "in_progress";
   node("#status").listeners.change();
@@ -98,9 +125,24 @@ test("sample tickets show every lifecycle state without touching the API or Keyc
   assert.equal(node("#tickets").children.length, 2);
   node("#exit-sample").listeners.click();
   assert.equal(node(".workspace").hidden, true);
-  assert.equal(node("#detail-log").textContent, "");
   assert.equal(node("#sample-banner").hidden, true);
   assert.equal(requests, 0);
+});
+
+test("reports render as simple newest-first rows with fixed diagnostics cleared", async () => {
+  const { node } = page(async () => ({ status: 200, ok: true, json: async () => ({ reports: [
+    { id: "newest", status: "new", description: "Newest report" },
+    { id: "older", status: "fixed", description: "Older report" },
+  ] }) }));
+  node("#token-input").value = "valid-token";
+  node("#auth-form").listeners.submit({ preventDefault() {} });
+  await new Promise(setImmediate);
+  const [newest, older] = node("#tickets").children;
+  assert.deepEqual(newest.children.map((cell) => cell.textContent), ["newest", "Newest report", "", ""]);
+  assert.equal(newest.children[2].children[0].textContent, "new");
+  assert.equal(newest.children[3].children[0].textContent, "View");
+  assert.equal(older.children[0].textContent, "older");
+  assert.equal(older.children[3].children[0].textContent, "Cleared");
 });
 
 test("the sample URL opens the filled preview without a token or API request", () => {
