@@ -63,10 +63,13 @@ function validateDefinition(definition) {
   const required = ["schemaVersion", "word", "match", "target", "feedback", "startingHints", "guessTransformations", "termination"];
   if (!hasOnlyKeys(definition, [...required, "playerExperience"]) || !required.every((key) => key in definition) || definition.schemaVersion !== 1) return false;
   if (!hasExactKeys(definition.word, ["length", "allowsDuplicates", "lexicon"]) || !Number.isSafeInteger(definition.word.length) || definition.word.length < 1 || definition.word.length > 10_000 || typeof definition.word.allowsDuplicates !== "boolean") return false;
-  if (!hasExactKeys(definition.word.lexicon, ["id", "version", "contentDigest"])
+  if (!hasOnlyKeys(definition.word.lexicon, ["id", "version", "contentDigest"])
+      || !("id" in definition.word.lexicon)
+      || !("version" in definition.word.lexicon)
       || !/^com\.icedmatchalabs\.jottly\.[a-z0-9.-]{1,80}$/.test(definition.word.lexicon.id ?? "")
       || !Number.isSafeInteger(definition.word.lexicon.version)
-      || !digestPattern.test(definition.word.lexicon.contentDigest ?? "")) return false;
+      || (definition.word.lexicon.contentDigest !== undefined
+        && !digestPattern.test(definition.word.lexicon.contentDigest))) return false;
   if (!hasExactKeys(definition.match, ["kind", "grantsFinalEqualizer"]) || definition.match.kind !== "solo" || typeof definition.match.grantsFinalEqualizer !== "boolean") return false;
   return validateComponent(definition.target) && ["feedback", "startingHints", "guessTransformations", "playerExperience", "termination"].every((key) => validateComponents(definition[key] ?? []));
 }

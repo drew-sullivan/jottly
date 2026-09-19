@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
 import { onRequestPost, validateLovedGameCandidate } from "../functions/api/analytics/v1/loved-games.js";
-import { stableJSONStringify } from "../functions/api/community/v1/contract.js";
+import { sha256Hex, stableJSONStringify } from "../functions/api/community/v1/contract.js";
 
 const fixture = JSON.parse(await readFile(new URL("./fixtures/featured-community-packages-v1.json", import.meta.url), "utf8"));
 const contract = fixture[0].presentation.sharedProvenance.canonicalEnvelope;
@@ -22,6 +22,15 @@ test("a canonical Solo rules bundle validates without presentation or identity",
     ok: true,
     canonicalContract: stableJSONStringify(candidate.contract),
   });
+});
+
+test("legacy contracts may omit the optional lexicon digest", async () => {
+  const candidate = payload();
+  delete candidate.contract.definition.word.lexicon.contentDigest;
+  candidate.contract.definitionDigest = await sha256Hex(
+    stableJSONStringify(candidate.contract.definition),
+  );
+  assert.equal((await validateLovedGameCandidate(candidate)).ok, true);
 });
 
 test("reviewed featured contracts without embedded gameplay data stay compatible", async () => {
