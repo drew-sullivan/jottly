@@ -79,6 +79,8 @@ input, select {
 }
 input:focus, select:focus, button:focus-visible { outline: 3px solid color-mix(in srgb, var(--aqua) 55%, transparent); outline-offset: 2px; }
 .command-hint { margin: 12px 0 0; font-size: 12px; }
+.command-copy-row { display: flex; gap: 8px; align-items: center; margin-top: 5px; }
+.command-copy-row code { flex: 1; }
 code { overflow-wrap: anywhere; color: var(--ink); }
 .error { margin: 10px 0 0; color: var(--danger) !important; font-weight: 700; }
 
@@ -94,6 +96,7 @@ code { overflow-wrap: anywhere; color: var(--ink); }
 .button:hover { border-color: var(--ink); }
 .button.primary { background: var(--coral); border-color: var(--ink); color: #111; }
 .button.quiet { color: var(--secondary); }
+.button.compact { min-height: 32px; padding: 5px 10px; }
 .button:disabled { cursor: wait; opacity: 0.55; }
 
 .toolbar {

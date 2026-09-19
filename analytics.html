@@ -34,7 +34,13 @@
           <input id="token-input" name="token" type="password" autocomplete="off" spellcheck="false" required>
           <button class="button primary" type="submit">Open dashboard</button>
         </div>
-        <p class="command-hint">Copy it from Keychain with:<br><code>security find-generic-password -w -a "$USER" -s "Jottly Analytics Report Token" | pbcopy</code></p>
+        <div class="command-hint">
+          <span>Copy it from Keychain with:</span>
+          <div class="command-copy-row">
+            <code id="keychain-command">security find-generic-password -w -a "$USER" -s "Jottly Analytics Report Token" | pbcopy</code>
+            <button id="copy-command-button" class="button quiet compact" type="button">Copy</button>
+          </div>
+        </div>
         <p id="auth-error" class="error" role="alert" hidden></p>
       </form>
     </section>

@@ -5,6 +5,7 @@ const numberFormatter = new Intl.NumberFormat();
 const refs = Object.fromEntries([
   "auth-section", "token-form", "token-input", "auth-error", "dashboard", "days-select",
   "channel-select", "version-select", "refresh-button", "download-button", "signout-button",
+  "keychain-command", "copy-command-button",
   "date-label", "status-live", "summary-grid", "insight-grid", "mode-body", "source-list",
   "creation-summary", "creation-mode-list", "creation-length-list", "created-rule-list",
   "game-kind-list", "word-length-list", "played-rule-list",
@@ -44,6 +45,10 @@ refs["version-select"].addEventListener("change", renderReport);
 refs["refresh-button"].addEventListener("click", loadReport);
 refs["download-button"].addEventListener("click", downloadReport);
 refs["signout-button"].addEventListener("click", lockDashboard);
+refs["copy-command-button"].addEventListener("click", async () => {
+  await navigator.clipboard.writeText(refs["keychain-command"].textContent);
+  refs["copy-command-button"].textContent = "Copied";
+});
 
 if (reportToken) loadReport();
 
