@@ -3,6 +3,12 @@ import { ensureDevReportSchema } from "./schema.js";
 const maximumBodyBytes = 128 * 1024;
 const idPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const statuses = new Set(["new", "in_progress", "needs_info", "fixed"]);
+const transitions = {
+  new: new Set(["in_progress"]),
+  in_progress: new Set(["needs_info", "fixed"]),
+  needs_info: new Set(["in_progress"]),
+  fixed: new Set(),
+};
 
 export async function onRequestPost({ request, env, nowMilliseconds = Date.now() }) {
   const body = await readJSON(request);
@@ -33,6 +39,7 @@ export async function onRequestPost({ request, env, nowMilliseconds = Date.now()
 }
 
 export async function onRequestGet({ request, env }) {
+  if (!authorized(request, env)) return notFound();
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
   const status = new URL(request.url).searchParams.get("status") ?? "new";
   if (status !== "all" && !statuses.has(status)) return json({ error: "Invalid status" }, 400);
@@ -40,7 +47,7 @@ export async function onRequestGet({ request, env }) {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const statement = status === "all"
       ? env.COMMUNITY_DB.prepare("SELECT * FROM dev_reports ORDER BY created_at_ms DESC, id DESC LIMIT 50")
-      : env.COMMUNITY_DB.prepare("SELECT * FROM dev_reports WHERE status = ? ORDER BY created_at_ms, id LIMIT 50").bind(status);
+      : env.COMMUNITY_DB.prepare("SELECT * FROM dev_reports WHERE status = ? ORDER BY created_at_ms DESC, id DESC LIMIT 50").bind(status);
     const result = await statement.all();
     return json({ reports: (result.results ?? []).map((row) => project(row, false)) }, 200);
   } catch {
@@ -48,7 +55,8 @@ export async function onRequestGet({ request, env }) {
   }
 }
 
-export async function onRequestGetOne({ env, id }) {
+export async function onRequestGetOne({ request, env, id }) {
+  if (!authorized(request, env)) return notFound();
   if (!idPattern.test(id)) return json({ error: "Invalid report ID" }, 400);
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
   try {
@@ -61,13 +69,14 @@ export async function onRequestGetOne({ env, id }) {
 }
 
 export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.now() }) {
+  if (!authorized(request, env)) return notFound();
   if (!idPattern.test(id)) return json({ error: "Invalid report ID" }, 400);
   const body = await readJSON(request);
   if (body instanceof Response) return body;
   if (!plainObject(body)
       || !statuses.has(body.expectedStatus)
       || !statuses.has(body.status)
-      || body.expectedStatus === body.status
+      || !transitions[body.expectedStatus].has(body.status)
       || typeof body.resolution !== "string"
       || body.resolution.length > 2000) return json({ error: "Invalid status update" }, 400);
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
@@ -76,9 +85,10 @@ export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const db = env.COMMUNITY_DB;
     const updated = await db.prepare(`
-      UPDATE dev_reports SET status = ?, resolution = ?, updated_at_ms = ?
+      UPDATE dev_reports SET status = ?, resolution = ?, updated_at_ms = ?,
+        diagnostics = CASE WHEN ? = 'fixed' THEN '' ELSE diagnostics END
       WHERE id = ? AND status = ?
-    `).bind(body.status, body.resolution.trim(), nowMilliseconds, id, body.expectedStatus).run();
+    `).bind(body.status, body.resolution.trim(), nowMilliseconds, body.status, id, body.expectedStatus).run();
     if (Number(updated?.meta?.changes ?? 0) !== 1) {
       const current = await readReport(db, id);
       return current ? json({ error: "Report status changed", current: project(current, false) }, 409)
@@ -128,12 +138,15 @@ function validReport(body) {
 function sameSubmission(row, body) {
   return row?.kind === body.kind
     && row.description === body.description.trim()
-    && row.diagnostics === body.diagnostics
+    && (row.status === "fixed" || row.diagnostics === body.diagnostics)
     && row.app_version === body.appVersion
     && row.build_number === body.buildNumber;
 }
 
 function project(row, includeDiagnostics = true) {
+  if (row.status === "fixed") {
+    return { id: row.id, description: row.description, status: row.status };
+  }
   const report = {
     id: row.id,
     kind: row.kind,
@@ -152,6 +165,16 @@ function project(row, includeDiagnostics = true) {
 function plainObject(value) {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+function authorized(request, env) {
+  const token = env.ANALYTICS_REPORT_TOKEN;
+  return typeof token === "string" && token.length > 0
+    && request.headers.get("authorization") === `Bearer ${token}`;
+}
+
+function notFound() {
+  return new Response("Not found", { status: 404, headers: { "cache-control": "no-store" } });
 }
 
 function json(value, status) {

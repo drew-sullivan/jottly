@@ -15,7 +15,7 @@
       <img src="/assets/app_icon.png" alt="" width="44" height="44">
       <div><p class="eyebrow">Jottly</p><h1>Developer reports</h1></div>
     </div>
-    <div class="toolbar">
+    <div class="toolbar" hidden>
       <label for="status">Status</label>
       <select id="status">
         <option value="new">New</option>
@@ -25,11 +25,21 @@
         <option value="all">Recent</option>
       </select>
       <button id="refresh" type="button">Refresh</button>
+      <span id="sample-indicator" hidden>Sample data</span>
+      <button id="exit-sample" type="button" hidden>Exit Preview</button>
+      <button id="signout" type="button">Lock</button>
     </div>
   </header>
   <main>
-    <p id="notice" role="status" aria-live="polite">Loading reports…</p>
-    <div class="workspace">
+    <form id="auth-form" class="auth-form">
+      <label for="token-input">Dashboard token</label>
+      <input id="token-input" type="password" autocomplete="off" required>
+      <button type="submit">Unlock reports</button>
+      <button id="sample" type="button">Preview Sample Tickets</button>
+    </form>
+    <p id="notice" role="status" aria-live="polite">Enter your dashboard token to view reports.</p>
+    <p id="sample-banner" hidden>Sample tickets only. Nothing here is saved or sent to the report inbox.</p>
+    <div class="workspace" hidden>
       <section class="ticket-list" aria-label="Tickets">
         <div id="tickets"></div>
       </section>

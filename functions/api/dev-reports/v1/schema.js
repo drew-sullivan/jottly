@@ -11,12 +11,18 @@ export const devReportSchemaSQL = `CREATE TABLE IF NOT EXISTS dev_reports (
   resolution TEXT
 );`;
 
+export const clearFixedDiagnosticsSQL = `UPDATE dev_reports SET diagnostics = ''
+WHERE status = 'fixed' AND diagnostics != '';`;
+
 const schemaPromises = new WeakMap();
 
 export async function ensureDevReportSchema(db) {
   let promise = schemaPromises.get(db);
   if (!promise) {
-    promise = db.prepare(devReportSchemaSQL).run();
+    promise = (async () => {
+      await db.prepare(devReportSchemaSQL).run();
+      await db.prepare(clearFixedDiagnosticsSQL).run();
+    })();
     schemaPromises.set(db, promise);
     promise.catch(() => {
       if (schemaPromises.get(db) === promise) schemaPromises.delete(db);

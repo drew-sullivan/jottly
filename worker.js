@@ -62,7 +62,7 @@ export default {
     }
 
     if (path.startsWith(`${devReportsPath}/`)) {
-      if (request.method === "GET") return readDevReport({ env, id: path.slice(devReportsPath.length + 1) });
+      if (request.method === "GET") return readDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
       if (request.method !== "PATCH") return methodNotAllowed("GET, PATCH");
       return updateDevReport({ request, env, id: path.slice(devReportsPath.length + 1) });
     }
