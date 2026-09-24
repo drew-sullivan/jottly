@@ -14,6 +14,15 @@ export const devReportSchemaSQL = `CREATE TABLE IF NOT EXISTS dev_reports (
 export const clearFixedDiagnosticsSQL = `UPDATE dev_reports SET diagnostics = ''
 WHERE status = 'fixed' AND diagnostics != '';`;
 
+export const addTitleSQL = `ALTER TABLE dev_reports ADD COLUMN title TEXT;`;
+
+export const backfillTitleSQL = `UPDATE dev_reports
+SET title = CASE
+  WHEN length(trim(description)) <= 120 THEN trim(description)
+  ELSE substr(trim(description), 1, 119) || '…'
+END
+WHERE title IS NULL OR trim(title) = '';`;
+
 const schemaPromises = new WeakMap();
 
 export async function ensureDevReportSchema(db) {
@@ -21,6 +30,16 @@ export async function ensureDevReportSchema(db) {
   if (!promise) {
     promise = (async () => {
       await db.prepare(devReportSchemaSQL).run();
+      const columns = await db.prepare("PRAGMA table_info(dev_reports)").all();
+      if (!(columns.results ?? []).some((column) => column.name === "title")) {
+        try {
+          await db.prepare(addTitleSQL).run();
+        } catch (error) {
+          const refreshed = await db.prepare("PRAGMA table_info(dev_reports)").all();
+          if (!(refreshed.results ?? []).some((column) => column.name === "title")) throw error;
+        }
+      }
+      await db.prepare(backfillTitleSQL).run();
       await db.prepare(clearFixedDiagnosticsSQL).run();
     })();
     schemaPromises.set(db, promise);

@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import worker from "../worker.js";
-import { devReportSchemaSQL, clearFixedDiagnosticsSQL } from "../functions/api/dev-reports/v1/schema.js";
+import {
+  addTitleSQL, backfillTitleSQL, clearFixedDiagnosticsSQL, devReportSchemaSQL,
+} from "../functions/api/dev-reports/v1/schema.js";
 
 const path = "https://icedmatchalabs.com/api/dev-reports/v1";
 const healthPath = `${path}/health`;
@@ -17,6 +19,7 @@ test("a bug and its recent diagnostics become one durable ticket", async () => {
   const ticket = await created.json();
   assert.equal(ticket.id, id);
   assert.equal(ticket.ticketNumber, 1);
+  assert.equal(ticket.title, report.title);
   assert.equal(ticket.kind, "bug");
   assert.equal(ticket.description, report.description);
   assert.equal(Object.hasOwn(ticket, "diagnostics"), false);
@@ -30,6 +33,8 @@ test("a bug and its recent diagnostics become one durable ticket", async () => {
   assert.equal(listed.status, 200);
   const summary = (await listed.json()).reports[0];
   assert.equal(summary.description, report.description);
+  assert.equal(summary.title, report.title);
+  assert.equal(summary.resolution, null);
   assert.equal(Object.hasOwn(summary, "diagnostics"), false);
   const detail = await (await worker.fetch(request(`${path}/${id}`, "GET"), env)).json();
   assert.equal(detail.diagnostics, report.diagnostics);
@@ -40,7 +45,7 @@ test("public health proves the private queue storage is deployed without exposin
   assert.equal(healthy.status, 200);
   assert.deepEqual(await healthy.json(), {
     status: "ok",
-    schemaVersion: 1,
+    schemaVersion: 2,
     queueAccess: "private",
   });
 
@@ -58,6 +63,20 @@ test("retries keep the same ticket, while an ID collision cannot rewrite it", as
   const list = await (await worker.fetch(request(path, "GET"), env)).json();
   assert.equal(list.reports.length, 1);
   assert.equal(list.reports[0].description, payload().description);
+});
+
+test("legacy app submissions receive a bounded fallback title", async () => {
+  const env = environment();
+  const legacy = { ...payload(), description: "word ".repeat(40).trim() };
+  delete legacy.title;
+
+  const response = await worker.fetch(request(path, "POST", legacy), env);
+  const created = await response.json();
+
+  assert.equal(response.status, 201);
+  assert.ok(created.title.endsWith("…"));
+  assert.ok(created.title.length <= 120);
+  assert.equal(created.description, legacy.description);
 });
 
 test("a ticket moves through a compare-and-swap work lifecycle", async () => {
@@ -79,9 +98,11 @@ test("a ticket moves through a compare-and-swap work lifecycle", async () => {
   assert.deepEqual(fixed.reports[0], {
     id,
     ticketNumber: 1,
+    title: payload().title,
     description: payload().description,
     createdAtMilliseconds: waiting.createdAtMilliseconds,
     status: "fixed",
+    resolution: "commit abc123;\n tests passed",
   });
   const detail = await (await worker.fetch(request(`${path}/${id}`, "GET"), env)).json();
   assert.deepEqual(detail, fixed.reports[0]);
@@ -106,9 +127,11 @@ test("already-fixed tickets lose legacy diagnostics on the next report request",
   assert.deepEqual(detail, {
     id,
     ticketNumber: 1,
+    title: payload().title,
     description: payload().description,
     createdAtMilliseconds: detail.createdAtMilliseconds,
     status: "fixed",
+    resolution: "commit old",
   });
   const row = sqlite.prepare("SELECT diagnostics, app_version, build_number FROM dev_reports WHERE id = ?").get(id);
   assert.equal(row.diagnostics, "");
@@ -130,6 +153,8 @@ test("reports are bounded and invalid requests never enter the queue", async () 
   const env = environment();
   for (const body of [
     { ...payload(), description: " " },
+    { ...payload(), title: " " },
+    { ...payload(), title: "x".repeat(121) },
     { ...payload(), kind: "admin" },
     { ...payload(), id: "not-an-id" },
     { ...payload(), diagnostics: "x".repeat(100_001) },
@@ -173,7 +198,7 @@ test("every queue shows the newest reports first and remains bounded", async () 
   for (const reportID of [oldestID, newestID]) {
     for (const [expectedStatus, status] of [["new", "in_progress"], ["in_progress", "fixed"]]) {
       assert.equal((await worker.fetch(request(`${path}/${reportID}`, "PATCH", {
-        expectedStatus, status, resolution: "",
+        expectedStatus, status, resolution: status === "fixed" ? "Completed legacy queue item" : "",
       }), env)).status, 200);
     }
   }
@@ -230,11 +255,13 @@ test("runtime schema matches its deployable migration", async () => {
   assert.equal(migration.trim(), devReportSchemaSQL);
   const cleanup = await readFile(new URL("../migrations/0006_clear_fixed_diagnostics.sql", import.meta.url), "utf8");
   assert.equal(cleanup.trim(), clearFixedDiagnosticsSQL);
+  const titles = await readFile(new URL("../migrations/0007_dev_report_titles.sql", import.meta.url), "utf8");
+  assert.equal(titles.trim(), `${addTitleSQL}\n\n${backfillTitleSQL}`);
 });
 
 function payload() {
   return {
-    schemaVersion: 1, id, kind: "bug", description: "The game did not open",
+    schemaVersion: 1, id, kind: "bug", title: "Game launch fails", description: "The game did not open",
     diagnostics: "last 200 events", appVersion: "3.4.0", buildNumber: "500",
   };
 }

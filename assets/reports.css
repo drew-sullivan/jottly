@@ -21,7 +21,7 @@ h1 { margin-bottom: 0; font-size: 22px; }
 .toolbar { display: flex; align-items: center; gap: 8px; }
 .toolbar label { color: var(--secondary); font-size: 13px; font-weight: 700; }
 .toolbar select, .toolbar button { min-height: 38px; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--surface); color: var(--ink); }
-.toolbar button:hover, .diagnostic-toggle:hover { border-color: var(--ink); }
+.toolbar button:hover, .ticket-toggle:hover { border-color: var(--ink); }
 button:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--coral); outline-offset: 2px; }
 main { max-width: 1350px; margin: auto; padding: 20px clamp(16px, 3vw, 36px) 56px; }
 .auth-form { display: flex; align-items: end; gap: 10px; flex-wrap: wrap; max-width: 520px; margin-top: 28px; }
@@ -42,9 +42,8 @@ td:last-child { width: 1%; white-space: nowrap; }
 .status-fixed { color: #247a45; }
 .status-needs_info { color: #9b6500; }
 .status-in_progress { color: var(--coral); }
-.diagnostic-toggle { padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 13px; }
-.diagnostic-row td { padding: 0 12px 12px; background: var(--paper); }
-.diagnostic-row pre { max-height: 50vh; margin: 0; overflow: auto; padding: 12px; border-left: 2px solid var(--coral); font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, monospace; white-space: pre-wrap; overflow-wrap: anywhere; }
-.fixed-note { color: var(--secondary); font-size: 13px; }
+.ticket-toggle { padding: 3px 8px; border: 1px solid var(--border); border-radius: 4px; background: var(--surface); color: var(--ink); font-size: 13px; }
+.ticket-detail-row td { padding: 0 12px 12px; background: var(--paper); }
+.ticket-detail { margin: 0; padding: 12px; border-left: 2px solid var(--coral); color: var(--ink); font: 14px/1.5 system-ui, sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
 @media (max-width: 740px) { .app-bar { align-items: start; flex-direction: column; } main { padding-inline: 12px; } th, td { padding-inline: 8px; } }
 @media (prefers-color-scheme: dark) { :root { --paper: #1d1b19; --surface: #282522; --ink: #f3f1ed; --secondary: #b7b1aa; --border: #514b45; } }

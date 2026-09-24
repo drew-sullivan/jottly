@@ -16,8 +16,8 @@ function page(fetch, search = "") {
     nextElementSibling: null,
     addEventListener(event, listener) { this.listeners[event] = listener; },
     replaceChildren(...children) { this.children = children; linkSiblings(this); },
-    querySelector(selector) { return this.children.find((child) => selector === ".diagnostic-row" && child.className === "diagnostic-row") ?? null; },
-    querySelectorAll(selector) { return descendants(this).filter((child) => selector === ".diagnostic-toggle" ? child.className === "diagnostic-toggle" : true); },
+    querySelector(selector) { return this.children.find((child) => selector === ".ticket-detail-row" && child.className === "ticket-detail-row") ?? null; },
+    querySelectorAll(selector) { return descendants(this).filter((child) => selector === ".ticket-toggle" ? child.className === "ticket-toggle" : true); },
     setAttribute(name, value) { this[name] = value; },
     append(...children) { this.children.push(...children); linkSiblings(this); },
     after(child) {
@@ -98,22 +98,30 @@ test("locking clears rendered diagnostics and ignores a late authorized response
   assert.equal(node(".workspace").hidden, true);
 });
 
-test("reports render as simple newest-first rows with fixed diagnostics cleared", async () => {
+test("reports render concise names and expandable notes with fix summaries", async () => {
   const { node } = page(async () => ({ status: 200, ok: true, json: async () => ({ reports: [
-    { id: "newest", ticketNumber: 12, createdAtMilliseconds: Date.UTC(2026, 8, 19, 12), status: "new", description: "Newest report" },
-    { id: "older", ticketNumber: 11, createdAtMilliseconds: Date.UTC(2026, 8, 18, 12), status: "fixed", description: "Older report" },
+    { id: "newest", ticketNumber: 12, createdAtMilliseconds: Date.UTC(2026, 8, 19, 12), status: "new", title: "Newest ticket", description: "Verbose newest report notes", resolution: null },
+    { id: "older", ticketNumber: 11, createdAtMilliseconds: Date.UTC(2026, 8, 18, 12), status: "fixed", title: "Expandable ticket rows", description: "Verbose older report notes", resolution: "Added expandable rows and fix summaries." },
   ] }) }));
   node("#token-input").value = "valid-token";
   node("#auth-form").listeners.submit({ preventDefault() {} });
   await new Promise(setImmediate);
   const [newest, older] = node("#tickets").children;
-  assert.deepEqual(newest.children.map((cell) => cell.textContent), ["Sep 19, 2026 - 12", "Newest report", "", ""]);
+  assert.deepEqual(newest.children.map((cell) => cell.textContent), ["Sep 19, 2026 - 12", "Newest ticket", "", ""]);
   assert.equal(newest.children[2].children[0].children[0].textContent, "•");
   assert.equal(newest.children[2].children[0].children[1].textContent, "new");
-  assert.equal(newest.children[3].children[0].textContent, "View");
+  assert.equal(newest.children[3].children[0].textContent, "Expand");
   assert.equal(older.children[0].textContent, "Sep 18, 2026 - 11");
   assert.equal(older.children[2].children[0].children[0].textContent, "✓");
-  assert.equal(older.children[3].children[0].textContent, "Cleared");
+  assert.equal(older.children[3].children[0].textContent, "Expand");
+  older.children[3].children[0].listeners.click();
+  const detail = node("#tickets").children[2];
+  assert.equal(detail.dataset.detailFor, "older");
+  assert.match(detail.children[0].children[0].textContent, /Notes/);
+  assert.match(detail.children[0].children[0].textContent, /Verbose older report notes/);
+  assert.match(detail.children[0].children[0].textContent, /Fix summary/);
+  assert.match(detail.children[0].children[0].textContent, /Added expandable rows and fix summaries/);
+  assert.doesNotMatch(detail.children[0].children[0].textContent, /diagnostic/i);
 });
 
 test("sample query parameters cannot expose ticket data without a token", () => {

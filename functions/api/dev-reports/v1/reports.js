@@ -21,11 +21,11 @@ export async function onRequestPost({ request, env, nowMilliseconds = Date.now()
     const db = env.COMMUNITY_DB;
     const inserted = await db.prepare(`
       INSERT OR IGNORE INTO dev_reports (
-        id, kind, description, diagnostics, app_version, build_number,
+        id, kind, title, description, diagnostics, app_version, build_number,
         created_at_ms, updated_at_ms, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'new')
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
     `).bind(
-      body.id, body.kind, body.description.trim(), body.diagnostics,
+      body.id, body.kind, reportTitle(body), body.description.trim(), body.diagnostics,
       body.appVersion, body.buildNumber, nowMilliseconds, nowMilliseconds,
     ).run();
     const row = await readReport(db, body.id);
@@ -60,7 +60,7 @@ export async function onRequestHealth({ env }) {
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     await env.COMMUNITY_DB.prepare("SELECT 1 FROM dev_reports LIMIT 1").first();
-    return json({ status: "ok", schemaVersion: 1, queueAccess: "private" }, 200);
+    return json({ status: "ok", schemaVersion: 2, queueAccess: "private" }, 200);
   } catch {
     return json({ error: "Report inbox unavailable" }, 503);
   }
@@ -88,18 +88,30 @@ export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.
       || !statuses.has(body.expectedStatus)
       || !statuses.has(body.status)
       || !transitions[body.expectedStatus].has(body.status)
+      || (body.title !== undefined && !validTitle(body.title))
       || typeof body.resolution !== "string"
-      || body.resolution.length > 2000) return json({ error: "Invalid status update" }, 400);
+      || body.resolution.length > 2000
+      || (body.status === "fixed" && body.resolution.trim().length < 3)) {
+    return json({ error: "Invalid status update" }, 400);
+  }
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
 
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const db = env.COMMUNITY_DB;
     const updated = await db.prepare(`
-      UPDATE dev_reports SET status = ?, resolution = ?, updated_at_ms = ?,
+      UPDATE dev_reports SET status = ?, resolution = ?, title = COALESCE(?, title), updated_at_ms = ?,
         diagnostics = CASE WHEN ? = 'fixed' THEN '' ELSE diagnostics END
       WHERE id = ? AND status = ?
-    `).bind(body.status, body.resolution.trim(), nowMilliseconds, body.status, id, body.expectedStatus).run();
+    `).bind(
+      body.status,
+      body.resolution.trim(),
+      body.title === undefined ? null : body.title.trim(),
+      nowMilliseconds,
+      body.status,
+      id,
+      body.expectedStatus,
+    ).run();
     if (Number(updated?.meta?.changes ?? 0) !== 1) {
       const current = await readReport(db, id);
       return current ? json({ error: "Report status changed", current: project(current, false) }, 409)
@@ -156,6 +168,7 @@ function validReport(body) {
     && typeof body.description === "string"
     && body.description.trim().length >= 3
     && body.description.length <= 1000
+    && (body.title === undefined || validTitle(body.title))
     && typeof body.diagnostics === "string"
     && body.diagnostics.length <= 100_000
     && typeof body.appVersion === "string"
@@ -166,6 +179,7 @@ function validReport(body) {
 
 function sameSubmission(row, body) {
   return row?.kind === body.kind
+    && row.title === reportTitle(body)
     && row.description === body.description.trim()
     && (row.status === "fixed" || row.diagnostics === body.diagnostics)
     && row.app_version === body.appVersion
@@ -177,15 +191,18 @@ function project(row, includeDiagnostics = true) {
     return {
       id: row.id,
       ticketNumber: row.ticket_number,
+      title: row.title,
       description: row.description,
       createdAtMilliseconds: row.created_at_ms,
       status: row.status,
+      resolution: row.resolution,
     };
   }
   const report = {
     id: row.id,
     ticketNumber: row.ticket_number,
     kind: row.kind,
+    title: row.title,
     description: row.description,
     appVersion: row.app_version,
     buildNumber: row.build_number,
@@ -196,6 +213,16 @@ function project(row, includeDiagnostics = true) {
   };
   if (includeDiagnostics) report.diagnostics = row.diagnostics;
   return report;
+}
+
+function validTitle(value) {
+  return typeof value === "string" && value.trim().length >= 3 && value.trim().length <= 120;
+}
+
+function reportTitle(body) {
+  if (validTitle(body.title)) return body.title.trim();
+  const normalized = body.description.trim().replaceAll(/\s+/g, " ");
+  return normalized.length <= 120 ? normalized : `${normalized.slice(0, 119)}…`;
 }
 
 function plainObject(value) {
