@@ -14,3 +14,6 @@ ANALYTICS.md
 *.log
 README*
 *.sh
+
+# Internal request contracts, review notes, and delivery evidence are not public site assets.
+docs

@@ -6,13 +6,29 @@ Retry IDs deduplicate a durable client batch; they are random per aggregate row,
 Game-design telemetry is deliberately bounded to catalog/remixed/unlisted origin, word-length buckets,
 an allowlisted rule identifier, coarse interaction contexts, and coarse failure reasons. Custom titles,
 descriptions, definitions, configured letters, raw errors, record identifiers, and game identifiers are
-never uploaded.
+never uploaded through the aggregate-events endpoint.
 
 The app emits one `active_install_day` counter per enabled install per UTC day and one
 `active_install_week` counter per ISO week. These provide privacy-preserving approximate DAU and WAU
 without uploading a stable install identifier. Onboarding milestones carry only a coarse ISO install
 week such as `2026-W36`; for upgrades, that is the first analytics-enabled week rather than the
 historical App Store installation date.
+
+## Separate custom-game contributions and diagnostics
+
+The aggregate contract above does not describe `/api/analytics/v1/loved-games`. That independent,
+default-off choice can submit a complete player-authored game package after repeated eligible Solo
+play for private review. Its title, description, glyph, rules, creator attribution, package identity,
+compatibility and revision metadata are retained; match secrets, guesses and game history are not part
+of the submission. Disabling either optional choice clears its local queue, not previously received
+server data. Developer reports are another boundary: manual submissions and automatic sanitized
+on-screen error reports include recent diagnostics independently of these two optional choices.
+
+The public policy at `/privacy` describes these boundaries. Check the source with
+`node --test tests/product-copy.test.mjs tests/privacy-live.test.mjs`. After Production deployment, run
+`RUN_LIVE_PRIVACY_TESTS=1 node --test tests/privacy-live.test.mjs` to verify HTTP status, HTML type,
+policy version and the required disclosures on both supported policy routes. A 403 or challenge is a
+failed automated observation; do not mark it passed merely because a normal browser can display the page.
 
 ## Cloudflare deployment
 

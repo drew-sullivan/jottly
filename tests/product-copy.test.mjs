@@ -106,3 +106,35 @@ test("public product pages do not advertise retired features", () => {
     }
   }
 });
+
+
+test("privacy separates optional usage counters from complete custom-game contributions", () => {
+  const text = pages.privacy.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  assert.match(text, /Both optional sharing settings start off/);
+  assert.match(text, /choose each independently/);
+  assert.match(text, /Contribute favorite custom games/);
+  assert.match(text, /complete reusable game package/);
+  assert.match(text, /title, description, icon choice, rules, creator attribution, package identifiers/);
+  assert.match(text, /private review/);
+  assert.match(text, /does not include the match's secret words, guesses, or game history/);
+  assert.doesNotMatch(text, /only personal detail ever shared/);
+});
+
+test("privacy covers reports, dictation and the actual limits of local deletion", () => {
+  const text = pages.privacy.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
+  assert.match(text, /in-app report/);
+  assert.match(text, /recent diagnostic logs/);
+  assert.match(text, /automatically send a sanitized error report/);
+  assert.match(text, /separate from the two optional sharing settings/);
+  assert.match(text, /Microphone and Speech Recognition/);
+  assert.match(text, /may process audio using its speech-recognition services/);
+  assert.match(text, /does not delete data already received/);
+  assert.match(text, /does not delete another player's copy or all CloudKit records/);
+  assert.match(text, /Unsent anonymous usage aggregates expire locally after 35 days/);
+  assert.doesNotMatch(text, /Game data stays until you delete a game in the app or remove the app/);
+});
+
+test("privacy work records remain private deployment inputs", async () => {
+  const ignored = await readFile(new URL("../.assetsignore", import.meta.url), "utf8");
+  assert.ok(ignored.split(/\r?\n/).includes("docs"), "Internal request/review records must not become static assets");
+});

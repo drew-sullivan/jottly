@@ -1,0 +1,118 @@
+{
+  "version": 1,
+  "id": "privacy-policy-disclosures",
+  "title": "Align privacy disclosures with optional contributions, reports and local deletion scope",
+  "request": {
+    "text": "This seems to keep happening: you overstate that something is shipped or fixed or \"done\", but then I open up the app, and it's not. Is there a way we can manage this better so that we don't drift or have incorrect work done or incomplete? Is there some kind of check in our workflow that you can add that verifies that we've completed the work requested and completed it with our quality gate? We just seem to drift away nearly every day.\n\nWe need to do/fix every item in our task list and then verify with tests that they're complete following our standard for quality and \"done\", then declare it shipped\n\nWe have our own garbage can glyph to use instead of the system one\n\nPrivacy settings should default to on and then the player can turn them off. Or else, no one will ever turn them on. I suspect we may need to request permission from users after they play their first game successfully and only once.\n\nHow in the world do we have unreadable records after all of our work? That's not rhetorical. I just want this type of error to stop happening throughout the app.\n\nmerge to origin/main when done with this work\n\nClarification: Keep sharing off until one-time permission prompt",
+    "source": "Direct user request and privacy clarification in Jotto task 01a0d90d-06ed-7633-b3c6-29aa96be3b4d, 2026-09-25. Website source implementation follows the original approved historical-launch-audit/r16 in sibling Jotto: provide accurate privacy policy and clearly scoped deletion controls. This linked source task does not replace the historical obligation; Production deployment and observation remain separately required before r16 can close. No app/TestFlight delivery is inferred from website tests."
+  },
+  "requirements": [
+    {
+      "id": "r01",
+      "text": "Policy accurately describes independent, default-off anonymous usage and favorite custom-game contributions without implying that diagnostic reports are controlled by those optional choices.",
+      "checks": [
+        "privacy-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r02",
+      "text": "Policy discloses complete authored custom-game packages, including presentation and creator attribution, sent privately for review after repeated Solo play; distinguishes them from aggregate analytics and excludes match secrets, guesses and history from those submissions.",
+      "checks": [
+        "privacy-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r03",
+      "text": "Policy explains manual in-app feedback, attached recent diagnostics, automatic sanitized error reports, and optional Apple speech/microphone dictation without promising exclusively on-device recognition.",
+      "checks": [
+        "privacy-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r04",
+      "text": "Policy distinguishes clearing local pending improvement data from deleting already received data or other devices/cloud copies, preserves the actual 35-day local aggregate expiration, and makes no invented server retention/deletion promises.",
+      "checks": [
+        "privacy-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r05",
+      "text": "Deterministic disclosure checks and a read-only opt-in Production check reject stale policy content, unexpected HTTP statuses and non-HTML responses; private work records stay excluded from website assets.",
+      "checks": [
+        "privacy-contracts",
+        "website-suite"
+      ]
+    }
+  ],
+  "checks": {
+    "privacy-contracts": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tests/product-copy.test.mjs",
+        "tests/privacy-live.test.mjs"
+      ]
+    },
+    "website-suite": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test"
+      ]
+    },
+    "production-observation": {
+      "kind": "manual",
+      "instructions": "After the tested website commit reaches the existing Cloudflare Production deployment, observe https://icedmatchalabs.com/privacy and its revised 2026-09-25 policy content in the normal browser, retain an artifact and exact website commit/deployment identity. Run RUN_LIVE_PRIVACY_TESTS=1 node --test tests/privacy-live.test.mjs where HTTP access is available. If automation is blocked by 403/challenge, report that explicitly; browser observation is manual evidence and does not turn the failed automated HTTP check into a pass."
+    }
+  },
+  "scope": [
+    "privacy.html",
+    "ANALYTICS.md",
+    ".assetsignore",
+    "tests/product-copy.test.mjs",
+    "tests/privacy-live.test.mjs",
+    "docs/work-items/privacy-policy-disclosures.json"
+  ],
+  "results": {
+    "r01": {
+      "status": "verified",
+      "summary": "The policy now names both optional settings, their independent default-off choices and opt-out behavior, while explicitly separating automatic error reports from those settings. Focused source-contract tests verify these distinctions."
+    },
+    "r02": {
+      "status": "verified",
+      "summary": "The policy lists full reusable package content, creator attribution and identifiers, private review after repeated eligible Solo play, no automatic publication, and exclusion of match secrets/guesses/history; ANALYTICS.md now scopes its no-content statement to the aggregate endpoint."
+    },
+    "r03": {
+      "status": "verified",
+      "summary": "The policy describes submitted name/notes and attached diagnostics, automatic sanitized reports, Apple Microphone/Speech Recognition permission, possible service-side speech processing, and sending report text rather than an audio recording to the developer inbox."
+    },
+    "r04": {
+      "status": "verified",
+      "summary": "The policy preserves the 35-day local aggregate expiration while explicitly distinguishing local clearing from received data, support reports, recipient copies and CloudKit records. Server records have no claimed automatic expiration; fixed-ticket diagnostic clearing matches the implemented endpoint."
+    },
+    "r05": {
+      "status": "verified",
+      "summary": "The deterministic tests reject unexpected HTTP statuses before reading the body, stale versions, missing disclosures and non-HTML responses. The opt-in live check covers both policy routes but has not run as Production evidence. .assetsignore excludes docs so request/review records are not public assets."
+    }
+  },
+  "review": {
+    "score": 9.2,
+    "areas": {
+      "request_match": "This child request reconciles the original historical-launch-audit/r16 privacy-policy obligation with the actual app/server boundaries: independent optional sharing, complete authored packages, diagnostic reports, dictation and honest deletion scope. It preserves the parent obligation for actual Production verification.",
+      "behavior": "Privacy disclosure tests first failed on the old policy and missing private-doc exclusion. The final source passes 13 focused checks, while the full local website suite passes 159 tests. Ten live-service tests were deliberately skipped and are not counted as delivered behavior.",
+      "failure_recovery": "The read-only live checker rejects 301/403/404/500/503 before consuming a matching body and independently rejects non-HTML, stale versions and missing disclosures. It neither circumvents a challenge nor treats an HTTP failure as deployment success; manual browser observation stays separately labeled.",
+      "blast_radius": "Changes are limited to one static policy page, aggregate-boundary documentation, asset exclusion, source/live-verifier tests and this work item. No Worker/API implementation, schema, binding, secret, schedule or deployment configuration changed. The full local suite covers current API contracts, dashboard security, packages and routes.",
+      "test_depth": "Checks cover each changed disclosure and negative claims, stale/missing live policy content, unexpected statuses before parsing and private work-record exclusion. Existing deterministic backend tests substantiate aggregate rejection of identity, complete package intake and diagnostic report behavior. Automated content checks do not replace browser layout or Production observation.",
+      "remaining_risks": "No commit/push/deploy or current Production observation has been performed for this source. The parent r16 remains open until delivery evidence is recorded. Existing app versions can differ until upgraded; this policy describes reviewed current source and preserves existing user choices. Received records have no implemented automatic expiry, and the text does not invent one. No legal-compliance certification or universal remote erasure is claimed."
+    }
+  }
+}
