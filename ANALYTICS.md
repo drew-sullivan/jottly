@@ -27,8 +27,14 @@ on-screen error reports include recent diagnostics independently of these two op
 The public policy at `/privacy` describes these boundaries. Check the source with
 `node --test tests/product-copy.test.mjs tests/privacy-live.test.mjs`. After Production deployment, run
 `RUN_LIVE_PRIVACY_TESTS=1 node --test tests/privacy-live.test.mjs` to verify HTTP status, HTML type,
-policy version and the required disclosures on both supported policy routes. A 403 or challenge is a
-failed automated observation; do not mark it passed merely because a normal browser can display the page.
+policy version and required disclosures. Cloudflare serves `/privacy` directly and canonically redirects
+`/privacy.html` to `/privacy`; the checker validates that exact redirect before checking the final page.
+The repository also publishes through GitHub Pages at `https://drew-sullivan.github.io/jottly/`. Its
+`_config.yml` excludes internal `docs`, while `.assetsignore` protects Cloudflare static assets. The live
+check requires the current policy on both surfaces and direct HTTP 404 for the two known work-record
+URLs on each. A redirect, exposed record, 403 or challenge fails that check. Source checks and a Git
+push alone do not prove either public deployment updated; retain live evidence after automatic builds.
+These exclusions remove site assets, not files or history from the public GitHub repository.
 
 ## Cloudflare deployment
 

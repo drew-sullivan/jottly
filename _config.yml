@@ -1,0 +1,4 @@
+# GitHub Pages publishes this repository independently of Cloudflare Workers Builds.
+# Request contracts and review records are repository inputs, not public site pages.
+exclude:
+  - docs

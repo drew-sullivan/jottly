@@ -1,0 +1,94 @@
+{
+  "version": 1,
+  "id": "github-pages-internal-docs-exclusion",
+  "title": "Exclude internal work records from both website deployment surfaces",
+  "request": {
+    "text": "This seems to keep happening: you overstate that something is shipped or fixed or \"done\", but then I open up the app, and it's not. Is there a way we can manage this better so that we don't drift or have incorrect work done or incomplete? Is there some kind of check in our workflow that you can add that verifies that we've completed the work requested and completed it with our quality gate? We just seem to drift away nearly every day.\n\nWe need to do/fix every item in our task list and then verify with tests that they're complete following our standard for quality and \"done\", then declare it shipped\n\nWe have our own garbage can glyph to use instead of the system one\n\nPrivacy settings should default to on and then the player can turn them off. Or else, no one will ever turn them on. I suspect we may need to request permission from users after they play their first game successfully and only once.\n\nHow in the world do we have unreadable records after all of our work? That's not rhetorical. I just want this type of error to stop happening throughout the app.\n\nmerge to origin/main when done with this work\n\nClarification: Keep sharing off until one-time permission prompt",
+    "source": "Linked correction to privacy-policy-disclosures/r05 and historical-launch-audit/r16 in Jotto task 01a0d90d-06ed-7633-b3c6-29aa96be3b4d. Root reviewed the HTTP200 exposure of docs/work-items/privacy-policy-disclosures.json on GitHub Pages and authorized this bounded static-publishing correction on 2026-09-25. Preserve the original requirement: .assetsignore protects Cloudflare assets but does not control the separately enabled GitHub Pages deployment. No backend configuration or manual deployment is authorized."
+  },
+  "requirements": [
+    {
+      "id": "r01",
+      "text": "GitHub Pages excludes the complete docs directory, including current and future work records, while Cloudflare retains its existing docs exclusion. Public policy content and routes remain available.",
+      "checks": [
+        "publishing-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r02",
+      "text": "Deterministic HTTP-checker regressions accept 404 only for explicitly enumerated internal work-record routes, reject exposed records and other statuses, and continue to require HTTP200 plus current disclosure/version content for public policy routes.",
+      "checks": [
+        "publishing-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r03",
+      "text": "An opt-in read-only live check verifies current policy behavior and absence of the known internal work-record URLs on both icedmatchalabs.com and the enabled GitHub Pages site; operational notes distinguish source testing from actual public delivery.",
+      "checks": [
+        "publishing-contracts",
+        "website-suite"
+      ]
+    }
+  ],
+  "checks": {
+    "publishing-contracts": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tests/product-copy.test.mjs",
+        "tests/privacy-live.test.mjs"
+      ]
+    },
+    "website-suite": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test"
+      ]
+    },
+    "production-observation": {
+      "kind": "manual",
+      "instructions": "After this tested commit reaches both existing automatic publication surfaces, retain the read-only RUN_LIVE_PRIVACY_TESTS=1 node --test tests/privacy-live.test.mjs output and versioned responses as an artifact. Record actual HTTP200/current policy on both supported Cloudflare routes and the GitHub Pages policy, and HTTP404 for both known work records on each surface. A failed/redirected/challenged response is not evidence of successful exclusion. No manual deployment is requested."
+    }
+  },
+  "scope": [
+    "_config.yml",
+    ".assetsignore",
+    "ANALYTICS.md",
+    "tests/product-copy.test.mjs",
+    "tests/privacy-live.test.mjs",
+    "docs/work-items/github-pages-internal-docs-exclusion.json"
+  ],
+  "results": {
+    "r01": {
+      "status": "verified",
+      "summary": "The staged Jekyll configuration excludes the entire docs tree and the existing Cloudflare docs exclusion remains enforced. Publishing metadata is also excluded from Cloudflare assets. The local regression failed before the missing exclusions were added and now passes; public policy source is unchanged. Actual site absence remains pending this commit reaching automatic publication."
+    },
+    "r02": {
+      "status": "verified",
+      "summary": "Deterministic tests accept 404 only for the two enumerated internal-record paths, reject exposed200/204, redirects,403 and server failures without reading the body, and reject policy/unknown routes. Public policy checks require current HTML disclosures; the existing .html alias permits only its observed307 to same-origin /privacy followed by a verified200."
+    },
+    "r03": {
+      "status": "verified",
+      "summary": "The opt-in live check covers both Cloudflare policy routes, GitHub Pages policy, and both known internal records on each surface. Local exact-source focused checks pass15 with2 live skips; the complete website suite passes161 with11 live skips. Deployment instructions explicitly separate source checks from automatic publication and acknowledge that source/history remains in the public GitHub repository."
+    }
+  },
+  "review": {
+    "score": 9.1,
+    "areas": {
+      "request_match": "This is the bounded correction to the original privacy-policy-disclosures/r05 promise. Read-only HTTP verification found an independently enabled GitHub Pages main/root deployment serving the work record despite Cloudflare exclusion. The complete docs exclusion addresses both existing and future records without changing public policy or backend behavior.",
+      "behavior": "Jekyll receives its standard exclude: docs configuration; Cloudflare retains docs exclusion and ignores the Jekyll configuration file. Deterministic source contracts prove those exact publishing inputs. The first regression run failed before the exclusions were implemented; final focused checks pass15 and the full website suite passes161.",
+      "failure_recovery": "The checker requires direct404 for specifically enumerated internal records, so a200 exposure,403 challenge, redirect or server outage cannot masquerade as removal. Public policy requires200/current content. The observed307 alias is followed only to its exact same-origin canonical URL, and missing, foreign or repeated redirects fail explicitly.",
+      "blast_radius": "Six bounded files change: static Jekyll exclusion, Cloudflare asset ignore, publishing notes, two existing test files and this linked work record. Worker/API code, credentials, bindings, database schemas, platform project settings and policy content remain untouched. Publication uses the existing main-triggered mechanisms after source verification.",
+      "test_depth": "Checks retain complete privacy disclosure assertions and negative status/content cases, add wrong-route404 rejection and explicit redirect-state coverage, and guard both publishing configurations. The full local website suite remains green. Live checks are deliberately skipped locally and cannot be used as delivery evidence before the automatic builds update.",
+      "remaining_risks": "The prior work-record URL remains publicly served until automatic GitHub Pages publication is verified. Direct live404 observations on both surfaces plus current public policy are still required after push; this source commit is not a delivery claim. The repository itself is public, so exclusion cannot retract source/history or cached copies. No universal confidentiality or prior-data erasure is claimed."
+    }
+  }
+}

@@ -5,6 +5,7 @@
 .assetsignore
 .wrangler
 wrangler.jsonc
+_config.yml
 worker.js
 functions
 migrations

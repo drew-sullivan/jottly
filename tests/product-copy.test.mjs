@@ -134,7 +134,11 @@ test("privacy covers reports, dictation and the actual limits of local deletion"
   assert.doesNotMatch(text, /Game data stays until you delete a game in the app or remove the app/);
 });
 
-test("privacy work records remain private deployment inputs", async () => {
+test("internal work records are excluded from both static publication surfaces", async () => {
   const ignored = await readFile(new URL("../.assetsignore", import.meta.url), "utf8");
-  assert.ok(ignored.split(/\r?\n/).includes("docs"), "Internal request/review records must not become static assets");
+  assert.ok(ignored.split(/\r?\n/).includes("docs"), "Cloudflare must exclude internal request/review records");
+  assert.ok(ignored.split(/\r?\n/).includes("_config.yml"), "GitHub Pages publishing configuration is not a public Cloudflare asset");
+  const pagesConfig = await readFile(new URL("../_config.yml", import.meta.url), "utf8");
+  assert.match(pagesConfig, /^exclude:\s*\n(?:[ \t]+-[^\n]*\n)*[ \t]+- docs[ \t]*(?:\r?\n|$)/m, "GitHub Pages must exclude the complete docs directory");
+  assert.doesNotMatch(pagesConfig, /^include:/m, "Do not override the internal-directory exclusion with explicit includes");
 });
