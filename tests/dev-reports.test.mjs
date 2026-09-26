@@ -4,7 +4,7 @@ import { DatabaseSync } from "node:sqlite";
 import test from "node:test";
 import worker from "../worker.js";
 import {
-  addTitleSQL, backfillTitleSQL, clearFixedDiagnosticsSQL, devReportSchemaSQL,
+  addTitleSQL, addSubmissionFingerprintSQL, backfillTitleSQL, clearFixedDiagnosticsSQL, devReportSchemaSQL,
 } from "../functions/api/dev-reports/v1/schema.js";
 
 const path = "https://icedmatchalabs.com/api/dev-reports/v1";
@@ -47,6 +47,7 @@ test("public health proves the private queue storage is deployed without exposin
     status: "ok",
     schemaVersion: 2,
     queueAccess: "private",
+    submissionIdentityVersion: 1,
   });
 
   const unavailable = await worker.fetch(request(healthPath, "GET", undefined, false), {});
@@ -257,6 +258,8 @@ test("runtime schema matches its deployable migration", async () => {
   assert.equal(cleanup.trim(), clearFixedDiagnosticsSQL);
   const titles = await readFile(new URL("../migrations/0007_dev_report_titles.sql", import.meta.url), "utf8");
   assert.equal(titles.trim(), `${addTitleSQL}\n\n${backfillTitleSQL}`);
+  const identity = await readFile(new URL("../migrations/0008_dev_report_submission_identity.sql", import.meta.url), "utf8");
+  assert.equal(identity.trim(), addSubmissionFingerprintSQL);
 });
 
 function payload() {
@@ -299,3 +302,120 @@ class Prepared {
   first() { return this.statement.get(...this.args) ?? null; }
   all() { return { results: this.statement.all(...this.args) }; }
 }
+
+test("an immutable submission survives display-title edits and closure without restoring diagnostics", async () => {
+  const env = environment();
+  const original = payload();
+  assert.equal((await worker.fetch(request(path, "POST", original), env)).status, 201);
+  for (const [expectedStatus, status, title] of [
+    ["new", "in_progress", "Investigating the launch issue"],
+    ["in_progress", "needs_info", "Waiting for launch diagnostics"],
+    ["needs_info", "in_progress", "Confirmed launch regression"],
+    ["in_progress", "fixed", "Game launch now recovers"],
+  ]) {
+    assert.equal((await worker.fetch(request(`${path}/${id}`, "PATCH", {
+      expectedStatus, status, title, resolution: status === "fixed" ? "Launch recovery is verified." : "",
+    }), env)).status, 200);
+    const retries = await Promise.all(Array.from({ length: 4 }, () => worker.fetch(request(path, "POST", original), env)));
+    assert.deepEqual(retries.map((response) => response.status), [200, 200, 200, 200]);
+    const current = await (await worker.fetch(request(`${path}/${id}`, "GET"), env)).json();
+    assert.equal(current.title, title);
+    assert.equal(current.status, status);
+  }
+  for (const change of [
+    { title: "Different original title" }, { description: "Different original description" },
+    { diagnostics: "Different original diagnostics" }, { appVersion: "4.0" },
+    { buildNumber: "501" }, { kind: "feature" },
+  ]) {
+    assert.equal((await worker.fetch(request(path, "POST", { ...original, ...change }), env)).status, 409);
+  }
+  const row = await env.COMMUNITY_DB.prepare("SELECT *, (SELECT count(*) FROM dev_reports) AS total FROM dev_reports WHERE id = ?").bind(id).first();
+  assert.equal(row.total, 1);
+  assert.equal(row.diagnostics, "");
+  assert.equal(row.title, "Game launch now recovers");
+  assert.equal(row.resolution, "Launch recovery is verified.");
+});
+
+test("submission identity normalizes titles and descriptions but preserves diagnostic bytes", async () => {
+  const env = environment();
+  const original = { ...payload(), title: "  A report title  ", description: "  Some report text  " };
+  assert.equal((await worker.fetch(request(path, "POST", original), env)).status, 201);
+  assert.equal((await worker.fetch(request(path, "POST", {
+    ...original, title: original.title.trim(), description: original.description.trim(),
+  }), env)).status, 200);
+  assert.equal((await worker.fetch(request(path, "POST", { ...original, diagnostics: original.diagnostics + " " }), env)).status, 409);
+  const row = await env.COMMUNITY_DB.prepare("SELECT submission_fingerprint FROM dev_reports WHERE id = ?").bind(id).first();
+  assert.match(row.submission_fingerprint, /^v1:[0-9a-f]{64}$/);
+  assert.equal(Object.hasOwn(await (await worker.fetch(request(`${path}/${id}`, "GET"), env)).json(), "submission_fingerprint"), false);
+});
+
+test("legacy title fallback and its explicit equivalent have the same submission identity", async () => {
+  const env = environment();
+  const original = { ...payload() };
+  delete original.title;
+  assert.equal((await worker.fetch(request(path, "POST", original), env)).status, 201);
+  assert.equal((await worker.fetch(request(path, "POST", { ...original, title: original.description }), env)).status, 200);
+});
+
+test("concurrent first submissions cannot bind the same ID to different original content", async () => {
+  const env = environment();
+  const reports = [payload(), { ...payload(), title: "Another original title" }];
+  const responses = await Promise.all(reports.map((report) => worker.fetch(request(path, "POST", report), env)));
+  assert.deepEqual(responses.map((response) => response.status).sort(), [201, 409]);
+  const winner = responses.findIndex((response) => response.status === 201);
+  assert.equal((await worker.fetch(request(path, "POST", reports[winner]), env)).status, 200);
+  assert.equal((await worker.fetch(request(path, "POST", reports[1 - winner]), env)).status, 409);
+  assert.equal((await env.COMMUNITY_DB.prepare("SELECT count(*) AS total FROM dev_reports").first()).total, 1);
+});
+
+test("pre-fingerprint reports retain known immutable identity after historical title edits", async () => {
+  for (const status of ["new", "in_progress", "fixed"]) {
+    const sqlite = new DatabaseSync(":memory:");
+    sqlite.exec(devReportSchemaSQL);
+    sqlite.exec(addTitleSQL);
+    const original = payload();
+    sqlite.prepare(`INSERT INTO dev_reports
+      (id, kind, title, description, diagnostics, app_version, build_number, created_at_ms, updated_at_ms, status, resolution)
+      VALUES (?, ?, ?, ?, ?, ?, ?, 1, 2, ?, ?)`)
+      .run(id, original.kind, "Historically edited title", original.description,
+        status === "fixed" ? "" : original.diagnostics, original.appVersion, original.buildNumber, status, "Keep this resolution");
+    const env = environment(sqlite);
+    assert.equal((await worker.fetch(request(path, "POST", original), env)).status, 200);
+    for (const change of [{ kind: "feature" }, { description: "Different text" }, { appVersion: "other" }, { buildNumber: "other" }]) {
+      assert.equal((await worker.fetch(request(path, "POST", { ...original, ...change }), env)).status, 409);
+    }
+    if (status !== "fixed") {
+      assert.equal((await worker.fetch(request(path, "POST", { ...original, diagnostics: "different" }), env)).status, 409);
+    }
+    const retained = sqlite.prepare("SELECT * FROM dev_reports WHERE id = ?").get(id);
+    assert.equal(retained.title, "Historically edited title");
+    assert.equal(retained.resolution, "Keep this resolution");
+    assert.equal(retained.submission_fingerprint, null, "Unknown original title/erased logs must not be invented or rebound");
+    assert.equal(retained.diagnostics, status === "fixed" ? "" : original.diagnostics);
+    sqlite.close();
+  }
+});
+
+test("fingerprint migration retries a real failure and tolerates concurrent workers", async () => {
+  const sqlite = new DatabaseSync(":memory:");
+  const env = environment(sqlite);
+  const prepare = env.COMMUNITY_DB.prepare;
+  let failOnce = true;
+  env.COMMUNITY_DB.prepare = (sql) => {
+    if (sql === addSubmissionFingerprintSQL && failOnce) {
+      failOnce = false;
+      throw new Error("injected unavailable database");
+    }
+    return prepare(sql);
+  };
+  assert.equal((await worker.fetch(request(healthPath, "GET", undefined, false), env)).status, 503);
+  assert.equal((await worker.fetch(request(path, "POST", payload()), env)).status, 201);
+  sqlite.close();
+
+  const shared = new DatabaseSync(":memory:");
+  const results = await Promise.all([environment(shared), environment(shared)].map((binding) =>
+    worker.fetch(request(path, "POST", payload()), binding)));
+  assert.deepEqual(results.map((response) => response.status).sort(), [200, 201]);
+  assert.equal(shared.prepare("SELECT count(*) AS total FROM dev_reports").get().total, 1);
+  shared.close();
+});

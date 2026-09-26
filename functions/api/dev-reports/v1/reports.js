@@ -19,17 +19,18 @@ export async function onRequestPost({ request, env, nowMilliseconds = Date.now()
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const db = env.COMMUNITY_DB;
+    const fingerprint = await submissionFingerprint(body);
     const inserted = await db.prepare(`
       INSERT OR IGNORE INTO dev_reports (
         id, kind, title, description, diagnostics, app_version, build_number,
-        created_at_ms, updated_at_ms, status
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
+        created_at_ms, updated_at_ms, submission_fingerprint, status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'new')
     `).bind(
       body.id, body.kind, reportTitle(body), body.description.trim(), body.diagnostics,
-      body.appVersion, body.buildNumber, nowMilliseconds, nowMilliseconds,
+      body.appVersion, body.buildNumber, nowMilliseconds, nowMilliseconds, fingerprint,
     ).run();
     const row = await readReport(db, body.id);
-    if (Number(inserted?.meta?.changes ?? 0) === 0 && !sameSubmission(row, body)) {
+    if (Number(inserted?.meta?.changes ?? 0) === 0 && !sameSubmission(row, body, fingerprint)) {
       return json({ error: "Report ID already belongs to a different submission" }, 409);
     }
     return json(project(row, false), Number(inserted?.meta?.changes ?? 0) === 1 ? 201 : 200);
@@ -59,8 +60,8 @@ export async function onRequestHealth({ env }) {
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
-    await env.COMMUNITY_DB.prepare("SELECT 1 FROM dev_reports LIMIT 1").first();
-    return json({ status: "ok", schemaVersion: 2, queueAccess: "private" }, 200);
+    await env.COMMUNITY_DB.prepare("SELECT submission_fingerprint FROM dev_reports LIMIT 1").first();
+    return json({ status: "ok", schemaVersion: 2, queueAccess: "private", submissionIdentityVersion: 1 }, 200);
   } catch {
     return json({ error: "Report inbox unavailable" }, 503);
   }
@@ -177,9 +178,24 @@ function validReport(body) {
     && body.buildNumber.length <= 40;
 }
 
-function sameSubmission(row, body) {
+async function submissionFingerprint(body) {
+  // Stable normalized input, independent of JSON property ordering and later staff edits.
+  // Retain only a digest so clearing diagnostics on closure still removes their raw text.
+  const canonical = JSON.stringify([
+    1, body.kind, reportTitle(body), body.description.trim(), body.diagnostics,
+    body.appVersion, body.buildNumber,
+  ]);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonical));
+  return "v1:" + Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function sameSubmission(row, body, fingerprint) {
+  if (row?.submission_fingerprint != null) return row.submission_fingerprint === fingerprint;
+  // Pre-migration rows have no original-title provenance, and closed rows have already
+  // erased diagnostics. Compare every immutable field still available, without inventing
+  // an original title from a staff-edited display title. Never rewrite the retained ticket
+  // or bind its unknown historical identity to whichever retry arrives first.
   return row?.kind === body.kind
-    && row.title === reportTitle(body)
     && row.description === body.description.trim()
     && (row.status === "fixed" || row.diagnostics === body.diagnostics)
     && row.app_version === body.appVersion

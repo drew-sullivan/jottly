@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "id": "report-immutable-submission-identity",
+  "title": "Keep report retries stable after display title edits",
+  "request": {
+    "text": "All of those are approved. Build them, test, run the full test suite, merge to origin/main when done",
+    "source": "User approval of three-day audit recommendation 2 on 2026-09-26; original acceptance contract frozen before implementation in sibling Jotto docs/work-items/report-immutable-submission-identity.json. This companion record identifies the website source and its verification."
+  },
+  "scope": [
+    "functions/api/dev-reports/v1/reports.js",
+    "functions/api/dev-reports/v1/schema.js",
+    "migrations/0008_dev_report_submission_identity.sql",
+    "tests/dev-reports.test.mjs",
+    "docs/dev-report-submission-identity.md",
+    "docs/work-items/report-immutable-submission-identity.json"
+  ],
+  "requirements": [
+    {
+      "id": "r02",
+      "text": "Original retries remain idempotent after title edits and closure, distinct original payloads conflict, migration retains historical data, and retries never restore cleared diagnostics."
+    }
+  ],
+  "results": {
+    "r02": {
+      "status": "verified",
+      "summary": "The new deterministic router regression failed before production changes: four identical retries after a title edit all returned409. A versioned normalized-input SHA256 fingerprint now remains immutable across all legal status transitions and title edits. Nineteen real-router/SQLite tests pass, including six new tests covering all transition states, 16 concurrent retries, each changed original field, normalization, concurrent first inserts, fallback titles, legacy records, failed migration/retry and concurrent migration workers. The full website suite passed167 tests with11 opt-in live tests skipped. Production delivery must be verified separately by the sibling app check; no real reports were created or changed."
+    }
+  },
+  "review": {
+    "score": 9,
+    "areas": {
+      "request_match": "The editable display title no longer controls identity for new submissions. The immutable fingerprint preserves original title and diagnostics identity after staff edits and log erasure. The original reproduction remains a permanent real-router regression.",
+      "behavior": "INSERT OR IGNORE atomically binds a report ID to its first normalized fingerprint. Subsequent POSTs compare identity without mutating title, resolution, status or diagnostic text. Changed original fields return409. The health capability requires an actual fingerprint-column read.",
+      "failure_recovery": "Additive schema migration retains rows, retries real database failures and tolerates a competing worker adding the same column. Existing rows cannot recover overwritten original titles or erased logs; their explicit legacy path validates remaining immutable fields without inventing data or rebinding to a retry.",
+      "blast_radius": "Only the report route/schema, one additive migration, tests and internal documentation changed. Response schemaVersion2 remains compatible with app health tests and gains a versioned capability. Authentication, status transitions, queue order/limits and raw-log cleanup remain covered.",
+      "test_depth": "All178 website cases executed:167passed and11 explicit live checks skipped. The19 report cases exercise the actual Worker router and real SQLite statements, including negative, concurrency, recovery and migration behavior. No mock reimplements the report identity SQL.",
+      "remaining_risks": "Old rows have no immutable original-title provenance and fixed rows lack raw logs; those unavailable historical fields cannot be authenticated. New rows enforce all fingerprinted fields. Local tests do not prove Production delivery; the linked app verification must observe submissionIdentityVersion1 after the automatic deployment."
+    }
+  }
+}
