@@ -125,7 +125,9 @@ test("privacy covers reports, dictation and the actual limits of local deletion"
   assert.match(text, /in-app report/);
   assert.match(text, /recent diagnostic logs/);
   assert.match(text, /automatically send a sanitized error report/);
-  assert.match(text, /separate from the two optional sharing settings/);
+  assert.match(text, /unified usage-sharing control/);
+  assert.match(text, /automatic diagnostic excerpts and incident details are removed from our service after 30 days/);
+  assert.match(text, /Turning usage sharing off stops automatic reliability reports/);
   assert.match(text, /Microphone and Speech Recognition/);
   assert.match(text, /may process audio using its speech-recognition services/);
   assert.match(text, /does not delete data already received/);

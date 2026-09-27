@@ -1,3 +1,4 @@
+import { reliabilityTableSQL, reliabilityIndexSQL, reliabilityIncidentIndexSQL, reliabilityTriggerSQL, reliabilityDeleteTriggerSQL, reliabilityFixedTriggerSQL } from "./reliability.js";
 export const devReportSchemaSQL = `CREATE TABLE IF NOT EXISTS dev_reports (
   id TEXT PRIMARY KEY,
   kind TEXT NOT NULL CHECK (kind IN ('bug', 'feature')),
@@ -34,6 +35,8 @@ export async function ensureDevReportSchema(db) {
       await db.prepare(devReportSchemaSQL).run();
       await ensureColumn(db, "title", addTitleSQL);
       await ensureColumn(db, "submission_fingerprint", addSubmissionFingerprintSQL);
+      await ensureColumn(db, "automatic_summary", "ALTER TABLE dev_reports ADD COLUMN automatic_summary TEXT;");
+      for (const sql of [reliabilityTableSQL,reliabilityIndexSQL,reliabilityIncidentIndexSQL,reliabilityTriggerSQL,reliabilityDeleteTriggerSQL,reliabilityFixedTriggerSQL]) await db.prepare(sql).run();
       await db.prepare(backfillTitleSQL).run();
       await db.prepare(clearFixedDiagnosticsSQL).run();
     })();

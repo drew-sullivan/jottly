@@ -48,6 +48,7 @@ test("public health proves the private queue storage is deployed without exposin
     schemaVersion: 2,
     queueAccess: "private",
     submissionIdentityVersion: 1,
+    automaticReliabilityVersion: 1,
   });
 
   const unavailable = await worker.fetch(request(healthPath, "GET", undefined, false), {});

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="jottly-privacy-version" content="2026-09-25">
+<meta name="jottly-privacy-version" content="2026-09-27">
 <link rel="icon" type="image/png" href="/assets/app_icon.png">
 <title>Jottly Privacy Policy</title>
 <meta name="description" content="Jottly's privacy policy. No ads, no tracking, no sign-up. We built Jottly to be played and shared, not to harvest your data.">
@@ -66,7 +66,7 @@
     <img src="assets/jotbot_waving.png" alt="JotBot waving hello" loading="lazy">
     <div>
       <h1>Privacy Policy</h1>
-      <p class="sub">Effective September 25, 2026</p>
+      <p class="sub">Effective September 27, 2026</p>
     </div>
   </div>
 
@@ -155,10 +155,20 @@
   and build, and recent diagnostic logs attached by the app. Draft reports remain on your device until
   submission. Reports are sent to our private developer inbox hosted on Cloudflare so we can investigate
   problems and improve Jottly. Avoid including information you do not want us to receive.</p>
-  <p>When a reportable error is shown on screen, the app can also automatically send a sanitized error report
-  with recent diagnostics. These reliability reports are separate from the two optional sharing settings.
-  Diagnostics use error categories and privacy-redacted identifiers instead of raw secrets or provider error
-  payloads. They can include device/software details, app/build information, and the operations involved.</p>
+  <p>With <strong>Share anonymous usage</strong> enabled, updated Jottly releases automatically send
+  limited reliability reports for errors, unusually slow or stuck actions, and unreadable or failed saves.
+  Reports contain a generated description, app/build and broad device/software details, timing, typed
+  error categories, and a small filtered technical excerpt. They exclude names, identity, game or player
+  identifiers, words, game history, custom-game text, URLs, screenshots and raw diagnostic logs.</p>
+  <p>Turning usage sharing off stops automatic reliability reports and clears their unsent data; it cannot
+  retract data already transmitted. Reports are grouped to limit repeated submissions. Unsent automatic
+  reports expire after seven days, and automatic diagnostic excerpts and incident details are removed
+  from our service after 30 days. Content-free issue summaries and counts may remain. Manual reports
+  you choose to send are separate and are not removed by the usage switch.</p>
+  <p>Earlier app releases could automatically send a sanitized error report with recent diagnostics for
+  a displayed error, separate from the two optional sharing settings. Update Jottly to use the unified
+  usage-sharing control described above. Network providers necessarily process connection metadata;
+  our developer reports do not include an IP address or a stable installation identifier.</p>
   <p>If you choose to dictate a report, the app requests <strong>Microphone and Speech Recognition</strong>
   permission and uses Apple's speech frameworks. Apple may process audio using its speech-recognition services;
   recognition is not guaranteed to stay on your device. Jottly sends the resulting report text and diagnostics
@@ -180,7 +190,7 @@
   <p>Removing a game or deleting the app affects local data and the shared-game actions that the app can
   complete. It does not delete another player's copy or all CloudKit records. Apple manages iCloud storage
   under its own policies. Already shared or contributed packages may remain with their recipients.</p>
-  <p>Received aggregates, contributions, and reports do not currently have a fixed automatic expiration
+  <p>Received aggregates, contributions, and manual reports do not currently have a fixed automatic expiration
   period. We use them for product improvement and support. When a developer report is marked fixed, its
   attached diagnostic text is cleared while the report description and resolution remain. Contact us about
   information you submitted that we may be able to locate; anonymous usage aggregates do not identify a player.</p>

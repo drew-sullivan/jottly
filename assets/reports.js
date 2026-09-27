@@ -103,6 +103,11 @@ function toggleDetails(report, row, button) {
   const detail = document.createElement("div");
   detail.className = "ticket-detail";
   const sections = [`Notes\n${report.description}`];
+  if (report.automatic) {
+    const a = report.automatic;
+    const outcome = a.lastOutcome === "pending" ? "last observed pending; final outcome unknown" : a.lastOutcome;
+    sections.push(`Automatic reliability\n${a.occurrenceCount} occurrences · ${a.operation} · ${a.signal}\nLimit: ${a.thresholdMilliseconds} ms\nOutcome: ${outcome}\nFirst: ${new Date(a.firstSeenMilliseconds).toISOString()}\nLast: ${new Date(a.lastSeenMilliseconds).toISOString()}`);
+  }
   if (report.status === "fixed") {
     sections.push(`Fix summary\n${report.resolution || "No fix summary was recorded for this legacy ticket."}`);
   } else if (report.resolution) {

@@ -1,3 +1,5 @@
+import { ensureDevReportSchema } from "./functions/api/dev-reports/v1/schema.js";
+import { expireAutomaticDiagnostics } from "./functions/api/dev-reports/v1/reliability.js";
 import { onRequestPost as receiveAnalytics } from "./functions/api/analytics/v1/events.js";
 import { onRequestGet as reportAnalytics } from "./functions/api/analytics/v1/report.js";
 import { onRequestPost as receiveLovedGame } from "./functions/api/analytics/v1/loved-games.js";
@@ -92,7 +94,7 @@ export default {
 
   scheduled(controller, env, ctx) {
     const operationID = `scheduled:${controller.scheduledTime}`;
-    ctx.waitUntil(runTrackedCommunitySweep({
+    const sweep = runTrackedCommunitySweep({
       env,
       operationID,
       scheduledAtMilliseconds: controller.scheduledTime,
@@ -101,6 +103,13 @@ export default {
       const result = projectCommunityCatalogRun(row, { replayed });
       console.log(JSON.stringify({ event: "community_catalog_sweep", ...result }));
       if (result.runStatus === "failed") throw new Error("Community catalog sweep failed");
+    });
+    const retention = env.COMMUNITY_DB
+      ? ensureDevReportSchema(env.COMMUNITY_DB).then(() => expireAutomaticDiagnostics(env.COMMUNITY_DB, controller.scheduledTime))
+      : Promise.reject(new Error("Automatic diagnostic retention unavailable"));
+    ctx.waitUntil(Promise.allSettled([sweep, retention]).then(results => {
+      if (results[0].status === "rejected") throw results[0].reason;
+      if (results[1].status === "rejected") throw new Error("Automatic diagnostic retention failed");
     }));
   },
 };

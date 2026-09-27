@@ -1,0 +1,43 @@
+{
+  "version": 1,
+  "id": "automatic-reliability-reporting",
+  "title": "Automatic reliability service contract and grouped inbox",
+  "request": {
+    "text": "Great, that looks good. Proceed.",
+    "source": "User approval of sibling Jotto docs/AUTOMATIC_RELIABILITY_REPORTING_SPEC.md at 5897ee33; authoritative seven-criterion contract frozen by Jotto work_contract begin before implementation. This companion records website source, tests and delivery."
+  },
+  "scope": [
+    "functions/api/dev-reports/v1/",
+    "worker.js",
+    "tests/dev-reports.test.mjs",
+    "tests/reliability-reports.test.mjs",
+    "tests/privacy-live.test.mjs",
+    "tests/product-copy.test.mjs",
+    "assets/reports.js",
+    "privacy.html",
+    "migrations/0009_automatic_reliability.sql",
+    "docs/work-items/automatic-reliability-reporting.json"
+  ],
+  "requirements": [
+    {
+      "id": "r06",
+      "text": "Strict safe automatic report contract, atomic grouped idempotency and terminal updates, rate/size limits, retention, legacy/manual compatibility, existing inbox visibility and verified Production rollout."
+    }
+  ],
+  "results": {
+    "r06": {
+      "implementation": "Strict v1 allowlist, immutable receipts and transactional SQLite group/recovery updates, 300/minute admission ceiling, 32 KiB payload limit, 30-day scheduled detail erasure, private grouped inbox and updated privacy disclosure implemented.",
+      "verification": "Node full local suite: 176 passed, 0 failed, 11 opt-in live checks skipped. Nine automatic-reliability tests exercise the actual Worker router with SQLite, including failure rollback, out-of-order recovery, retries, malicious fields, manual compatibility, closed-group cleanup and schema/migration parity.",
+      "delivery": "Production deployment and synthetic create/retry/recover/delete verification are pending; the parent Jotto request must retain this as an unmet check until actual Production proof is recorded."
+    }
+  },
+  "review": {
+    "score": 9.2,
+    "requestMatch": "Implements r06 service and privacy behavior; matching app sender remains independently under development.",
+    "correctness": "Receipt insertion and grouped count mutation share one SQLite trigger transaction. Duplicate IDs never rerun counts. Explicit response statuses precede body parsing.",
+    "resilience": "Terminal-before-initial recovery, lost acknowledgements, rate saturation and trigger failure rollback are covered. Delete and fixed transitions erase auxiliary incident details while preserving immutable digest receipts.",
+    "architecture": "Extends the existing endpoint, D1 database, scheduler and inbox; adds no service or dashboard. Manual and legacy reports retain their established contracts.",
+    "testDepth": "All 176 non-opt-in tests passed. New tests run production routing and SQL, not a mocked grouping algorithm. Eleven live tests were not run by the local suite.",
+    "risks": "Actual Cloudflare migration execution and deployed privacy bytes require the parent request Production probe. Digest-only receipts are retained for idempotency after incident detail expires. This score describes locally verified code, not Production availability."
+  }
+}

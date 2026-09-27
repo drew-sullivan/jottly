@@ -26,7 +26,7 @@ async function verifyPolicy(response, route) {
   assert.equal(response.status, 200, `${route}: HTTP ${response.status}; expected 200`);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html(?:;|$)/i, `${route}: expected HTML`);
   const html = await response.text();
-  assert.match(html, /name="jottly-privacy-version" content="2026-09-25"/, `${route}: stale policy version`);
+  assert.match(html, /name="jottly-privacy-version" content="2026-09-27"/, `${route}: stale policy version`);
   const text = html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
   for (const disclosure of disclosures) assert.ok(text.includes(disclosure), `${route}: missing disclosure: ${disclosure}`);
 }
@@ -67,11 +67,11 @@ test("policy verification rejects HTTP failures before consuming even matching c
 });
 
 test("policy verification rejects stale versions, missing disclosures and non-HTML responses", async () => {
-  await assert.rejects(verifyPolicy(response(policy.replaceAll("2026-09-25", "2026-09-18")), "/privacy"), /stale policy version/);
+  await assert.rejects(verifyPolicy(response(policy.replaceAll("2026-09-27", "2026-09-18")), "/privacy"), /stale policy version/);
   await assert.rejects(verifyPolicy(response(policy, 200, "application/json"), "/privacy"), /expected HTML/);
   for (const disclosure of disclosures) {
     const flattened = policy.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ");
-    const incomplete = '<meta name="jottly-privacy-version" content="2026-09-25">' + flattened.replaceAll(disclosure, "[removed]");
+    const incomplete = '<meta name="jottly-privacy-version" content="2026-09-27">' + flattened.replaceAll(disclosure, "[removed]");
     await assert.rejects(verifyPolicy(response(incomplete), "/privacy"), /missing disclosure/);
   }
 });

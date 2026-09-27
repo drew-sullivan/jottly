@@ -1,3 +1,4 @@
+import { validateAutomaticReport, receiveAutomatic, expireAutomaticDiagnostics } from "./reliability.js";
 import { ensureDevReportSchema } from "./schema.js";
 
 const maximumBodyBytes = 128 * 1024;
@@ -13,12 +14,14 @@ const transitions = {
 export async function onRequestPost({ request, env, nowMilliseconds = Date.now() }) {
   const body = await readJSON(request);
   if (body instanceof Response) return body;
-  if (!validReport(body)) return json({ error: "Invalid report" }, 400);
+  if (!(body?.automatic !== undefined ? await validateAutomaticReport(body) : validReport(body))) return json({ error: "Invalid report" }, 400);
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
 
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const db = env.COMMUNITY_DB;
+    await expireAutomaticDiagnostics(db, nowMilliseconds);
+    if (body.automatic !== undefined) return await receiveAutomatic(body, db, nowMilliseconds);
     const fingerprint = await submissionFingerprint(body);
     const inserted = await db.prepare(`
       INSERT OR IGNORE INTO dev_reports (
@@ -46,9 +49,10 @@ export async function onRequestGet({ request, env }) {
   if (status !== "all" && !statuses.has(status)) return json({ error: "Invalid status" }, 400);
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
+    await expireAutomaticDiagnostics(env.COMMUNITY_DB);
     const statement = status === "all"
-      ? env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports ORDER BY created_at_ms DESC, rowid DESC LIMIT 50")
-      : env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE status = ? ORDER BY created_at_ms DESC, rowid DESC LIMIT 50").bind(status);
+      ? env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports ORDER BY (automatic_summary IS NOT NULL), created_at_ms DESC, rowid DESC LIMIT 50")
+      : env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE status = ? ORDER BY (automatic_summary IS NOT NULL), created_at_ms DESC, rowid DESC LIMIT 50").bind(status);
     const result = await statement.all();
     return json({ reports: (result.results ?? []).map((row) => project(row, false)) }, 200);
   } catch {
@@ -61,7 +65,7 @@ export async function onRequestHealth({ env }) {
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     await env.COMMUNITY_DB.prepare("SELECT submission_fingerprint FROM dev_reports LIMIT 1").first();
-    return json({ status: "ok", schemaVersion: 2, queueAccess: "private", submissionIdentityVersion: 1 }, 200);
+    return json({ status: "ok", schemaVersion: 2, queueAccess: "private", submissionIdentityVersion: 1, automaticReliabilityVersion: 1 }, 200);
   } catch {
     return json({ error: "Report inbox unavailable" }, 503);
   }
@@ -73,6 +77,7 @@ export async function onRequestGetOne({ request, env, id }) {
   if (!env.COMMUNITY_DB) return json({ error: "Report inbox unavailable" }, 503);
   try {
     await ensureDevReportSchema(env.COMMUNITY_DB);
+    await expireAutomaticDiagnostics(env.COMMUNITY_DB);
     const row = await readReport(env.COMMUNITY_DB, id);
     return row ? json(project(row), 200) : json({ error: "Report not found" }, 404);
   } catch {
@@ -203,10 +208,12 @@ function sameSubmission(row, body, fingerprint) {
 }
 
 function project(row, includeDiagnostics = true) {
+  const automatic = row.automatic_summary ? { automatic: JSON.parse(row.automatic_summary) } : {};
   if (row.status === "fixed") {
     return {
       id: row.id,
       ticketNumber: row.ticket_number,
+      ...automatic,
       title: row.title,
       description: row.description,
       createdAtMilliseconds: row.created_at_ms,
@@ -217,6 +224,7 @@ function project(row, includeDiagnostics = true) {
   const report = {
     id: row.id,
     ticketNumber: row.ticket_number,
+      ...automatic,
     kind: row.kind,
     title: row.title,
     description: row.description,
