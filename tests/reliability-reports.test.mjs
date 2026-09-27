@@ -122,3 +122,13 @@ test('automatic migration matches executable schema including cleanup triggers',
   sql.reliabilityDeleteTriggerSQL,sql.reliabilityFixedTriggerSQL].join('\n')+'\n';
  assert.equal(await readFile(new URL('../migrations/0009_automatic_reliability.sql',import.meta.url),'utf8'),expected);
 });
+
+// A full historical/manual inbox must not make every automatic incident invisible.
+test('bounded inbox gives both manual and automatic groups room under a fault storm',async()=>{
+ const env=environment();
+ for(let i=0;i<55;i++)await post(env,{schemaVersion:1,id:id(),kind:'bug',title:'Manual report',description:'A player report',diagnostics:'',appVersion:'1',buildNumber:'1'});
+ for(let i=0;i<55;i++)await post(env,await payload({commit:i.toString(16).padStart(40,'0')}));
+ const response=await worker.fetch(req('GET',undefined,endpoint+'?status=all'),env);assert.equal(response.status,200);
+ const {reports}=await response.json();assert.equal(reports.length,50);
+ assert.equal(reports.filter(x=>x.automatic).length,25);assert.equal(reports.filter(x=>!x.automatic).length,25);
+});

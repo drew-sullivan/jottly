@@ -51,8 +51,8 @@ export async function onRequestGet({ request, env }) {
     await ensureDevReportSchema(env.COMMUNITY_DB);
     await expireAutomaticDiagnostics(env.COMMUNITY_DB);
     const statement = status === "all"
-      ? env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports ORDER BY (automatic_summary IS NOT NULL), created_at_ms DESC, rowid DESC LIMIT 50")
-      : env.COMMUNITY_DB.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE status = ? ORDER BY (automatic_summary IS NOT NULL), created_at_ms DESC, rowid DESC LIMIT 50").bind(status);
+      ? env.COMMUNITY_DB.prepare("SELECT * FROM (SELECT rowid AS ticket_number, *, ROW_NUMBER() OVER (PARTITION BY (automatic_summary IS NOT NULL) ORDER BY created_at_ms DESC, rowid DESC) AS source_rank FROM dev_reports) ORDER BY (source_rank > 25), (automatic_summary IS NOT NULL), created_at_ms DESC, ticket_number DESC LIMIT 50")
+      : env.COMMUNITY_DB.prepare("SELECT * FROM (SELECT rowid AS ticket_number, *, ROW_NUMBER() OVER (PARTITION BY (automatic_summary IS NOT NULL) ORDER BY created_at_ms DESC, rowid DESC) AS source_rank FROM dev_reports WHERE status = ?) ORDER BY (source_rank > 25), (automatic_summary IS NOT NULL), created_at_ms DESC, ticket_number DESC LIMIT 50").bind(status);
     const result = await statement.all();
     return json({ reports: (result.results ?? []).map((row) => project(row, false)) }, 200);
   } catch {
