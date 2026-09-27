@@ -10,7 +10,7 @@ const environment=()=>{
  class Prepared {
   constructor(sql,args=[]){this.sql=sql;this.args=args;}
   bind(...args){return new Prepared(this.sql,args);}
-  async run(){return {meta:{changes:Number(sqlite.prepare(this.sql).run(...this.args).changes)}};}
+  async run(){const before=sqlite.prepare("SELECT total_changes() AS n").get().n;sqlite.prepare(this.sql).run(...this.args);return {meta:{changes:sqlite.prepare("SELECT total_changes() AS n").get().n-before}};}
   first(){return sqlite.prepare(this.sql).get(...this.args)??null;}
   all(){return {results:sqlite.prepare(this.sql).all(...this.args)};}
  }

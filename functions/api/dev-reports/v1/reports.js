@@ -118,7 +118,7 @@ export async function onRequestPatch({ request, env, id, nowMilliseconds = Date.
       id,
       body.expectedStatus,
     ).run();
-    if (Number(updated?.meta?.changes ?? 0) !== 1) {
+    if (Number(updated?.meta?.changes ?? 0) < 1) {
       const current = await readReport(db, id);
       return current ? json({ error: "Report status changed", current: project(current, false) }, 409)
         : json({ error: "Report not found" }, 404);
@@ -138,7 +138,7 @@ export async function onRequestDelete({ request, env, id }) {
     const deleted = await env.COMMUNITY_DB.prepare(
       "DELETE FROM dev_reports WHERE id = ?"
     ).bind(id).run();
-    if (Number(deleted?.meta?.changes ?? 0) !== 1) {
+    if (Number(deleted?.meta?.changes ?? 0) < 1) {
       return json({ error: "Report not found" }, 404);
     }
     return new Response(null, { status: 204, headers: { "cache-control": "no-store" } });

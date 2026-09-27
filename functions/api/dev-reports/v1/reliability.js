@@ -113,7 +113,7 @@ export async function receiveAutomatic(body, db, now) {
   if (!receipt) return response({error:'Automatic report admission limit reached'},429,{'retry-after':'60'});
   if (receipt.body_hash !== digest) return response({error:'Report ID already belongs to a different submission'},409);
   const report = await db.prepare('SELECT status FROM dev_reports WHERE id = ?').bind(receipt.group_id).first();
-  return response({id:body.id,status:report?.status ?? 'fixed',groupID:receipt.group_id},Number(inserted?.meta?.changes ?? 0) === 1 ? 201 : 200);
+  return response({id:body.id,status:report?.status ?? 'fixed',groupID:receipt.group_id},Number(inserted?.meta?.changes ?? 0) > 0 ? 201 : 200);
 }
 
 export async function expireAutomaticDiagnostics(db, now = Date.now()) {

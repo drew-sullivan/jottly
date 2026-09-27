@@ -27,7 +27,7 @@
   "results": {
     "r06": {
       "implementation": "Strict v1 allowlist, immutable receipts and transactional SQLite group/recovery updates, 300/minute admission ceiling, 32 KiB payload limit, 30-day scheduled detail erasure, private grouped inbox and updated privacy disclosure implemented.",
-      "verification": "Node full local suite: 176 passed, 0 failed, 11 opt-in live checks skipped. Nine automatic-reliability tests exercise the actual Worker router with SQLite, including failure rollback, out-of-order recovery, retries, malicious fields, manual compatibility, closed-group cleanup and schema/migration parity.",
+      "verification": "Node full local suite: 176 passed, 0 failed, 11 opt-in live checks skipped. Nine automatic-reliability tests exercise the actual Worker router with SQLite, including failure rollback, out-of-order recovery, retries, malicious fields, manual compatibility, closed-group cleanup and schema/migration parity. Production probing exposed trigger-inclusive D1 change counts: receipt creation, status updates and deletion now accept positive affected counts. The router and reliability suites reproduce total_changes() semantics and passed all 28 tests.",
       "delivery": "Production deployment and synthetic create/retry/recover/delete verification are pending; the parent Jotto request must retain this as an unmet check until actual Production proof is recorded."
     }
   },
