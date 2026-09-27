@@ -27,8 +27,9 @@
   "results": {
     "r06": {
       "implementation": "Strict v1 allowlist, immutable receipts and transactional SQLite group/recovery updates, 300/minute admission ceiling, 32 KiB payload limit, 30-day scheduled detail erasure, private grouped inbox and updated privacy disclosure implemented.",
-      "verification": "Node full local suite: 176 passed, 0 failed, 11 opt-in live checks skipped. Nine automatic-reliability tests exercise the actual Worker router with SQLite, including failure rollback, out-of-order recovery, retries, malicious fields, manual compatibility, closed-group cleanup and schema/migration parity. Production probing exposed trigger-inclusive D1 change counts: receipt creation, status updates and deletion now accept positive affected counts. The router and reliability suites reproduce total_changes() semantics and passed all 28 tests.",
-      "delivery": "Production deployment and synthetic create/retry/recover/delete verification are pending; the parent Jotto request must retain this as an unmet check until actual Production proof is recorded."
+      "verification": "Full local suite: 177 passed, 0 failed, 11 opt-in live suites skipped. Ten reliability tests exercise actual Worker routing and SQLite, including D1 trigger-inclusive change counts, inbox fairness, recovery ordering, duplicate delivery, transactional failure, schema parity and erasure.",
+      "delivery": "Production behavior at 1e23a04b611a358a3be71e8e99933254bcbec21f verified by the parent request probe: health capability, reviewed privacy HTML byte match, create 201, label 200, immutable retry 200, recovery 201, one grouped inbox occurrence, delete 204, absent 404, late retry 200 without resurrection (404). Three earlier failed synthetic probe groups were identified by synthetic-only build/metadata, deleted and verified absent.",
+      "status": "verified"
     }
   },
   "review": {
@@ -38,6 +39,6 @@
     "resilience": "Terminal-before-initial recovery, lost acknowledgements, rate saturation and trigger failure rollback are covered. Delete and fixed transitions erase auxiliary incident details while preserving immutable digest receipts.",
     "architecture": "Extends the existing endpoint, D1 database, scheduler and inbox; adds no service or dashboard. Manual and legacy reports retain their established contracts.",
     "testDepth": "All 176 non-opt-in tests passed. New tests run production routing and SQL, not a mocked grouping algorithm. Eleven live tests were not run by the local suite.",
-    "risks": "Actual Cloudflare migration execution and deployed privacy bytes require the parent request Production probe. Digest-only receipts are retained for idempotency after incident detail expires. This score describes locally verified code, not Production availability."
+    "risks": "Website Production is verified; this does not establish app delivery. Eleven unrelated opt-in live suites were skipped. Digest-only receipts remain after incident detail erasure for immutable retries."
   }
 }
