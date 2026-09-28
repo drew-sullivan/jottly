@@ -51,7 +51,7 @@ test("raw P-256 signatures become canonical DER integers", () => {
   assert.equal(der[37], 0x02);
   assert.equal(der[38], 1);
   assert.equal(der[39], 0x7f);
-  assert.deepEqual(ecdsaSignatureToDER(der), der);
+  assert.throws(() => ecdsaSignatureToDER(der), (error) => error.kind === "signature encoding");
 });
 
 test("PKCS8 import and CloudKit headers produce a verifiable signature", async () => {
@@ -152,3 +152,19 @@ function bytesToBase64(bytes) {
 function base64ToBytes(value) {
   return Uint8Array.from(atob(value), (character) => character.charCodeAt(0));
 }
+
+
+test("every raw signature prefix round trips, including DER's 0x30 marker", () => {
+  for (let prefix = 0; prefix <= 255; prefix += 1) {
+    for (const highS of [0, 0x7f, 0x80, 0xff]) {
+      const raw = new Uint8Array(64);
+      raw[0] = prefix; raw[31] = 1; raw[32] = highS; raw[63] = 2;
+      assert.deepEqual(derToRaw(ecdsaSignatureToDER(raw)), raw, `prefix=${prefix}, highS=${highS}`);
+      assert.deepEqual(derToRaw(ecdsaSignatureToDER(raw.buffer)), raw);
+    }
+  }
+  for (const length of [0, 1, 8, 63, 65, 70, 71, 72, 128]) {
+    const invalid = new Uint8Array(length); invalid[0] = 0x30;
+    assert.throws(() => ecdsaSignatureToDER(invalid), (error) => error.kind === "signature encoding");
+  }
+});

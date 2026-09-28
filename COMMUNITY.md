@@ -76,29 +76,19 @@ next schema migration should add a minimal versioned completion projection conta
 identity, canonical digest, result eligibility, anonymous pair key material, and completion time.
 The Worker must dual-read and compare both projections before switching queries to the new fields.
 
-The ordinary web suite uses only deterministic fakes. Two opt-in checks exercise deployment seams:
+The ordinary web suite always runs signed CloudKit transport and complete sweep/publication
+contracts in `tests/community-signed-contracts.test.mjs`. Only the Apple HTTP boundary is faked:
+independent cryptographic verification, bounded query construction, retries, pagination, completion
+projection, real SQLite publication and public DTO/cache validation execute every run. Failures,
+duplicate observations, stale publications and outage recovery are covered without protected keys.
+The two never-enabled development CloudKit opt-ins have been replaced by these contracts under the
+user-approved simulated-boundary policy. These tests do not claim Apple authentication or deployment.
+
+Actual public deployment checks remain separate and require no CloudKit key:
 
 ```bash
 RUN_LIVE_COMMUNITY_ENDPOINT_TESTS=1 node --test tests/community-live.test.mjs
-RUN_LIVE_COMMUNITY_CLOUDKIT_TESTS=1 \
-COMMUNITY_DEV_CLOUDKIT_ENVIRONMENT=development \
-COMMUNITY_DEV_CLOUDKIT_KEY_ID=... \
-COMMUNITY_DEV_CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64=... \
-node --test tests/community-live.test.mjs
-
-RUN_LIVE_COMMUNITY_E2E_TESTS=1 \
-COMMUNITY_DEV_CLOUDKIT_ENVIRONMENT=development \
-COMMUNITY_DEV_CLOUDKIT_KEY_ID=... \
-COMMUNITY_DEV_CLOUDKIT_PRIVATE_KEY_PKCS8_BASE64=... \
-COMMUNITY_DEV_E2E_PACKAGE_BASE64=... \
-node --test tests/community-live.test.mjs
 ```
-
-The signed CloudKit check refuses to run against production and queries only the final minute of the
-development database.
-The end-to-end variant additionally requires the exact Swift-encoded package from a reviewed,
-completed development game. It performs the real signed query, projects that completion, builds a
-snapshot in memory, and validates the same DTO consumed by iOS. It cannot publish to production D1.
 
 The reviewed featured pool is a complete bootstrap source and does not depend on CloudKit. A
 partial CloudKit credential installation fails closed because it indicates a deployment mistake;

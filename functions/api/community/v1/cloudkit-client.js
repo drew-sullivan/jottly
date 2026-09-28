@@ -82,7 +82,7 @@ export async function importP256PrivateKey(pkcs8Base64) {
 
 export function ecdsaSignatureToDER(signature) {
   const bytes = signature instanceof Uint8Array ? signature : new Uint8Array(signature);
-  if (bytes.length > 0 && bytes[0] === 0x30) return bytes;
+  // WebCrypto returns fixed-width r || s; its first byte can also be DER's 0x30 tag.
   if (bytes.length !== 64) throw new CloudKitRequestError("signature encoding");
   const r = canonicalDERInteger(bytes.slice(0, 32));
   const s = canonicalDERInteger(bytes.slice(32));
@@ -172,7 +172,7 @@ export class CloudKitCommunityClient {
         continue;
       }
       lastStatus = response.status;
-      if (response.ok) {
+      if (response.status === 200) {
         try {
           return await response.json();
         } catch {

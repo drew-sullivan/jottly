@@ -206,3 +206,24 @@ class FaultingCatalogDB {
     };
   }
 }
+
+
+test("GET weakly compares CDN validators, lists and wildcard without accepting malformed matches", async () => {
+  const db = new CatalogDB();
+  const { hash, payload } = await publishCommunityCatalog(db, snapshot(asOf));
+  const tag = `"${hash}"`;
+  for (const validator of [tag, `W/${tag}`, `"old", W/${tag}`, ` W/${tag}, "other" `, "*"]) {
+    const reply = await onRequestGet({ request: request(validator), env: { COMMUNITY_DB: db } });
+    assert.equal(reply.status, 304, validator);
+    assert.equal(await reply.text(), "");
+    assert.equal(reply.headers.get("etag"), tag);
+  }
+  for (const validator of ['"old"', 'W/"old"', hash, `w/${tag}`, `broken, ${tag}`, `"bad,${hash}"`, `${tag} trailing`, `"unterminated, ${tag}`]) {
+    const reply = await onRequestGet({ request: request(validator), env: { COMMUNITY_DB: db } });
+    assert.equal(reply.status, 200, validator);
+    assert.equal(await reply.text(), payload);
+  }
+  assert.equal((await onRequestGet({ request: request("*"), env: { COMMUNITY_DB: new CatalogDB() } })).status, 503);
+  assert.equal((await onRequestGet({ request: request("*"), env: { COMMUNITY_DB: db, COMMUNITY_CATALOG_ENABLED: "false" } })).status, 410);
+  assert.equal((await onRequestGet({ request: request("*", 75), env: { COMMUNITY_DB: db, COMMUNITY_CATALOG_ROLLOUT_PERCENTAGE: "50" } })).status, 204);
+});

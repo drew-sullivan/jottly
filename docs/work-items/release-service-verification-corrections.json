@@ -1,0 +1,121 @@
+{
+  "version": 1,
+  "id": "release-service-verification-corrections",
+  "title": "Correct service defects exposed by full release verification",
+  "request": {
+    "text": "Ok, make it as complete as you can and then leave a message for me that says what I need to do when you're done. Prior approved testing policy: If we've got any skips, we should be deleting them or changing them to mocks/stubs.",
+    "source": "Current Jotto task release-verification continuation. Actual 2026-09-28 checks reproduced intermittent DER misclassification, Production analytics HTTP500 and compressed ETag HTTP200 instead of304. Linked to the unchanged historical-launch-audit service and release requirements; this website-only correction does not replace Apple observations."
+  },
+  "requirements": [
+    {
+      "id": "r01",
+      "text": "CloudKit WebCrypto P-256 signatures always encode the full 64-byte raw r/s pair as DER, including every first-byte value; malformed lengths fail explicitly. Verify headers with real cryptography and preserve retry/query contracts.",
+      "checks": [
+        "service-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r02",
+      "text": "The authenticated analytics report executes its real SQL against the current SQLite schema, returns ranked private submission counts with deterministic ties and the approved anonymous aggregate dimensions, and remains inaccessible without its token.",
+      "checks": [
+        "service-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r03",
+      "text": "Catalog GET recognizes matching weak or strong If-None-Match values, valid lists and wildcard after a representation exists; misses and malformed validators return the complete current payload while rollout and unavailable states retain precedence.",
+      "checks": [
+        "service-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r04",
+      "text": "Replace the two never-enabled development CloudKit live opt-ins with always-running signed transport and complete sweep/publication/read-back contracts using a controllable fake Apple boundary, generated test keys and an in-memory SQL database. Cover pagination, retries, invalid statuses, privacy and unavailable-source recovery. Retain real public Production endpoint probes and document simulated versus deployed proof.",
+      "checks": [
+        "service-contracts",
+        "website-suite"
+      ]
+    },
+    {
+      "id": "r05",
+      "text": "Run focused behavioral checks and the whole website suite against the exact staged source, review quality and retain Production verification separately after the existing main-triggered deployment; do not claim native Complete or TestFlight from website evidence.",
+      "checks": [
+        "service-contracts",
+        "website-suite"
+      ]
+    }
+  ],
+  "checks": {
+    "service-contracts": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tests/community-cloudkit.test.mjs",
+        "tests/community-publication.test.mjs",
+        "tests/analytics-handlers.test.mjs",
+        "tests/community-signed-contracts.test.mjs"
+      ]
+    },
+    "website-suite": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test"
+      ]
+    }
+  },
+  "scope": [
+    "functions/api/community/v1/cloudkit-client.js",
+    "functions/api/community/v1/catalog.js",
+    "functions/api/analytics/v1/report.js",
+    "tests/community-cloudkit.test.mjs",
+    "tests/community-publication.test.mjs",
+    "tests/analytics-handlers.test.mjs",
+    "tests/community-live.test.mjs",
+    "tests/community-signed-contracts.test.mjs",
+    "tests/support/sqlite-d1.mjs",
+    "COMMUNITY.md",
+    "docs/work-items/release-service-verification-corrections.json"
+  ],
+  "results": {
+    "r01": {
+      "status": "verified",
+      "summary": "Fixed-width WebCrypto input is encoded unconditionally; a 1,024-case deterministic prefix/high-bit matrix reproduces and guards the intermittent 0x30 collision, independent OpenSSL validates actual signed request headers and invalid widths fail typed."
+    },
+    "r02": {
+      "status": "verified",
+      "summary": "The real current schema and report SQL execute in SQLite. Empty reports, idempotent aggregates, submission-count ordering, date/digest tie ordering and unauthorized access are asserted; the nonexistent ordering column was the reproduced HTTP500 cause."
+    },
+    "r03": {
+      "status": "verified",
+      "summary": "Public conditional GET now uses weak validator comparison, accepts valid lists/wildcard and rejects malformed or mismatching values while preserving full bytes, rollout and missing-data outcomes. Current Production compression supplied W/ validators, reproducing the previous miss."
+    },
+    "r04": {
+      "status": "verified",
+      "summary": "Two never-enabled development live tests are replaced by three always-running tests through actual signing, query, retries, pagination, sweep, SQLite publication and client DTO read-back. Fake Apple responses exercise failure/status/privacy/duplicate/stale/recovery contracts without keys or network. Real public deployment tests remain separate."
+    },
+    "r05": {
+      "status": "verified",
+      "summary": "30 focused tests and 183 full-suite source tests passed; the nine real endpoint probes are deferred only until the corrected website deploys and are not claimed passed here. Source evidence is recorded by work_contract; initial failures remain retained in release-verification artifacts."
+    }
+  },
+  "review": {
+    "score": 9.2,
+    "areas": {
+      "request_match": "Actual full release verification exposed three service failures; each now has a deterministic regression and a narrow production correction. The user-approved simulation policy replaces the two inaccessible CloudKit service opt-ins rather than asking for keys. Original app/Apple requirements remain open.",
+      "behavior": "The production SQL runs against its real schema; HTTP cache tests reproduce compressed weak validators; signature tests cover every leading byte rather than relying on a lucky randomized run. Golden paths and failure outcomes are asserted through production entry points.",
+      "failure_recovery": "Unexpected CloudKit success statuses are rejected, retries are bounded and privacy-safe errors omit response bodies. The complete signed journey rejects failed upstream data, prevents stale publication replacing valid bytes, and recovers on the next successful query. Existing outage-to-featured publication tests remain.",
+      "blast_radius": "Three small server corrections, no schema migration, credential, binding or scheduler changes. Full website tests cover dashboard, routes, privacy, reports and community publication. SQLite test support is local to the new assertions.",
+      "test_depth": "30 focused checks pass including a 1,024-case signature matrix, independent cryptographic verification and real-SQL report/publication tests. 183 source tests pass; nine retained real deployment probes are explicitly separate. Regressions failed before the corresponding production changes.",
+      "remaining_risks": "Simulated Apple transport proves contracts, not external credentials/APNs availability. Website Production behavior must be checked after the existing automatic main deployment. TestFlight and native Complete are independent; no whole-release shipped claim follows from this source commit."
+    }
+  }
+}

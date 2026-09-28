@@ -33,7 +33,7 @@ export async function onRequestGet(context) {
            MIN(received_at) AS first_received_at, MAX(received_at) AS last_received_at
     FROM loved_game_candidates
     GROUP BY definition_digest, contract_json
-    ORDER BY anonymous_install_count DESC, last_received_at DESC, definition_digest ASC
+    ORDER BY submission_count DESC, last_received_at DESC, definition_digest ASC
     LIMIT 100
   `).all();
   return json({

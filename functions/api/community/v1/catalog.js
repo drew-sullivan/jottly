@@ -19,7 +19,7 @@ export async function onRequestGet({ request, env }) {
     vary: "X-Jottly-Catalog-Bucket",
     etag,
   };
-  if (request.headers.get("if-none-match") === etag) return new Response(null, { status: 304, headers });
+  if (matchesCurrentRepresentation(request.headers.get("if-none-match"), etag)) return new Response(null, { status: 304, headers });
   return new Response(row.payload_json, { status: 200, headers });
 }
 
@@ -54,4 +54,16 @@ function unavailable() {
     status: 503,
     headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
   });
+}
+
+
+function matchesCurrentRepresentation(value, etag) {
+  if (value === null) return false;
+  const condition = value.trim();
+  if (condition === "*") return true;
+  // GET uses weak comparison (RFC 9110 §13.1.2); CDNs weaken tags after compression.
+  // Parse complete quoted tags, so a comma inside an opaque tag is not a separator.
+  const tag = '(?:W/)?"[\\x21\\x23-\\x7e\\x80-\\xff]*"';
+  if (!new RegExp(`^${tag}(?:[ \\t]*,[ \\t]*${tag})*$`).test(condition)) return false;
+  return [...condition.matchAll(new RegExp(tag, "g"))].some(([candidate]) => candidate.replace(/^W\//, "") === etag);
 }

@@ -4,6 +4,9 @@ import test from "node:test";
 import { onRequestPost } from "../functions/api/analytics/v1/events.js";
 import { onRequestGet } from "../functions/api/analytics/v1/report.js";
 
+import { SQLiteD1 } from "./support/sqlite-d1.mjs";
+import { ensureAnalyticsSchema } from "../functions/api/analytics/v1/schema.js";
+
 const payload = {
   schemaVersion: 1,
   entries: [{
@@ -240,3 +243,30 @@ class FakeDB {
     });
   }
 }
+
+
+test("real report SQL ranks private submissions and returns anonymous aggregate data", async (t) => {
+  const db = new SQLiteD1(); t.after(() => db.close());
+  const get = (token = "secret") => onRequestGet({
+    request: new Request("https://icedmatchalabs.com/api/analytics/v1/report?days=7", { headers: { authorization: `Bearer ${token}` } }),
+    env: { ANALYTICS_DB: db, ANALYTICS_REPORT_TOKEN: "secret" },
+  });
+  assert.equal((await get("wrong")).status, 404);
+  const empty = await get(); assert.equal(empty.status, 200);
+  assert.deepEqual(await empty.json(), { days: 7, rows: [], lovedGameCandidates: [] });
+  await ensureAnalyticsSchema(db);
+  const insert = db.sqlite.prepare("INSERT INTO loved_game_candidates (submission_id, definition_digest, contract_json, received_at) VALUES (?, ?, ?, ?)");
+  for (const [digest, count, date] of [["a", 3, "2026-09-01"], ["b", 1, "2026-09-04"], ["c", 1, "2026-09-03"], ["d", 1, "2026-09-03"]]) {
+    for (let i = 0; i < count; i += 1) insert.run(`${digest}-${i}`, digest, JSON.stringify({ protocolVersion: 1, definitionDigest: digest }), date);
+  }
+  assert.equal((await onRequestPost(context(payload, db))).status, 200);
+  assert.equal((await onRequestPost(context(payload, db))).status, 200);
+  const reply = await get(); assert.equal(reply.status, 200);
+  const report = await reply.json();
+  assert.deepEqual(report.lovedGameCandidates.map(x => [x.definitionDigest, x.privateSubmissionCount]), [["a", 3], ["b", 1], ["c", 1], ["d", 1]]);
+  assert.equal(report.rows.length, 1);
+  assert.equal(report.rows[0].count, 2);
+  assert.equal(report.rows[0].event, "mode_selected");
+  for (const row of report.rows) for (const key of Object.keys(row)) assert.doesNotMatch(key, /player|device|game_id|opponent|timestamp|name/i);
+  assert.equal((await get("wrong")).status, 404);
+});
