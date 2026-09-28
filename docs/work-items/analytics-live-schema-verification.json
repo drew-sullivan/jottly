@@ -1,0 +1,59 @@
+{
+  "version": 1,
+  "id": "analytics-live-schema-verification",
+  "title": "Validate live analytics using the explicit anonymous report schema",
+  "request": {
+    "text": "Ok, make it as complete as you can and then leave a message for me that says what I need to do when you're done.",
+    "source": "Bounded addition to release-service-verification-corrections: source review found the old live validator rejects the approved word_length dimension via /word/. Preserve privacy rejection by allowing only the reviewed complete row-key set, with deterministic positive and negative tests. No credential authorization is implied by this test-source change."
+  },
+  "requirements": [
+    {
+      "id": "r01",
+      "text": "Live analytics verification accepts exactly the approved row dimensions including word_length, rejects every unknown/identity key before claiming the response valid, and retains authenticated status/cache checks. Deterministic regressions exercise the actual helper used by the live probe, including empty rows, malformed row containers and arbitrary injected keys.",
+      "checks": [
+        "analytics-verifier",
+        "website-suite"
+      ]
+    }
+  ],
+  "checks": {
+    "analytics-verifier": {
+      "kind": "automated",
+      "command": [
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tests/analytics-live.test.mjs"
+      ]
+    },
+    "website-suite": {
+      "kind": "automated",
+      "command": [
+        "env",
+        "PATH=/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin:/usr/bin:/bin:/usr/sbin:/sbin",
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test"
+      ]
+    }
+  },
+  "scope": [
+    "tests/analytics-live.test.mjs",
+    "docs/work-items/analytics-live-schema-verification.json"
+  ],
+  "results": {
+    "r01": {
+      "status": "verified",
+      "summary": "Both deterministic regressions failed with the previous forbidden-word heuristic. The actual live helper now accepts the reviewed aggregate keys including word_length and rejects arbitrary unknown keys and malformed containers; live authorization/status/cache checks remain intact."
+    }
+  },
+  "review": {
+    "score": 9.2,
+    "areas": {
+      "request_match": "Removes a proven false rejection and strengthens the live release check without weakening privacy or replacing current Production evidence.",
+      "behavior": "Reviewed query dimensions are enumerated explicitly; each observed row must be an object and every key must belong to the allowlist. Empty reports remain valid.",
+      "failure_recovery": "Unexpected identity, content and arbitrary new keys fail closed. Malformed row containers fail before an endpoint can be declared verified. Production HTTP/status/cache assertions remain unchanged.",
+      "blast_radius": "Changes only the test helper and deterministic regressions; no website runtime, database or app behavior changes.",
+      "test_depth": "Two failing-before regressions exercise every approved key, ten forbidden/unknown examples and seven malformed shapes through the exact helper used by the live probe. Full website source suite is also recorded.",
+      "remaining_risks": "Protected Production checks still require the pending explicit credential approval. Source tests are not delivery observations, and Apple/native release checks remain independent."
+    }
+  }
+}

@@ -58,10 +58,7 @@ test("production report token returns only approved anonymous dimensions", {
   const report = await response.json();
   assert.equal(report.days, 7);
   assert.equal(Array.isArray(report.rows), true);
-  const forbidden = /player|device|game_id|opponent|word|name|timestamp/i;
-  for (const row of report.rows) {
-    for (const key of Object.keys(row)) assert.doesNotMatch(key, forbidden);
-  }
+  verifyAnonymousRows(report.rows);
 });
 
 async function post(payload) {
@@ -72,3 +69,35 @@ async function post(payload) {
   });
   return { response, body: await response.json() };
 }
+
+
+function verifyAnonymousRows(rows) {
+  const allowed = new Set([
+    "day", "category", "event", "app_version", "release_channel", "mode", "game_source",
+    "game_kind", "game_slug", "word_length", "rule_id", "share_source", "share_channel",
+    "turn_bucket", "duration_bucket", "outcome", "performance_bucket", "reliability_reason",
+    "community_selection_source", "context", "reason", "install_cohort", "count",
+  ]);
+  assert.equal(Array.isArray(rows), true, "rows must be an array");
+  for (const row of rows) {
+    assert.ok(row !== null && typeof row === "object" && !Array.isArray(row), "row must be an object");
+    for (const key of Object.keys(row)) assert.ok(allowed.has(key), `Unapproved report dimension: ${key}`);
+  }
+}
+
+test("live report validation accepts every reviewed aggregate dimension including word length", () => {
+  verifyAnonymousRows([]);
+  verifyAnonymousRows([Object.fromEntries([
+    "day", "category", "event", "app_version", "release_channel", "mode", "game_source",
+    "game_kind", "game_slug", "word_length", "rule_id", "share_source", "share_channel",
+    "turn_bucket", "duration_bucket", "outcome", "performance_bucket", "reliability_reason",
+    "community_selection_source", "context", "reason", "install_cohort", "count",
+  ].map(key => [key, null]))]);
+});
+
+test("live report validation rejects unknown identity and content keys and malformed row containers", () => {
+  for (const key of ["player", "device_id", "game_id", "opponent", "word", "name", "timestamp", "custom_field", "diagnostics", "private_payload"]) {
+    assert.throws(() => verifyAnonymousRows([{ count: 1, [key]: "must not pass" }]));
+  }
+  for (const rows of [null, {}, "text", [null], [[]], ["text"], [1]]) assert.throws(() => verifyAnonymousRows(rows));
+});
