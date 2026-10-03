@@ -76,3 +76,31 @@ are the exceptions: the app deduplicates them locally before aggregation, withou
 marker or an identifier to the server.
 Starts and finishes within a selected window are not cohorts, so the UI labels their quotient as an
 "observed finish ratio" and allows it to exceed 100% when a game crosses the window boundary.
+
+## Public intake admission (version 1)
+
+All report, automatic reliability, analytics and contribution bodies are read into a fixed-size byte
+buffer. Actual bytes, not Content-Length alone, control rejection. Limits are 128 KiB for the report
+route (automatic metadata retains its stricter 32 KiB validation) and 64 KiB for aggregate/contribution
+routes. Oversized streams are cancelled; invalid UTF-8, interruption and malformed JSON fail explicitly.
+
+Each minute, the atomic D1 admission ledger permits manual reports 30/source and 300 globally,
+automatic reports 60/source and 300 globally, aggregate entries 120/source and 1,000 globally,
+and contributions 20/source and 200 globally. Contributions additionally retain an atomic 1,000/day
+UTC storage cap. A legitimate duplicate consumes no new admission; already durable retries stay
+acknowledged at quota. Rejection is HTTP 429 with Retry-After; missing limiter key/storage is HTTP 503.
+A failed persistence operation keeps its receipt eligible for retry and never becomes a success.
+
+Cloudflare's trusted CF-Connecting-IP header is HMACed with the existing server-only reporting secret,
+a distinct purpose string, route and minute. Raw addresses, user/device IDs and report text are not
+stored in this ledger. Missing edge metadata uses a conservative shared bucket; X-Forwarded-For cannot
+create new buckets. Tokens rotate each minute. Ledger entries expire after two minute buckets and are
+removed by the next intake or daily maintenance. This is network abuse control, not analytics identity.
+People sharing an egress address share its quota; an unrelated source retains its own capacity within
+the global ceiling. Distributed floods and Cloudflare account-level WAF configuration remain separate.
+
+`GET /api/intake/v1/policy` publishes the exact enforced policy version and bounds, without secrets or
+usage. `node tests/intake-production.mjs` verifies that contract and three bounded invalid-body rejections
+in Production without creating records or exhausting live quotas. Local real-SQL tests exercise quota
+exhaustion, races, duplicate recovery, source isolation and expiry. No Cloudflare dashboard access is
+needed for these public service checks; its private WAF/analytics settings have not been verified.

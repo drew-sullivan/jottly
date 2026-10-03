@@ -1,0 +1,92 @@
+{
+  "version": 1,
+  "id": "report-79-bounded-public-intake",
+  "title": "Bound public intake and enforce atomic privacy-conscious admission",
+  "request": {
+    "text": "SP-05, audit #73; requested by #74. Problem: manual-report and analytics handlers lack request-volume admission limits; bodies are buffered before actual-size rejection. Automatic reports have an atomic cap; custom-game intake has a non-atomic global cap. Edge WAF configuration is unknown. Proposed fix: bound streaming reads and add privacy-conscious atomic service/edge limits without an embedded admin secret or permanent device tracking. Verify: chunked oversized bodies, concurrent bursts, quota exhaustion/recovery, duplicate retries at quota and legitimate users across all four intake routes. Not yet fixed. Full baseline: docs/SECURITY_PRIVACY_BASELINE.md at d5feeac.",
+    "source": "Developer report #79 aab30249-d4ea-555b-956f-f9c060dfc339; nightly batch 2026-10-02. Website task independent of app release train."
+  },
+  "scope": [
+    "functions/api/intake.js",
+    "functions/api/analytics/v1/events.js",
+    "functions/api/analytics/v1/loved-games.js",
+    "functions/api/dev-reports/v1/reports.js",
+    "worker.js",
+    "tests/",
+    "ANALYTICS.md",
+    "privacy.html",
+    "docs/work-items/report-79-bounded-public-intake.json"
+  ],
+  "requirements": [
+    {
+      "id": "r01",
+      "text": "Read all manual, automatic, aggregate and contribution JSON through bounded byte streaming; reject false/missing length oversized bodies and malformed streams without unbounded buffering.",
+      "checks": [
+        "intake-contracts"
+      ]
+    },
+    {
+      "id": "r02",
+      "text": "Enforce atomic global and short-lived source admission limits without persistent device identifiers or raw IP storage. Preserve duplicate retries at quota, independent-source availability, concurrent boundary correctness, retry-after and recovery after expiry/storage failure.",
+      "checks": [
+        "intake-contracts"
+      ]
+    },
+    {
+      "id": "r03",
+      "text": "Make the contribution daily cap atomic, preserve existing payload validation/privacy and durable idempotent acknowledgements, and verify all four real Worker routes plus adjacent service callers.",
+      "checks": [
+        "intake-contracts"
+      ]
+    },
+    {
+      "id": "r04",
+      "text": "Document the concrete service rate policy, verify focused local contracts and Production versioned behavior after the independent website deployment; distinguish unobserved Cloudflare account WAF settings.",
+      "checks": [
+        "intake-contracts",
+        "production"
+      ]
+    }
+  ],
+  "checks": {
+    "intake-contracts": {
+      "kind": "automated",
+      "command": [
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "--test",
+        "tests/intake.test.mjs",
+        "tests/analytics-handlers.test.mjs",
+        "tests/analytics-worker.test.mjs",
+        "tests/loved-game-candidates.test.mjs",
+        "tests/dev-reports.test.mjs",
+        "tests/reliability-reports.test.mjs",
+        "tests/product-copy.test.mjs"
+      ]
+    },
+    "production": {
+      "kind": "automated",
+      "command": [
+        "/Users/dsull/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/bin/node",
+        "tests/intake-production.mjs"
+      ]
+    }
+  },
+  "results": {
+    "r01": {
+      "status": "verified",
+      "summary": "Real Worker stream regressions first failed with HTTP400 after consuming the oversized tail. Final bounded reader uses a fixed 64/128KiB buffer, rejects actual-byte overflow before the next pull, cancels the stream and rejects invalid UTF8/interruption. Tiny/empty chunks and split Unicode do not amplify buffered storage."
+    },
+    "r02": {
+      "status": "verified",
+      "summary": "Atomic conditional SQLite insert limits route/global and one-minute keyed source buckets. Four-route real-SQL journeys verify exact limits, another source retaining capacity, durable duplicates acknowledged at quota, expiry, missing/failed limiter state, same-source and global concurrent boundaries, spoofed forwarding headers and key/IP absence from the ledger."
+    },
+    "r03": {
+      "status": "verified",
+      "summary": "Contribution insert now conditionally enforces its UTC daily ceiling in the same statement; concurrent attempts at row999 admit exactly one and retry the winner safely. All four persistence failures after admission return503 and retry to one durable success. Invalid aggregate batch acknowledgements fail explicitly. Existing manual identity, automatic grouping/retention and aggregate/package contracts pass."
+    },
+    "r04": {
+      "status": "pending",
+      "summary": "Source implementation is complete under linked report-79-intake-implementation. Actual independent website deployment and original Production check remain required before this parent/ticket can close."
+    }
+  }
+}

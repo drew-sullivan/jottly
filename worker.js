@@ -1,3 +1,4 @@
+import { intakePolicy, intakeResponse, expireIntake } from "./functions/api/intake.js";
 import { ensureDevReportSchema } from "./functions/api/dev-reports/v1/schema.js";
 import { expireAutomaticDiagnostics } from "./functions/api/dev-reports/v1/reliability.js";
 import { onRequestPost as receiveAnalytics } from "./functions/api/analytics/v1/events.js";
@@ -31,6 +32,11 @@ const devReportsHealthPath = `${devReportsPath}/health`;
 export default {
   async fetch(request, env, executionContext) {
     const path = new URL(request.url).pathname;
+
+    if (path === "/api/intake/v1/policy") {
+      if (request.method !== "GET") return methodNotAllowed("GET");
+      return intakeResponse(intakePolicy, 200);
+    }
 
     if (path === eventsPath) {
       if (request.method !== "POST") return methodNotAllowed("POST");
@@ -107,9 +113,10 @@ export default {
     const retention = env.COMMUNITY_DB
       ? ensureDevReportSchema(env.COMMUNITY_DB).then(() => expireAutomaticDiagnostics(env.COMMUNITY_DB, controller.scheduledTime))
       : Promise.reject(new Error("Automatic diagnostic retention unavailable"));
-    ctx.waitUntil(Promise.allSettled([sweep, retention]).then(results => {
+    ctx.waitUntil(Promise.allSettled([sweep, retention, ...[env.ANALYTICS_DB, env.COMMUNITY_DB].filter(Boolean).map(db => expireIntake(db, controller.scheduledTime))]).then(results => {
       if (results[0].status === "rejected") throw results[0].reason;
       if (results[1].status === "rejected") throw new Error("Automatic diagnostic retention failed");
+      if (results.slice(2).some(result => result.status === "rejected")) throw new Error("Intake retention failed");
     }));
   },
 };

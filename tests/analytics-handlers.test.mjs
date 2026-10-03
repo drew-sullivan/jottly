@@ -202,12 +202,13 @@ function context(body, db, extraHeaders = {}) {
       headers: { "content-type": "application/json", ...extraHeaders },
       body: JSON.stringify(body),
     }),
-    env: { ANALYTICS_DB: db },
+    env: { ANALYTICS_DB: db, ANALYTICS_REPORT_TOKEN: "secret" },
   };
 }
 
 class FakeDB {
   constructor(results = [], candidates = []) {
+    this.intake = new SQLiteD1();
     this.results = results;
     this.candidates = candidates;
     this.writeBatches = [];
@@ -216,6 +217,7 @@ class FakeDB {
   }
 
   prepare(sql) {
+    if (sql.includes("intake_admissions")) return this.intake.prepare(sql);
     const statement = {
       sql,
       values: [],

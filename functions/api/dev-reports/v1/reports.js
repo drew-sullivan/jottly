@@ -1,3 +1,4 @@
+import { readBoundedJSON, admitIntake } from "../../intake.js";
 import { validateAutomaticReport, receiveAutomatic, expireAutomaticDiagnostics } from "./reliability.js";
 import { ensureDevReportSchema } from "./schema.js";
 
@@ -21,8 +22,20 @@ export async function onRequestPost({ request, env, nowMilliseconds = Date.now()
     await ensureDevReportSchema(env.COMMUNITY_DB);
     const db = env.COMMUNITY_DB;
     await expireAutomaticDiagnostics(db, nowMilliseconds);
-    if (body.automatic !== undefined) return await receiveAutomatic(body, db, nowMilliseconds);
+    if (body.automatic !== undefined) {
+      const receipt = await db.prepare("SELECT id FROM automatic_report_receipts WHERE id = ?").bind(body.id).first();
+      if (!receipt) {
+        const admission = await admitIntake({ request, env, db, route: "automatic", receipt: body.id, now: nowMilliseconds });
+        if (admission) return admission;
+      }
+      return await receiveAutomatic(body, db, nowMilliseconds);
+    }
     const fingerprint = await submissionFingerprint(body);
+    const existing = await readReport(db, body.id);
+    if (existing) return sameSubmission(existing, body, fingerprint) ? json(project(existing, false), 200)
+      : json({ error: "Report ID already belongs to a different submission" }, 409);
+    const admission = await admitIntake({ request, env, db, route: "manual", receipt: body.id, now: nowMilliseconds });
+    if (admission) return admission;
     const inserted = await db.prepare(`
       INSERT OR IGNORE INTO dev_reports (
         id, kind, title, description, diagnostics, app_version, build_number,
@@ -151,20 +164,7 @@ async function readReport(db, id) {
   return db.prepare("SELECT rowid AS ticket_number, * FROM dev_reports WHERE id = ?").bind(id).first();
 }
 
-async function readJSON(request) {
-  const length = request.headers.get("content-length");
-  if (length !== null && Number(length) > maximumBodyBytes) return json({ error: "Report too large" }, 413);
-  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) {
-    return json({ error: "Content-Type must be application/json" }, 415);
-  }
-  try {
-    const text = await request.text();
-    if (new TextEncoder().encode(text).byteLength > maximumBodyBytes) return json({ error: "Report too large" }, 413);
-    return JSON.parse(text);
-  } catch {
-    return json({ error: "Invalid JSON" }, 400);
-  }
-}
+async function readJSON(request) { return readBoundedJSON(request, maximumBodyBytes); }
 
 function validReport(body) {
   return plainObject(body)

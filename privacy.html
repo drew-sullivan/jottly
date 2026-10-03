@@ -181,6 +181,14 @@
   <p>No name or email address is required to play. A parent or guardian can contact us about information
   a child may have included in a custom game or report. We do not use that information for advertising.</p>
 
+  <h2>Protecting public submission services</h2>
+  <p>To limit automated abuse, our server uses the network address supplied by Cloudflare to produce a
+  keyed, temporary rate-limit token. The admission ledger stores no raw network address, permanent
+  device identifier, or report text. Tokens change each minute; entries expire after two minute buckets
+  and are removed on the next submission or daily maintenance. People sharing a network address may
+  share a temporary limit. A rejected submission can be retried; an acknowledged duplicate does not
+  create another record. This abuse control is separate from optional product analytics.</p>
+
   <h2>Data retention and deletion</h2>
   <p><strong>Turn off sharing and clear pending data</strong> in Settings disables both optional sharing
   choices and clears improvement data stored on this device. It does not delete data already received by

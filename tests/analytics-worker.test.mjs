@@ -1,3 +1,4 @@
+import { SQLiteD1 } from "./support/sqlite-d1.mjs";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
@@ -16,6 +17,7 @@ test("the Worker routes analytics writes and leaves static pages on the asset bi
 
   const apiResponse = await worker.fetch(request("/api/analytics/v1/events", "POST", payload), {
     ANALYTICS_DB: db,
+    ANALYTICS_REPORT_TOKEN: "test-intake-key",
     ASSETS: assets,
   });
   assert.equal(apiResponse.status, 200);
@@ -24,6 +26,7 @@ test("the Worker routes analytics writes and leaves static pages on the asset bi
 
   const pageResponse = await worker.fetch(request("/daily", "GET"), {
     ANALYTICS_DB: db,
+    ANALYTICS_REPORT_TOKEN: "test-intake-key",
     ASSETS: assets,
   });
   assert.equal(pageResponse.status, 200);
@@ -37,6 +40,7 @@ test("the Worker routes analytics writes and leaves static pages on the asset bi
     { "x-jottly-validate-only": "1" },
   ), {
     ANALYTICS_DB: db,
+    ANALYTICS_REPORT_TOKEN: "test-intake-key",
     ASSETS: assets,
   });
   assert.equal(lovedResponse.status, 200);
@@ -221,8 +225,10 @@ class FakeAssets {
 class FakeDB {
   constructor() {
     this.ids = new Set();
+    this.intake = new SQLiteD1();
   }
   prepare(sql) {
+    if (sql.includes("intake_admissions")) return this.intake.prepare(sql);
     return { sql, values: [], bind: (...values) => ({ sql, values }) };
   }
   async batch(statements) {

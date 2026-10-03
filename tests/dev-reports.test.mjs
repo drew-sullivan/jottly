@@ -244,7 +244,7 @@ test("report reads and status changes require the dashboard token, while app sub
 test("a missing dashboard secret fails closed", async () => {
   const env = environment();
   delete env.ANALYTICS_REPORT_TOKEN;
-  assert.equal((await worker.fetch(request(path, "POST", payload()), env)).status, 201);
+  assert.equal((await worker.fetch(request(path, "POST", payload()), env)).status, 503);
   assert.equal((await worker.fetch(request(path, "GET"), env)).status, 404);
   assert.equal((await worker.fetch(request(`${path}/${id}`, "GET"), env)).status, 404);
   assert.equal((await worker.fetch(request(`${path}/${id}`, "PATCH", {
@@ -274,6 +274,7 @@ function request(url, method, body, authorized = true) {
   return new Request(url, {
     method,
     headers: {
+      "cf-connecting-ip": body?.id ?? "test-source",
       ...(body === undefined ? {} : { "content-type": "application/json" }),
       ...(authorized && method !== "POST" ? { authorization: "Bearer test-report-token" } : {}),
     },

@@ -16,7 +16,7 @@ const environment=()=>{
  }
  return {sqlite,ANALYTICS_REPORT_TOKEN:'test',COMMUNITY_DB:{prepare:sql=>new Prepared(sql)}};
 };
-const req=(method,body,path=endpoint)=>new Request(path,{method,headers:{'content-type':'application/json','authorization':'Bearer test'},body:body===undefined?undefined:JSON.stringify(body)});
+const req=(method,body,path=endpoint)=>new Request(path,{method,headers:{'content-type':'application/json','authorization':'Bearer test','cf-connecting-ip':body?.id??'test-source'},body:body===undefined?undefined:JSON.stringify(body)});
 async function payload(changes={}){
  const automatic={version:1,incidentID:id(),fingerprint:'',operation:'share.prepare',signal:'stalled',event:'initial',outcome:'pending',phase:'resolving',reason:'none',elapsedMilliseconds:15000,thresholdMilliseconds:15000,occurrences:1,network:'online',commit:'a'.repeat(40),channel:'testflight',environment:'production',os:'26.5',device:'iPhone',context:[],truncated:false,...changes};
  automatic.fingerprint=await sha256(['1','3.4.2','41',automatic.commit,automatic.channel,automatic.environment,automatic.operation,automatic.signal,automatic.reason].join('|'));

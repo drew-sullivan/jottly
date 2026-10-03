@@ -1,3 +1,5 @@
+import { SQLiteD1 } from "./support/sqlite-d1.mjs";
+import { analyticsSchemaSQL } from "../functions/api/analytics/v1/schema.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { readFile } from "node:fs/promises";
@@ -120,7 +122,7 @@ test("the global daily cap rejects storage before another row is written", async
   const db = new CandidateDB(1_000);
   const response = await onRequestPost(context(payload(), db));
   assert.equal(response.status, 429);
-  assert.equal(db.rows.length, 0);
+  assert.equal(db.rows.length, 1_000);
 });
 
 function context(body, db, extraHeaders = {}) {
@@ -130,35 +132,19 @@ function context(body, db, extraHeaders = {}) {
       headers: { "content-type": "application/json", ...extraHeaders },
       body: JSON.stringify(body),
     }),
-    env: { ANALYTICS_DB: db },
+    env: { ANALYTICS_DB: db, ANALYTICS_REPORT_TOKEN: "test-intake-key" },
   };
 }
 
-class CandidateDB {
+class CandidateDB extends SQLiteD1 {
   constructor(dailyCount = 0) {
-    this.dailyCount = dailyCount;
-    this.rows = [];
-    this.ids = new Set();
+    super();
+    this.sqlite.exec(analyticsSchemaSQL);
+    const insert = this.sqlite.prepare("INSERT INTO loved_game_candidates(submission_id, definition_digest, contract_json) VALUES (?, ?, ?)");
+    for (let i = 0; i < dailyCount; i++) insert.run(`seed-${i}`, "seed", "{}");
   }
-  prepare(sql) {
-    const db = this;
-    return {
-      sql,
-      values: [],
-      bind(...values) {
-        return {
-          sql,
-          values,
-          async run() {
-            const inserted = db.ids.has(values[0]) ? 0 : 1;
-            db.ids.add(values[0]);
-            if (inserted) db.rows.push(values);
-            return { meta: { changes: inserted } };
-          },
-        };
-      },
-      async first() { return { count: db.dailyCount }; },
-    };
+  get rows() {
+    return this.sqlite.prepare("SELECT submission_id, definition_digest, contract_json FROM loved_game_candidates").all()
+      .map(row => [row.submission_id, row.definition_digest, row.contract_json]);
   }
-  async batch(statements) { return statements.map(() => ({ success: true, meta: { changes: 0 } })); }
 }

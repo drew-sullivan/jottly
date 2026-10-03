@@ -1,3 +1,4 @@
+import { readBoundedJSON, admitIntake, intakeResponse } from "../../intake.js";
 import { ensureAnalyticsSchema } from "./schema.js";
 import { sha256Hex, stableJSONStringify } from "../../community/v1/contract.js";
 
@@ -30,23 +31,35 @@ const allowedConfigurationKeys = new Set([
 
 export async function onRequestPost(context) {
   const request = context.request;
-  if (!request.headers.get("content-type")?.toLowerCase().startsWith("application/json")) return json({ error: "Expected application/json" }, 415);
-  if (Number(request.headers.get("content-length") || 0) > maximumBodyBytes) return json({ error: "Payload too large" }, 413);
-  let raw;
-  try { raw = await request.text(); } catch { return json({ error: "Invalid request body" }, 400); }
-  if (new TextEncoder().encode(raw).byteLength > maximumBodyBytes) return json({ error: "Payload too large" }, 413);
-  let payload;
-  try { payload = JSON.parse(raw); } catch { return json({ error: "Invalid JSON" }, 400); }
+  const payload = await readBoundedJSON(request, maximumBodyBytes);
+  if (payload instanceof Response) return payload;
   const validation = await validateLovedGameCandidate(payload);
   if (!validation.ok) return json({ error: validation.error }, 400);
   if (request.headers.get("x-jottly-validate-only") === "1") return json({ accepted: 1 }, 200);
   if (!context.env.ANALYTICS_DB) return json({ error: "Analytics unavailable" }, 503);
-  await ensureAnalyticsSchema(context.env.ANALYTICS_DB);
-  const daily = await context.env.ANALYTICS_DB.prepare("SELECT COUNT(*) AS count FROM loved_game_candidates WHERE received_at >= date('now')").first();
-  if (Number(daily?.count ?? 0) >= maximumDailySubmissions) return json({ error: "Daily intake full" }, 429);
-  const result = await context.env.ANALYTICS_DB.prepare("INSERT OR IGNORE INTO loved_game_candidates (submission_id, definition_digest, contract_json) VALUES (?, ?, ?)")
-    .bind(payload.submissionID, validation.definitionDigest, validation.canonicalPayload).run();
-  return json({ accepted: 1, inserted: Number(result?.meta?.changes ?? 0) }, 200);
+  try {
+    await ensureAnalyticsSchema(context.env.ANALYTICS_DB);
+    const db = context.env.ANALYTICS_DB;
+    const existing = await db.prepare("SELECT submission_id FROM loved_game_candidates WHERE submission_id = ?")
+      .bind(payload.submissionID).first();
+    if (existing) return json({ accepted: 1, inserted: 0 }, 200);
+    const admission = await admitIntake({ request, env: context.env, db, route: "contributions",
+      receipt: payload.submissionID, now: context.nowMilliseconds ?? Date.now() });
+    if (admission) return admission;
+    const result = await db.prepare(`INSERT OR IGNORE INTO loved_game_candidates
+      (submission_id, definition_digest, contract_json) SELECT ?, ?, ?
+      WHERE (SELECT COUNT(*) FROM loved_game_candidates WHERE received_at >= date('now')) < ?`)
+      .bind(payload.submissionID, validation.definitionDigest, validation.canonicalPayload, maximumDailySubmissions).run();
+    if (Number(result?.meta?.changes ?? 0) === 0) {
+      const saved = await db.prepare("SELECT submission_id FROM loved_game_candidates WHERE submission_id = ?")
+        .bind(payload.submissionID).first();
+      if (!saved) return intakeResponse({ error: "Daily intake full" }, 429, { "retry-after": "3600" });
+    }
+    return json({ accepted: 1, inserted: Number(result?.meta?.changes ?? 0) }, 200);
+  } catch {
+    console.warn(JSON.stringify({ event: "intake.persistence_unavailable", route: "loved-games" }));
+    return json({ error: "Analytics unavailable" }, 503);
+  }
 }
 
 export async function validateLovedGameCandidate(payload) {
