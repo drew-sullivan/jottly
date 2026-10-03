@@ -85,8 +85,19 @@
       "summary": "Contribution insert now conditionally enforces its UTC daily ceiling in the same statement; concurrent attempts at row999 admit exactly one and retry the winner safely. All four persistence failures after admission return503 and retry to one durable success. Invalid aggregate batch acknowledgements fail explicitly. Existing manual identity, automatic grouping/retention and aggregate/package contracts pass."
     },
     "r04": {
-      "status": "pending",
-      "summary": "Source implementation is complete under linked report-79-intake-implementation. Actual independent website deployment and original Production check remain required before this parent/ticket can close."
+      "status": "verified",
+      "summary": "Website implementation24437e52cbf54c724f766ea29bdc6768ddca35dd is verified on origin/main; GitHub Pages and Workers Builds both completed successfully. Source-bound Production check observed HTTP200 exact policy-v1 JSON and HTTP413 with the exact error contract on all three public POST paths (manual and automatic share the report path). Only invalid bounded requests were sent; live quotas were not exhausted and private WAF settings remain unobserved."
+    }
+  },
+  "review": {
+    "score": 9.1,
+    "areas": {
+      "request_match": "All four original intake criteria are now verified by this parent: the separately committed source implementation plus its own focused and Production receipts. No original criterion was removed or replaced.",
+      "behavior": "The original three real Worker stream tests failed and now pass. Atomic SQL bounds source/global admissions without a read/count/write race. Distinct sources retain capacity; durable duplicate submissions return their existing receipt at quota, including automatic immutable identities and late retries.",
+      "failure_recovery": "All four routes were forced to fail after successful admission; no success was acknowledged, no partial record survived, and identical retry recovered without double charging. Missing keys/storage fail503, saturation returns429 with retry-after, schema failures retry, non-JSON/invalidUTF8/interrupted/oversized input fails closed. Invalid aggregate acknowledgement cannot silently report success.",
+      "blast_radius": "Only website intake handlers, Worker policy/maintenance wiring, service documentation/privacy explanation and their tests change. Existing server-only secret derives minute/route-specific HMAC tokens and is never copied to clients/logs. No credential rotation, Cloudflare private-account settings, CloudKit permissions, scheduled frequency or app source is changed. Existing database schemas are additive; no player/report data is deleted.",
+      "test_depth": "Focused real-SQL and real Worker tests cover all routes, concurrency, atomic daily cap, complete payload persistence, retries, cleanup and negative cases; original service identity/retention/auth/schema tests remain. The final full website suite also passes its local tests; opt-in live tests remain separately skipped, never counted as Production evidence. Production verifier has explicit stale/error negative controls.",
+      "remaining_risks": "Quality9.1 after fixed-memory streaming, post-admission failure/retry contracts and strict persistence acknowledgement improvements. Verified Production version and size rejection, not a flood test or Cloudflare private WAF inspection. NAT users share source quota; distributed floods remain a limitation. Tokens are removed on next intake or daily maintenance after logical expiry. Nine opt-in live suite tests were skipped separately and never counted as Production proof."
     }
   }
 }
